@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
   useRouterState,
+  ScrollRestoration,
 } from "@tanstack/react-router";
 
 import { BackgroundScene } from "@/components/BackgroundScene";
@@ -126,6 +127,7 @@ function RootShell({
       <body className="bg-background text-foreground antialiased">
         {children}
 
+        <ScrollRestoration />
         <Scripts />
       </body>
     </html>

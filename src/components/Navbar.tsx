@@ -116,7 +116,7 @@ export function Navbar() {
           </Link>
 
           {/* DESKTOP NAV */}
-          <nav className="hidden md:flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-2 backdrop-blur-xl">
+          <nav className="hidden lg:flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-2 backdrop-blur-xl whitespace-nowrap">
             {links.map((l) => {
               if (l.isPage && l.to) {
                 return (
@@ -128,7 +128,7 @@ export function Navbar() {
                   >
                     <Link
                       to={l.to}
-                      className="group relative rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-white transition"
+                      className="group relative rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-white transition whitespace-nowrap flex items-center"
                     >
                       {l.label}
                       <span className="absolute bottom-1 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-gradient-to-r from-cyan-400 to-violet-500 transition-all group-hover:w-8" />
@@ -203,7 +203,7 @@ export function Navbar() {
                 <button
                   key={l.href}
                   onClick={() => handleSectionClick(l.href!)}
-                  className={`px-4 py-2.5 text-sm font-semibold transition ${active === l.href ? "text-white" : "text-muted-foreground hover:text-white"
+                  className={`px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap flex items-center ${active === l.href ? "text-white" : "text-muted-foreground hover:text-white"
                     }`}
                 >
                   {l.label}
@@ -217,13 +217,13 @@ export function Navbar() {
             <ThemeToggle />
             <button
               onClick={() => handleSectionClick("#contact")}
-              className="hidden md:inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:scale-105 transition"
+              className="hidden lg:inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:scale-105 transition whitespace-nowrap"
             >
               Book a Call <ArrowUpRight className="h-4 w-4" />
             </button>
             <button
               onClick={() => setOpen(!open)}
-              className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card/80 md:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full border border-border bg-card/80 lg:hidden"
             >
               {open ? <X /> : <Menu />}
             </button>
@@ -237,7 +237,7 @@ export function Navbar() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mt-2 rounded-2xl border border-border/40 bg-card/80 p-3 backdrop-blur-xl md:hidden"
+              className="mt-2 rounded-2xl border border-border/40 bg-card/80 p-3 backdrop-blur-xl lg:hidden"
             >
               {/* Mobile: flat list with group labels */}
               <Link to="/" onClick={() => setOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-white/5 font-semibold text-sm">
