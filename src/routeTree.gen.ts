@@ -13,14 +13,19 @@ import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ServicesStarterKitRouteImport } from './routes/services.starter-kit'
 import { Route as ServicesSeoRouteImport } from './routes/services.seo'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminForgotPasswordRouteImport } from './routes/admin.forgot-password'
+import { Route as AdminCreateAdminRouteImport } from './routes/admin.create-admin'
 import { Route as ServicesWebSaasRouteImport } from './routes/services.web.saas'
 import { Route as ServicesWebPythonBackendRouteImport } from './routes/services.web.python-backend'
 import { Route as ServicesWebFullStackRouteImport } from './routes/services.web.full-stack'
@@ -55,6 +60,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -69,6 +79,11 @@ const ServicesIndexRoute = ServicesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ServicesRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ServicesStarterKitRoute = ServicesStarterKitRouteImport.update({
   id: '/starter-kit',
@@ -94,6 +109,21 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
   id: '/legal/cookies',
   path: '/legal/cookies',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminForgotPasswordRoute = AdminForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCreateAdminRoute = AdminCreateAdminRouteImport.update({
+  id: '/create-admin',
+  path: '/create-admin',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ServicesWebSaasRoute = ServicesWebSaasRouteImport.update({
   id: '/web/saas',
@@ -171,15 +201,20 @@ const ServicesAiChatbotsRoute = ServicesAiChatbotsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
   '/services': typeof ServicesRouteWithChildren
+  '/admin/create-admin': typeof AdminCreateAdminRoute
+  '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/login': typeof AdminLoginRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
+  '/admin/': typeof AdminIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
   '/services/ai/cv-nlp': typeof ServicesAiCvNlpRoute
@@ -201,11 +236,15 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
+  '/admin/create-admin': typeof AdminCreateAdminRoute
+  '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/login': typeof AdminLoginRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
+  '/admin': typeof AdminIndexRoute
   '/services': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
   '/services/ai/cv-nlp': typeof ServicesAiCvNlpRoute
@@ -225,15 +264,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
   '/services': typeof ServicesRouteWithChildren
+  '/admin/create-admin': typeof AdminCreateAdminRoute
+  '/admin/forgot-password': typeof AdminForgotPasswordRoute
+  '/admin/login': typeof AdminLoginRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
+  '/admin/': typeof AdminIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
   '/services/ai/cv-nlp': typeof ServicesAiCvNlpRoute
@@ -254,15 +298,20 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/portfolio'
     | '/resources'
     | '/services'
+    | '/admin/create-admin'
+    | '/admin/forgot-password'
+    | '/admin/login'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
     | '/services/seo'
     | '/services/starter-kit'
+    | '/admin/'
     | '/services/'
     | '/services/ai/chatbots'
     | '/services/ai/cv-nlp'
@@ -284,11 +333,15 @@ export interface FileRouteTypes {
     | '/contact'
     | '/portfolio'
     | '/resources'
+    | '/admin/create-admin'
+    | '/admin/forgot-password'
+    | '/admin/login'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
     | '/services/seo'
     | '/services/starter-kit'
+    | '/admin'
     | '/services'
     | '/services/ai/chatbots'
     | '/services/ai/cv-nlp'
@@ -307,15 +360,20 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/contact'
     | '/portfolio'
     | '/resources'
     | '/services'
+    | '/admin/create-admin'
+    | '/admin/forgot-password'
+    | '/admin/login'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
     | '/services/seo'
     | '/services/starter-kit'
+    | '/admin/'
     | '/services/'
     | '/services/ai/chatbots'
     | '/services/ai/cv-nlp'
@@ -335,6 +393,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
   PortfolioRoute: typeof PortfolioRoute
   ResourcesRoute: typeof ResourcesRoute
@@ -374,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -394,6 +460,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/services/'
       preLoaderRoute: typeof ServicesIndexRouteImport
       parentRoute: typeof ServicesRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/services/starter-kit': {
       id: '/services/starter-kit'
@@ -429,6 +502,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/legal/cookies'
       preLoaderRoute: typeof LegalCookiesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/forgot-password': {
+      id: '/admin/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/admin/forgot-password'
+      preLoaderRoute: typeof AdminForgotPasswordRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/create-admin': {
+      id: '/admin/create-admin'
+      path: '/create-admin'
+      fullPath: '/admin/create-admin'
+      preLoaderRoute: typeof AdminCreateAdminRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/services/web/saas': {
       id: '/services/web/saas'
@@ -524,6 +618,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminCreateAdminRoute: typeof AdminCreateAdminRoute
+  AdminForgotPasswordRoute: typeof AdminForgotPasswordRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCreateAdminRoute: AdminCreateAdminRoute,
+  AdminForgotPasswordRoute: AdminForgotPasswordRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface ServicesRouteChildren {
   ServicesSeoRoute: typeof ServicesSeoRoute
   ServicesStarterKitRoute: typeof ServicesStarterKitRoute
@@ -571,6 +681,7 @@ const ServicesRouteWithChildren = ServicesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   ContactRoute: ContactRoute,
   PortfolioRoute: PortfolioRoute,
   ResourcesRoute: ResourcesRoute,
