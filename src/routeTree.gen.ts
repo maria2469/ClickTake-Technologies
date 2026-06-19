@@ -23,9 +23,16 @@ import { Route as ServicesSeoRouteImport } from './routes/services.seo'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as AdminSecurityRouteImport } from './routes/admin.security'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminForgotPasswordRouteImport } from './routes/admin.forgot-password'
+import { Route as AdminEmailRouteImport } from './routes/admin.email'
+import { Route as AdminCrmRouteImport } from './routes/admin.crm'
 import { Route as AdminCreateAdminRouteImport } from './routes/admin.create-admin'
+import { Route as AdminCmsRouteImport } from './routes/admin.cms'
 import { Route as ServicesWebSaasRouteImport } from './routes/services.web.saas'
 import { Route as ServicesWebPythonBackendRouteImport } from './routes/services.web.python-backend'
 import { Route as ServicesWebFullStackRouteImport } from './routes/services.web.full-stack'
@@ -110,6 +117,26 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
   path: '/legal/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSeoRoute = AdminSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSecurityRoute = AdminSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -120,9 +147,24 @@ const AdminForgotPasswordRoute = AdminForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminEmailRoute = AdminEmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCrmRoute = AdminCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCreateAdminRoute = AdminCreateAdminRouteImport.update({
   id: '/create-admin',
   path: '/create-admin',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCmsRoute = AdminCmsRouteImport.update({
+  id: '/cms',
+  path: '/cms',
   getParentRoute: () => AdminRoute,
 } as any)
 const ServicesWebSaasRoute = ServicesWebSaasRouteImport.update({
@@ -206,9 +248,16 @@ export interface FileRoutesByFullPath {
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
   '/services': typeof ServicesRouteWithChildren
+  '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
+  '/admin/crm': typeof AdminCrmRoute
+  '/admin/email': typeof AdminEmailRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/security': typeof AdminSecurityRoute
+  '/admin/seo': typeof AdminSeoRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -236,9 +285,16 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
+  '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
+  '/admin/crm': typeof AdminCrmRoute
+  '/admin/email': typeof AdminEmailRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/security': typeof AdminSecurityRoute
+  '/admin/seo': typeof AdminSeoRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -269,9 +325,16 @@ export interface FileRoutesById {
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
   '/services': typeof ServicesRouteWithChildren
+  '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
+  '/admin/crm': typeof AdminCrmRoute
+  '/admin/email': typeof AdminEmailRoute
   '/admin/forgot-password': typeof AdminForgotPasswordRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/security': typeof AdminSecurityRoute
+  '/admin/seo': typeof AdminSeoRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -303,9 +366,16 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/resources'
     | '/services'
+    | '/admin/cms'
     | '/admin/create-admin'
+    | '/admin/crm'
+    | '/admin/email'
     | '/admin/forgot-password'
     | '/admin/login'
+    | '/admin/roles'
+    | '/admin/security'
+    | '/admin/seo'
+    | '/admin/settings'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
@@ -333,9 +403,16 @@ export interface FileRouteTypes {
     | '/contact'
     | '/portfolio'
     | '/resources'
+    | '/admin/cms'
     | '/admin/create-admin'
+    | '/admin/crm'
+    | '/admin/email'
     | '/admin/forgot-password'
     | '/admin/login'
+    | '/admin/roles'
+    | '/admin/security'
+    | '/admin/seo'
+    | '/admin/settings'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
@@ -365,9 +442,16 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/resources'
     | '/services'
+    | '/admin/cms'
     | '/admin/create-admin'
+    | '/admin/crm'
+    | '/admin/email'
     | '/admin/forgot-password'
     | '/admin/login'
+    | '/admin/roles'
+    | '/admin/security'
+    | '/admin/seo'
+    | '/admin/settings'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
@@ -503,6 +587,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalCookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/seo': {
+      id: '/admin/seo'
+      path: '/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AdminSeoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/security': {
+      id: '/admin/security'
+      path: '/security'
+      fullPath: '/admin/security'
+      preLoaderRoute: typeof AdminSecurityRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
@@ -517,11 +629,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminForgotPasswordRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/email': {
+      id: '/admin/email'
+      path: '/email'
+      fullPath: '/admin/email'
+      preLoaderRoute: typeof AdminEmailRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/crm': {
+      id: '/admin/crm'
+      path: '/crm'
+      fullPath: '/admin/crm'
+      preLoaderRoute: typeof AdminCrmRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/create-admin': {
       id: '/admin/create-admin'
       path: '/create-admin'
       fullPath: '/admin/create-admin'
       preLoaderRoute: typeof AdminCreateAdminRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/cms': {
+      id: '/admin/cms'
+      path: '/cms'
+      fullPath: '/admin/cms'
+      preLoaderRoute: typeof AdminCmsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/services/web/saas': {
@@ -619,16 +752,30 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminCmsRoute: typeof AdminCmsRoute
   AdminCreateAdminRoute: typeof AdminCreateAdminRoute
+  AdminCrmRoute: typeof AdminCrmRoute
+  AdminEmailRoute: typeof AdminEmailRoute
   AdminForgotPasswordRoute: typeof AdminForgotPasswordRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminSecurityRoute: typeof AdminSecurityRoute
+  AdminSeoRoute: typeof AdminSeoRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCmsRoute: AdminCmsRoute,
   AdminCreateAdminRoute: AdminCreateAdminRoute,
+  AdminCrmRoute: AdminCrmRoute,
+  AdminEmailRoute: AdminEmailRoute,
   AdminForgotPasswordRoute: AdminForgotPasswordRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminSecurityRoute: AdminSecurityRoute,
+  AdminSeoRoute: AdminSeoRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
