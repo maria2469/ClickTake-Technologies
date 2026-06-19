@@ -5,6 +5,7 @@ import { Shield, Eye, EyeOff, Lock, Mail, ArrowRight, Sparkles, CheckCircle2 } f
 import { toast } from "sonner";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
+import { supabase } from "@/lib/supabaseClient";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
@@ -50,21 +51,24 @@ export function AdminLogin() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setIsLoading(true);
 
-    // Simulate login delay
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Welcome back, Administrator!", {
-        description: "Successfully authenticated via secure relay.",
-      });
-      // Redirect to admin dashboard overview
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setIsLoading(false);
+
+    if (error) {
+      toast.error("Login failed", { description: error.message });
+    } else {
+      toast.success("Welcome back, Administrator!");
       router.navigate({ to: "/admin" });
-    }, 1500);
+    }
   };
 
   return (
@@ -84,7 +88,7 @@ export function AdminLogin() {
         className="w-full max-w-md relative z-10"
       >
         {/* Glow Border Effect wrapper */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-pink via-brand-purple to-brand-blue rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+        <div className="absolute -inset-0.5 bg-linear-to-r from-brand-pink via-brand-purple to-brand-blue rounded-3xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
         
         {/* Glassmorphism Card */}
         <div className="relative bg-[#070018]/85 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -193,7 +197,7 @@ export function AdminLogin() {
               disabled={isLoading}
               className="w-full relative overflow-hidden rounded-xl p-0.5 font-bold transition-transform hover:scale-[1.02]"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-brand-pink via-brand-purple to-brand-blue" />
+              <span className="absolute inset-0 bg-linear-to-r from-brand-pink via-brand-purple to-brand-blue" />
               <span className="relative flex h-11 items-center justify-center rounded-[10px] bg-[#070018]/90 text-white hover:bg-transparent transition-all duration-300 text-xs">
                 {isLoading ? (
                   <span className="flex items-center gap-2">

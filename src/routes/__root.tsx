@@ -11,6 +11,8 @@ import {
 } from "@tanstack/react-router";
 
 import { BackgroundScene } from "@/components/BackgroundScene";
+import { supabase } from "@/lib/supabaseClient";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 
@@ -145,6 +147,15 @@ function RootComponent() {
   });
 
   console.log("🌍 CURRENT PATH:", pathname);
+
+  useEffect(() => {
+    // Only track public-facing page views (ignore admin portal traffic)
+    if (pathname && !pathname.startsWith('/admin')) {
+      supabase.from('page_views').insert({ path: pathname }).then(({ error }) => {
+        if (error) console.error("Page view tracking skipped (SQL table missing):", error.message);
+      });
+    }
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>

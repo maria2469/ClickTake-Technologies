@@ -133,7 +133,7 @@ export default function GraphicDesignPage() {
 
                         <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
                             Design that makes people{" "}
-                            <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-orange-400 bg-clip-text text-transparent">
+                            <span className="bg-linear-to-r from-pink-400 via-rose-400 to-orange-400 bg-clip-text text-transparent">
                                 stop and look.
                             </span>
                         </motion.h1>
@@ -143,7 +143,7 @@ export default function GraphicDesignPage() {
                         </motion.p>
 
                         <motion.div variants={fadeUp} custom={2} className="mt-8 flex flex-wrap gap-3">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-pink-500 to-orange-500 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
                                 Start your project <ArrowUpRight className="h-4 w-4" />
                             </a>
                             <a href="#services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-7 py-3.5 font-semibold backdrop-blur hover:bg-secondary transition-colors">
@@ -161,7 +161,7 @@ export default function GraphicDesignPage() {
                 <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                     {results.map((r, i) => (
                         <motion.div key={r.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-                            <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-pink-400 to-orange-400 bg-clip-text text-transparent">{r.metric}</div>
+                            <div className="text-4xl sm:text-5xl font-bold bg-linear-to-r from-pink-400 to-orange-400 bg-clip-text text-transparent">{r.metric}</div>
                             <div className="mt-2 text-sm text-muted-foreground leading-snug">{r.label}</div>
                         </motion.div>
                     ))}
@@ -181,7 +181,7 @@ export default function GraphicDesignPage() {
                         </div>
                     </motion.div>
 
-                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-pink-500/20 bg-gradient-to-br from-pink-500/5 to-orange-500/5 p-8 backdrop-blur">
+                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-pink-500/20 bg-linear-to-br from-pink-500/5 to-orange-500/5 p-8 backdrop-blur">
                         <div className="text-xs font-semibold uppercase tracking-widest text-pink-400 mb-4">What We Deliver</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Design that builds trust and drives action.</h2>
                         <div className="space-y-3">
@@ -217,8 +217,8 @@ export default function GraphicDesignPage() {
                                 <motion.div key={s.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}
                                     className="group relative rounded-2xl border border-border bg-card/60 backdrop-blur-xl p-7 hover:border-white/20 transition-all duration-300"
                                     whileHover={{ boxShadow: `0 0 60px 0 ${s.glow}` }}>
-                                    <div className={`h-1 w-16 rounded-full bg-gradient-to-r ${s.color} mb-6`} />
-                                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${s.color} mb-4 shadow-lg`}>
+                                    <div className={`h-1 w-16 rounded-full bg-linear-to-r ${s.color} mb-6`} />
+                                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br ${s.color} mb-4 shadow-lg`}>
                                         <Icon className="h-6 w-6 text-white" />
                                     </div>
                                     <h3 className="text-xl font-bold mb-2">{s.title}</h3>
@@ -250,7 +250,7 @@ export default function GraphicDesignPage() {
                             return (
                                 <motion.div key={d.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
                                     className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-pink-500/30 transition-colors">
-                                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-orange-500/20 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-lg bg-linear-to-br from-pink-500/20 to-orange-500/20 flex items-center justify-center">
                                         <Icon className="h-5 w-5 text-pink-400" />
                                     </div>
                                     <span className="text-sm font-medium leading-snug">{d.label}</span>
@@ -272,7 +272,7 @@ export default function GraphicDesignPage() {
                         {process.map((p, i) => (
                             <motion.div key={p.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                                 className="relative rounded-2xl border border-border bg-card/50 backdrop-blur p-7 hover:border-white/20 transition-colors group">
-                                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-pink-500/30 to-orange-500/30 bg-clip-text mb-4 select-none group-hover:from-pink-500/60 group-hover:to-orange-500/60 transition-all">{p.step}</div>
+                                <div className="text-5xl font-black text-transparent bg-linear-to-br from-pink-500/30 to-orange-500/30 bg-clip-text mb-4 select-none group-hover:from-pink-500/60 group-hover:to-orange-500/60 transition-all">{p.step}</div>
                                 <h3 className="text-lg font-bold mb-2">{p.title}</h3>
                                 <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
                             </motion.div>
@@ -294,7 +294,7 @@ export default function GraphicDesignPage() {
                             return (
                                 <motion.div key={d.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                                     className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-pink-500/30 transition-colors group">
-                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-pink-500/10 to-orange-500/10 border border-border flex items-center justify-center group-hover:border-pink-500/30 transition-colors">
+                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-linear-to-br from-pink-500/10 to-orange-500/10 border border-border flex items-center justify-center group-hover:border-pink-500/30 transition-colors">
                                         <Icon className="h-5 w-5 text-pink-400" />
                                     </div>
                                     <div>
@@ -311,7 +311,7 @@ export default function GraphicDesignPage() {
             {/* ── WHO IT'S FOR ── */}
             <section className="relative z-10 py-20 px-4">
                 <div className="max-w-6xl mx-auto">
-                    <div className="rounded-3xl border border-border bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl p-10 md:p-14">
+                    <div className="rounded-3xl border border-border bg-linear-to-br from-card/80 to-card/40 backdrop-blur-xl p-10 md:p-14">
                         <div className="grid lg:grid-cols-2 gap-10 items-center">
                             <div>
                                 <div className="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-4">Ideal For</div>
@@ -360,13 +360,13 @@ export default function GraphicDesignPage() {
                         <div className="text-xs font-semibold uppercase tracking-widest text-pink-400 mb-4">Ready to transform your brand?</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
                             Your brand is talking.<br />
-                            <span className="bg-gradient-to-r from-pink-400 to-orange-400 bg-clip-text text-transparent">Make sure it's saying the right things.</span>
+                            <span className="bg-linear-to-r from-pink-400 to-orange-400 bg-clip-text text-transparent">Make sure it's saying the right things.</span>
                         </h2>
                         <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
                             Book a free 30-minute design consultation. We'll review your current brand, identify what's working against you, and show you what's possible.
                         </p>
                         <div className="flex flex-wrap gap-3 justify-center">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-orange-500 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-pink-500 to-orange-500 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
                                 Book a free consultation <ArrowUpRight className="h-5 w-5" />
                             </a>
                             <Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-8 py-4 font-semibold backdrop-blur hover:bg-secondary transition-colors text-base">

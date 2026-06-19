@@ -9,6 +9,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -87,13 +89,33 @@ function ContactPage() {
     { sender: "agent", text: "Hey! Zain here from ClickTake. What digital challenge can we help you solve today?" }
   ]);
 
-  const handleInquirySubmit = (e: React.FormEvent) => {
+  const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInquirySubmitting(true);
-    setTimeout(() => {
-      setInquirySubmitting(false);
+    
+    const { error } = await supabase.from('leads').insert({
+      name: inquiryName,
+      email: inquiryEmail,
+      service_interest: inquiryService,
+      message: `${inquiryCompany ? `Company: ${inquiryCompany}\n` : ''}Budget: ${inquiryBudget}\n\n${inquiryMessage}`,
+      source_page: window.location.pathname,
+      status: 'new',
+    });
+    
+    setInquirySubmitting(false);
+    
+    if (error) {
+      console.error('Lead save error:', error);
+      toast.error("Something went wrong. Please try again.");
+    } else {
+      // Fire an audit log for the admin dashboard feed
+      supabase.from('audit_logs').insert({
+        user_email: "System",
+        action: `New Lead: ${inquiryName} (${inquiryService || 'Inquiry'})`
+      }).then();
+      
       setInquirySuccess(true);
-    }, 1500);
+    }
   };
 
   const handleBookingSubmit = (e: React.FormEvent) => {
@@ -264,7 +286,7 @@ function ContactPage() {
                   <button
                     type="submit"
                     disabled={inquirySubmitting}
-                    className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform"
+                    className="w-full rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform"
                   >
                     {inquirySubmitting ? "Sending Inquiry..." : "Submit Strategic Inquiry"}
                   </button>
@@ -323,7 +345,7 @@ function ContactPage() {
                           onClick={() => setSelectedDate(i)}
                           className={`rounded-xl p-2.5 text-center transition-all ${
                             selectedDate === i
-                              ? "bg-gradient-to-r from-violet-500 to-fuchsia-600 border-none text-white shadow-md"
+                              ? "bg-linear-to-r from-violet-500 to-fuchsia-600 border-none text-white shadow-md"
                               : "border border-white/10 bg-background/50 text-muted-foreground hover:border-white/20"
                           }`}
                         >
@@ -349,7 +371,7 @@ function ContactPage() {
                           }}
                           className={`rounded-lg py-2 text-center text-xs font-semibold transition-all ${
                             selectedTime === time
-                              ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow"
+                              ? "bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow"
                               : "border border-white/5 bg-background/40 text-muted-foreground hover:bg-white/5"
                           }`}
                         >
@@ -393,7 +415,7 @@ function ContactPage() {
                   <button
                     type="submit"
                     disabled={bookingSubmitting}
-                    className="w-full rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform"
+                    className="w-full rounded-xl bg-linear-to-r from-violet-500 to-fuchsia-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform"
                   >
                     {bookingSubmitting ? "Booking call..." : "Schedule Call"}
                   </button>
@@ -441,7 +463,7 @@ function ContactPage() {
                 key={i}
                 className="group relative overflow-hidden rounded-2xl border border-white/10 bg-card/40 p-6 backdrop-blur-xl hover:border-white/20 transition-all duration-300"
               >
-                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${o.color}`} />
+                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r ${o.color}`} />
                 <div className="flex items-start gap-4 mt-2">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/5 border border-white/10 text-cyan-400">
                     <MapPin className="h-4 w-4" />
@@ -479,7 +501,7 @@ function ContactPage() {
               className="absolute bottom-16 right-0 w-80 rounded-2xl border border-white/15 bg-card shadow-2xl overflow-hidden flex flex-col justify-between z-50"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-cyan-500 to-violet-600 p-4 flex items-center justify-between text-white">
+              <div className="bg-linear-to-r from-cyan-500 to-violet-600 p-4 flex items-center justify-between text-white">
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-400 ring-2 ring-white" />
@@ -523,7 +545,7 @@ function ContactPage() {
                 />
                 <button
                   type="submit"
-                  className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow"
+                  className="rounded-xl bg-linear-to-r from-cyan-500 to-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow"
                 >
                   Send
                 </button>
@@ -537,7 +559,7 @@ function ContactPage() {
           onClick={() => setChatOpen(!chatOpen)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="h-12 w-12 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 text-white flex items-center justify-center shadow-lg hover:shadow-cyan-500/20 transition-all border border-white/10 relative"
+          className="h-12 w-12 rounded-full bg-linear-to-r from-cyan-500 to-violet-600 text-white flex items-center justify-center shadow-lg hover:shadow-cyan-500/20 transition-all border border-white/10 relative"
         >
           <MessageSquare className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 block h-3 w-3 rounded-full bg-green-400 ring-2 ring-background animate-pulse" />

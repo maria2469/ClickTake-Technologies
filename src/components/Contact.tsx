@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Mail,
@@ -9,6 +10,8 @@ import {
   Clock3,
   CheckCircle2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabaseClient";
 
 const contactMethods = [
   {
@@ -56,6 +59,50 @@ const benefits = [
 ];
 
 export function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    service: "Web Development",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const { error } = await supabase.from('leads').insert({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone || null,
+      service_interest: formData.service || null,
+      message: formData.message,
+      source_page: window.location.pathname,
+      status: 'new',
+    });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      console.error('Lead save error:', error);
+      toast.error("Something went wrong. Please try again.");
+    } else {
+      // Fire an audit log for the admin dashboard feed
+      supabase.from('audit_logs').insert({
+        user_email: "System",
+        action: `New Lead: ${formData.name} (${formData.service || 'Inquiry'})`
+      }).then();
+      
+      toast.success("Message sent successfully!");
+      setFormData({ name: "", email: "", phone: "", service: "Web Development", message: "" });
+    }
+  };
+
   return (
     <section
       id="contact"
@@ -174,11 +221,11 @@ export function Contact() {
                   >
                     {/* hover glow */}
                     <div
-                      className={`absolute inset-0 bg-gradient-to-r ${m.glow} opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-10`}
+                      className={`absolute inset-0 bg-linear-to-r ${m.glow} opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-10`}
                     />
 
                     <div
-                      className={`relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${m.glow} text-white shadow-lg`}
+                      className={`relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-linear-to-br ${m.glow} text-white shadow-lg`}
                     >
                       <m.icon className="h-5 w-5" />
                     </div>
@@ -201,14 +248,11 @@ export function Contact() {
 
             {/* FORM */}
             <motion.form
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert("Thanks! We'll contact you shortly.");
-              }}
+              onSubmit={handleSubmit}
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-[2rem] border border-border/60 bg-background/80 p-6 backdrop-blur-xl lg:p-8"
+              className="relative overflow-hidden rounded-3xl border border-border/60 bg-background/80 p-6 backdrop-blur-xl lg:p-8"
             >
               {/* glow */}
               <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
@@ -225,6 +269,9 @@ export function Contact() {
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   <input
                     required
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="Your name"
                     className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
@@ -232,6 +279,9 @@ export function Contact() {
                   <input
                     required
                     type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="Your email"
                     className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
@@ -239,11 +289,19 @@ export function Contact() {
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <input
-                    placeholder="Company name"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Phone number"
                     className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
 
-                  <select className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  <select
+                    name="service"
+                    value={formData.service}
+                    onChange={handleChange}
+                    className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
                     <option>Web Development</option>
                     <option>AI Automation</option>
                     <option>Mobile App</option>
@@ -254,15 +312,19 @@ export function Contact() {
 
                 <textarea
                   rows={6}
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   placeholder="Tell us about your idea, goals, timeline and requirements..."
                   className="mt-4 w-full rounded-2xl border border-border bg-card/60 px-4 py-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
 
                 <button
                   type="submit"
-                  className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-brand px-6 py-4 font-semibold text-white shadow-glow transition-all duration-300 hover:scale-[1.02]"
+                  disabled={isSubmitting}
+                  className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-brand px-6 py-4 font-semibold text-white shadow-glow transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Send Project Inquiry
+                  {isSubmitting ? "Sending..." : "Send Project Inquiry"}
 
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </button>
