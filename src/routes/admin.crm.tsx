@@ -47,6 +47,19 @@ const initialLeads: any[] = [];
 
 function AdminCrmPage() {
     const [leads, setLeads] = useState<any[]>(initialLeads);
+    const [selectedLeadId, setSelectedLeadId] = useState<string>("L1");
+    const [crmSearch, setCrmSearch] = useState("");
+    const [crmStatusFilter, setCrmStatusFilter] = useState("All");
+    const [newNoteText, setNewNoteText] = useState("");
+
+    // Add Lead Modal State
+    const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
+    const [newLeadName, setNewLeadName] = useState("");
+    const [newLeadEmail, setNewLeadEmail] = useState("");
+    const [newLeadPhone, setNewLeadPhone] = useState("");
+    const [newLeadInterest, setNewLeadInterest] = useState("AI Chatbots & Agents");
+    const [newLeadSource, setNewLeadSource] = useState("Direct Traffic");
+    const [newLeadNote, setNewLeadNote] = useState("");
 
     useEffect(() => {
         const fetchLeads = async () => {
@@ -65,19 +78,6 @@ function AdminCrmPage() {
 
         return () => { supabase.removeChannel(leadsChannel); };
     }, []);
-    const [selectedLeadId, setSelectedLeadId] = useState<string>("L1");
-    const [crmSearch, setCrmSearch] = useState("");
-    const [crmStatusFilter, setCrmStatusFilter] = useState("All");
-    const [newNoteText, setNewNoteText] = useState("");
-
-    // Add Lead Modal State
-    const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false);
-    const [newLeadName, setNewLeadName] = useState("");
-    const [newLeadEmail, setNewLeadEmail] = useState("");
-    const [newLeadPhone, setNewLeadPhone] = useState("");
-    const [newLeadInterest, setNewLeadInterest] = useState("AI Chatbots & Agents");
-    const [newLeadSource, setNewLeadSource] = useState("Direct Traffic");
-    const [newLeadNote, setNewLeadNote] = useState("");
 
     const selectedLead = useMemo(() => {
         return leads.find((l) => l.id === selectedLeadId) || leads[0] || initialLeads[0];
@@ -116,25 +116,19 @@ function AdminCrmPage() {
         toast.success("Comment appended to audit trail");
     };
 
-    // handleDeleteNote not supported in Supabase schema currently
+    // Note deletion not supported in Supabase schema currently
+    const handleDeleteNote = (_index: number) => {
+        toast.error("Note deletion is disabled in live CRM");
+    };
 
-    // handleDeleteLead removed for safety
+    // Lead deletion removed for safety
+    const handleDeleteLead = (_leadId: string) => {
+        toast.error("Lead deletion is disabled in live CRM");
+    };
 
-    const handleAddLeadSubmit = (e: React.FormEvent) => { e.preventDefault(); toast.error("Disabled in live CRM"); }
-
-        setLeads([newLead, ...leads]);
-        setSelectedLeadId(newLead.id);
-        setIsAddLeadModalOpen(false);
-
-        // Reset fields
-        setNewLeadName("");
-        setNewLeadEmail("");
-        setNewLeadPhone("");
-        setNewLeadInterest("AI Chatbots & Agents");
-        setNewLeadSource("Direct Traffic");
-        setNewLeadNote("");
-
-        toast.success(`Successfully added lead "${trimmedName}"!`);
+    const handleAddLeadSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        toast.error("Disabled in live CRM");
     };
 
     const handleExportCSV = () => {
@@ -307,11 +301,10 @@ function AdminCrmPage() {
                                     <tr
                                         key={lead.id}
                                         onClick={() => setSelectedLeadId(lead.id)}
-                                        className={`cursor-pointer hover:bg-white/5 transition-colors border-l-2 ${
-                                            selectedLeadId === lead.id
-                                                ? "bg-white/5 border-l-brand-magenta"
-                                                : "border-l-transparent"
-                                        }`}
+                                        className={`cursor-pointer hover:bg-white/5 transition-colors border-l-2 ${selectedLeadId === lead.id
+                                            ? "bg-white/5 border-l-brand-magenta"
+                                            : "border-l-transparent"
+                                            }`}
                                     >
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
@@ -334,17 +327,16 @@ function AdminCrmPage() {
                                                     value={lead.status}
                                                     onChange={(e) => handleStatusChange(lead.id, e.target.value as any)}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className={`rounded-lg px-2 py-1 text-[10px] font-bold focus:outline-none border border-transparent cursor-pointer ${
-                                                        lead.status === "New"
-                                                            ? "bg-cyan-500/10 text-cyan-400"
-                                                            : lead.status === "Contacted"
-                                                                ? "bg-blue-500/10 text-blue-400"
-                                                                : lead.status === "In Progress"
-                                                                    ? "bg-violet-500/10 text-violet-400"
-                                                                    : lead.status === "Converted"
-                                                                        ? "bg-emerald-500/10 text-emerald-400"
-                                                                        : "bg-rose-500/10 text-rose-400"
-                                                    }`}
+                                                    className={`rounded-lg px-2 py-1 text-[10px] font-bold focus:outline-none border border-transparent cursor-pointer ${lead.status === "New"
+                                                        ? "bg-cyan-500/10 text-cyan-400"
+                                                        : lead.status === "Contacted"
+                                                            ? "bg-blue-500/10 text-blue-400"
+                                                            : lead.status === "In Progress"
+                                                                ? "bg-violet-500/10 text-violet-400"
+                                                                : lead.status === "Converted"
+                                                                    ? "bg-emerald-500/10 text-emerald-400"
+                                                                    : "bg-rose-500/10 text-rose-400"
+                                                        }`}
                                                 >
                                                     <option value="New">New</option>
                                                     <option value="Contacted">Contacted</option>
@@ -406,14 +398,14 @@ function AdminCrmPage() {
 
                                 <div className="border-t border-white/5 pt-3">
                                     <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block mb-2">Audit & Comments Timeline</span>
-                                    
+
                                     {/* Comments timeline list */}
                                     <div className="relative pl-3 border-l border-white/10 space-y-3 max-h-[170px] overflow-y-auto pr-1">
-                                        {(Array.isArray(selectedLead.internal_notes) ? selectedLead.internal_notes : []).map((note, index) => (
+                                        {(Array.isArray(selectedLead.internal_notes) ? selectedLead.internal_notes : []).map((note: string, index: number) => (
                                             <div key={index} className="relative group/note bg-white/[0.02] border border-white/5 rounded-xl p-2.5 text-[10px] leading-relaxed">
                                                 {/* Bullet timeline circle */}
                                                 <div className="absolute -left-[17px] top-3.5 h-1.5 w-1.5 rounded-full bg-brand-magenta border border-background shadow-glow" />
-                                                
+
                                                 <div className="flex items-start justify-between gap-1.5">
                                                     <span className="text-foreground">{note}</span>
                                                     <button
@@ -484,7 +476,7 @@ function AdminCrmPage() {
                                     <X className="h-4 w-4" />
                                 </button>
                             </div>
-                            
+
                             <form onSubmit={handleAddLeadSubmit} className="space-y-3.5">
                                 <div>
                                     <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1.5 tracking-wider">
