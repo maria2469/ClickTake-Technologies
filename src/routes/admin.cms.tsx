@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
+import { Editor } from '@tinymce/tinymce-react';
 import {
     Plus,
     Trash2,
@@ -14,7 +16,8 @@ import {
     ChevronDown,
     Search,
     X,
-    AlertCircle
+    AlertCircle,
+    Edit3
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -58,79 +61,29 @@ interface BlogPost {
     author: string;
     date: string;
     status: "Published" | "Draft";
+    content?: string;
 }
-
-/* ───────────────── MOCK DATA ───────────────── */
-
-const initialPages: CMSPage[] = [
-    {
-        id: "home",
-        name: "Home Page",
-        path: "/",
-        blocks: [
-            { id: "h1", type: "header", content: "Connecting in a better way." },
-            { id: "t1", type: "text", content: "We are a multi-national digital agency bridging premium design, enterprise development, advanced SEO, and autonomous AI systems to deliver compounding growth." },
-            { id: "b1", type: "button", content: "Book a Call", meta: "#contact" },
-        ],
-    },
-    {
-        id: "about",
-        name: "About Us",
-        path: "/about",
-        blocks: [
-            { id: "h2", type: "header", content: "Grow with Us" },
-            { id: "t2", type: "text", content: "Learn about ClickTake Technologies — our mission, our multi-national team in Birmingham and Multan, our core values, and open careers." },
-            { id: "b2", type: "button", content: "Browse Open Roles", meta: "#careers" },
-        ],
-    },
-    {
-        id: "services",
-        name: "Services Overview",
-        path: "/services",
-        blocks: [
-            { id: "h3", type: "header", content: "AI-Powered Systems & Digital Buildout" },
-            { id: "t3", type: "text", content: "We engineer custom LLMs, high-speed Python backends, headless e-commerce, and high-conversion marketing engines." },
-            { id: "b3", type: "button", content: "Get Started Kit", meta: "/services/starter-kit" },
-        ],
-    },
-];
-
-const initialMedia: MediaFile[] = [
-    { id: "m1", name: "clicktake-logo.jpg", type: "image", size: "145 KB", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80" },
-    { id: "m2", name: "ai-agent-architecture.pdf", type: "pdf", size: "2.4 MB", url: "#" },
-    { id: "m3", name: "promo-reel-2026.mp4", type: "video", size: "15.8 MB", url: "#" },
-    { id: "m4", name: "client-testimonial-quote.jpg", type: "image", size: "320 KB", url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=400&q=80" },
-];
-
-const initialBlogs: BlogPost[] = [
-    { id: "b1", title: "Building Headless Storefronts with Shopify and Next.js", author: "Zain Paracha", date: "2026-06-01", status: "Published" },
-    { id: "b2", title: "Deploying AI Agents on WhatsApp: A Complete n8n Guide", author: "Adam Kitts", date: "2026-05-28", status: "Published" },
-    { id: "b3", title: "SEO Keywords Clustering in 2026: Semantic Search Mapping", author: "Hamza Farooq", date: "2026-06-10", status: "Draft" },
-];
 
 /* ───────────────── COMPONENT ───────────────── */
 
 function AdminCMS() {
     // Pages State
-    const [pages, setPages] = useState<CMSPage[]>(initialPages);
-    const [savedPages, setSavedPages] = useState<CMSPage[]>(initialPages);
-    const [selectedPageId, setSelectedPageId] = useState<string>("home");
+    const [pages, setPages] = useState<CMSPage[]>([]);
+    const [savedPages, setSavedPages] = useState<CMSPage[]>([]);
+    const [selectedPageId, setSelectedPageId] = useState<string>("");
 
     // Media Library State
-    const [mediaList, setMediaList] = useState<MediaFile[]>(initialMedia);
+    const [mediaList, setMediaList] = useState<MediaFile[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Blog & Navigation States
-    const [blogList, setBlogList] = useState<BlogPost[]>(initialBlogs);
+    const [blogList, setBlogList] = useState<BlogPost[]>([]);
     const [newBlogTitle, setNewBlogTitle] = useState("");
-    const [headerLinks, setHeaderLinks] = useState<{ id: string; label: string; to: string }[]>([
-        { id: "n1", label: "Home", to: "/" },
-        { id: "n2", label: "Services", to: "/services" },
-        { id: "n3", label: "Work", to: "/portfolio" },
-        { id: "n4", label: "Resources", to: "/resources" },
-    ]);
-    const [newNavLink, setNewNavLink] = useState({ label: "", to: "" });
+    const [headerLinks, setHeaderLinks] = useState<{ id: string; label: string; to_path: string }[]>([]);
+    const [newNavLink, setNewNavLink] = useState({ label: "", to_path: "" });
+    const [editingBlogId, setEditingBlogId] = useState<string | null>(null);
+    const [blogContent, setBlogContent] = useState("");
 
     // Modals & Feedback UI States
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
@@ -142,9 +95,39 @@ function AdminCMS() {
     const [pageSearchText, setPageSearchText] = useState("");
     const [mediaSearchText, setMediaSearchText] = useState("");
 
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            const { data: pagesData } = await supabase.from('cms_pages').select('*');
+            if (pagesData && pagesData.length > 0) {
+                setPages(pagesData);
+                setSavedPages(pagesData);
+                setSelectedPageId(pagesData[0].id);
+            }
+
+            const { data: mediaData } = await supabase.from('cms_media').select('*').order('created_at', { ascending: false });
+            if (mediaData) setMediaList(mediaData);
+
+            const { data: blogsData } = await supabase.from('cms_blogs').select('*').order('created_at', { ascending: false });
+            if (blogsData) setBlogList(blogsData);
+
+            const { data: navData } = await supabase.from('cms_nav_links').select('*').order('created_at', { ascending: true });
+            if (navData) setHeaderLinks(navData);
+        };
+        fetchInitialData();
+
+        const channel = supabase.channel('cms-sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_pages' }, fetchInitialData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_media' }, fetchInitialData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_blogs' }, fetchInitialData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_nav_links' }, fetchInitialData)
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, []);
+
     // Selected Page Derived
     const selectedPage = useMemo(() => {
-        return pages.find((p) => p.id === selectedPageId) || pages[0] || initialPages[0];
+        return pages.find((p) => p.id === selectedPageId) || pages[0];
     }, [pages, selectedPageId]);
 
     // Unsaved Changes Count Computation (compared to savedPages state)
@@ -224,7 +207,24 @@ function AdminCMS() {
     };
 
     // Save All Pages Layouts
-    const handleSavePage = () => {
+    const handleSavePage = async () => {
+        for (const page of pages) {
+            const { error } = await supabase
+                .from('cms_pages')
+                .upsert({ id: page.id, name: page.name, path: page.path, blocks: page.blocks }, { onConflict: 'id' });
+            if (error) {
+                toast.error(`Failed to save page ${page.name}`);
+                return;
+            }
+        }
+        
+        // Handle deletions
+        for (const sp of savedPages) {
+            if (!pages.some(p => p.id === sp.id)) {
+                await supabase.from('cms_pages').delete().eq('id', sp.id);
+            }
+        }
+
         setSavedPages(pages);
         setShowSavedFeedback(true);
         toast.success(`Published layouts for all ${pages.length} pages to production!`);
@@ -234,24 +234,14 @@ function AdminCMS() {
     };
 
     // Page Creation Form Submit
-    const handleCreatePageSubmit = (e: React.FormEvent) => {
+    const handleCreatePageSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedName = newPageName.trim();
         let trimmedPath = newPagePath.trim();
 
-        if (!trimmedName) {
-            toast.error("Page name is required");
-            return;
-        }
-        if (!trimmedPath) {
-            toast.error("Page path is required");
-            return;
-        }
-        if (!trimmedPath.startsWith("/")) {
-            trimmedPath = "/" + trimmedPath;
-        }
+        if (!trimmedName || !trimmedPath) return;
+        if (!trimmedPath.startsWith("/")) trimmedPath = "/" + trimmedPath;
 
-        // Check path and name uniqueness
         if (pages.some((p) => p.path.toLowerCase() === trimmedPath.toLowerCase())) {
             toast.error(`A page with route path "${trimmedPath}" already exists.`);
             return;
@@ -269,9 +259,15 @@ function AdminCMS() {
             path: trimmedPath,
             blocks: [
                 { id: `b-h-${Date.now()}`, type: "header", content: `Welcome to ${trimmedName}` },
-                { id: `b-t-${Date.now()}`, type: "text", content: "This is a brand new page. You can customize the blocks and content on the canvas." }
+                { id: `b-t-${Date.now()}`, type: "text", content: "This is a brand new page. Customize your text here." }
             ]
         };
+
+        const { error } = await supabase.from('cms_pages').insert(newPage);
+        if (error) {
+            toast.error("Failed to create page on server");
+            return;
+        }
 
         setPages([...pages, newPage]);
         setSelectedPageId(newId);
@@ -282,10 +278,16 @@ function AdminCMS() {
     };
 
     // Page Deletion Action
-    const handleDeletePage = (pageId: string, e: React.MouseEvent) => {
+    const handleDeletePage = async (pageId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (pages.length <= 1) {
-            toast.error("Cannot delete the only page in the CMS. You must have at least one active page.");
+            toast.error("Cannot delete the only page in the CMS.");
+            return;
+        }
+
+        const { error } = await supabase.from('cms_pages').delete().eq('id', pageId);
+        if (error) {
+            toast.error("Failed to delete page");
             return;
         }
 
@@ -306,19 +308,10 @@ function AdminCMS() {
         let meta = undefined;
 
         switch (type) {
-            case "header":
-                content = "New Section Header";
-                break;
-            case "text":
-                content = "Write your paragraph text details here.";
-                break;
-            case "button":
-                content = "Click Action";
-                meta = "#";
-                break;
-            case "media":
-                content = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
-                break;
+            case "header": content = "New Section Header"; break;
+            case "text": content = "Write your paragraph text details here."; break;
+            case "button": content = "Click Action"; meta = "#"; break;
+            case "media": content = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80"; break;
         }
 
         const newBlock: PageBlock = {
@@ -335,7 +328,7 @@ function AdminCMS() {
                     : p
             )
         );
-        toast.success(`Added ${type.toUpperCase()} block to layout`);
+        toast.success(`Added ${type.toUpperCase()} block. Remember to save layout.`);
     };
 
     // Block Reordering (Up/Down)
@@ -360,7 +353,6 @@ function AdminCMS() {
                 p.id === selectedPageId ? { ...p, blocks: newBlocks } : p
             )
         );
-        toast.info(`Moved block ${direction}`);
     };
 
     // Block Deletion
@@ -373,121 +365,142 @@ function AdminCMS() {
                     : p
             )
         );
-        toast.error("Block deleted from page layout");
     };
 
-    // Real File Selection Handler
-    const handleFilesSelected = (files: FileList) => {
-        const addedFiles: MediaFile[] = [];
-        Array.from(files).forEach((file) => {
-            let type: "image" | "pdf" | "video" = "image";
-            if (file.type.startsWith("video/")) {
-                type = "video";
-            } else if (file.type === "application/pdf") {
-                type = "pdf";
+    // Convert Image to WebP (Simple Client-side)
+    const convertToWebP = async (file: File): Promise<File> => {
+        if (!file.type.startsWith('image/') || file.type === 'image/webp') return file;
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0);
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
+                    } else resolve(file);
+                }, 'image/webp', 0.8);
+            };
+            img.src = URL.createObjectURL(file);
+        });
+    };
+
+    // File Upload Handler (Supabase Storage)
+    const handleFilesSelected = async (files: FileList) => {
+        toast.info(`Uploading ${files.length} file(s)...`);
+        
+        for (const rawFile of Array.from(files)) {
+            let file = rawFile;
+            
+            // WebP Conversion for images
+            if (file.type.startsWith('image/')) {
+                file = await convertToWebP(file);
             }
 
-            // Human readable size formatter
+            let type: "image" | "pdf" | "video" = "image";
+            if (file.type.startsWith("video/")) type = "video";
+            else if (file.type === "application/pdf") type = "pdf";
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+            const filePath = `cms-uploads/${fileName}`;
+
+            // Upload to Supabase Storage Bucket 'media'
+            const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
+            
+            if (uploadError) {
+                toast.error(`Upload failed for ${file.name}: ${uploadError.message}`);
+                continue;
+            }
+
+            const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+
             let sizeStr = "";
             const bytes = file.size;
-            if (bytes < 1024) {
-                sizeStr = `${bytes} B`;
-            } else if (bytes < 1024 * 1024) {
-                sizeStr = `${(bytes / 1024).toFixed(1)} KB`;
-            } else {
-                sizeStr = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-            }
+            if (bytes < 1024) sizeStr = `${bytes} B`;
+            else if (bytes < 1024 * 1024) sizeStr = `${(bytes / 1024).toFixed(1)} KB`;
+            else sizeStr = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
-            const objectUrl = URL.createObjectURL(file);
-            addedFiles.push({
-                id: `m-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            const newMedia = {
+                id: `m-${Date.now()}`,
                 name: file.name,
                 type,
                 size: sizeStr,
-                url: objectUrl
-            });
-        });
+                url: publicUrl
+            };
 
-        if (addedFiles.length > 0) {
-            setMediaList([...addedFiles, ...mediaList]);
-            toast.success(`Successfully uploaded ${addedFiles.length} file(s) to Media Library`);
+            await supabase.from('cms_media').insert(newMedia);
         }
+        toast.success(`Uploads complete`);
     };
 
-    // Drag-and-drop Events
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = () => {
-        setIsDragging(false);
-    };
-
+    const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+    const handleDragLeave = () => { setIsDragging(false); };
     const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
+        e.preventDefault(); setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             handleFilesSelected(e.dataTransfer.files);
         }
     };
 
-    // Mock Upload backup button action
-    const handleAddMediaMock = () => {
-        const randomImg = [
-            "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=400&q=80",
-            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
-        ][Math.floor(Math.random() * 2)];
-
-        const newMediaItem: MediaFile = {
-            id: `m${Date.now()}`,
-            name: `screenshot_${Math.floor(Math.random() * 1000)}.jpg`,
-            type: "image",
-            size: "248 KB",
-            url: randomImg,
-        };
-
-        setMediaList([newMediaItem, ...mediaList]);
-        toast.success("Uploaded mock asset to Media Library");
+    const handleDeleteMedia = async (id: string, url: string) => {
+        // Extract filePath from URL if needed to delete from storage, but for now just delete DB record
+        await supabase.from('cms_media').delete().eq('id', id);
+        toast.success("Asset deleted");
     };
 
-    const handleDeleteMedia = (id: string) => {
-        const deletedAsset = mediaList.find((m) => m.id === id);
-        setMediaList(mediaList.filter((m) => m.id !== id));
-        toast.error(`Asset "${deletedAsset?.name || "file"}" deleted from library`);
-    };
-
-    const handleAddBlogPost = () => {
+    // Blog Management
+    const handleAddBlogPost = async () => {
         if (!newBlogTitle.trim()) return;
-        const newPost: BlogPost = {
-            id: `b${Date.now()}`,
+        const newPost = {
+            id: `b-${Date.now()}`,
             title: newBlogTitle.trim(),
-            author: "Super Admin",
+            author: "Admin",
             date: new Date().toISOString().split("T")[0],
-            status: "Draft",
+            status: "Draft" as const,
+            content: "<p>Start writing your blog post...</p>"
         };
-        setBlogList([newPost, ...blogList]);
+        const { error } = await supabase.from('cms_blogs').insert(newPost);
+        if (error) { toast.error("Failed to create blog post"); return; }
+        
         setNewBlogTitle("");
-        toast.success(`Blog post draft "${newPost.title}" created`);
+        toast.success(`Draft "${newPost.title}" created`);
+        setEditingBlogId(newPost.id);
+        setBlogContent(newPost.content);
     };
 
-    const handleDeleteBlog = (id: string) => {
-        const deletedBlog = blogList.find((b) => b.id === id);
-        setBlogList(blogList.filter((b) => b.id !== id));
-        toast.error(`Blog post "${deletedBlog?.title}" deleted`);
+    const handleDeleteBlog = async (id: string) => {
+        await supabase.from('cms_blogs').delete().eq('id', id);
+        if (editingBlogId === id) setEditingBlogId(null);
+        toast.error(`Blog post deleted`);
     };
 
-    const handleAddNavLink = () => {
-        if (!newNavLink.label || !newNavLink.to) return;
-        setHeaderLinks([...headerLinks, { id: `n${Date.now()}`, ...newNavLink }]);
-        toast.success(`Navigation link "${newNavLink.label}" added to menu`);
-        setNewNavLink({ label: "", to: "" });
+    const handleSaveBlogContent = async () => {
+        if (!editingBlogId) return;
+        const { error } = await supabase.from('cms_blogs').update({ content: blogContent }).eq('id', editingBlogId);
+        if (error) { toast.error("Failed to save content"); return; }
+        toast.success("Blog content saved successfully");
     };
 
-    const handleDeleteNavLink = (id: string) => {
-        const deletedLink = headerLinks.find((l) => l.id === id);
-        setHeaderLinks(headerLinks.filter((l) => l.id !== id));
-        toast.error(`Navigation link "${deletedLink?.label}" removed`);
+    // Nav Links Management
+    const handleAddNavLink = async () => {
+        if (!newNavLink.label || !newNavLink.to_path) return;
+        const newLink = {
+            id: `n-${Date.now()}`,
+            label: newNavLink.label,
+            to_path: newNavLink.to_path,
+        };
+        await supabase.from('cms_nav_links').insert(newLink);
+        toast.success(`Link "${newNavLink.label}" added`);
+        setNewNavLink({ label: "", to_path: "" });
+    };
+
+    const handleDeleteNavLink = async (id: string) => {
+        await supabase.from('cms_nav_links').delete().eq('id', id);
+        toast.error(`Link removed`);
     };
 
     return (
@@ -500,9 +513,9 @@ function AdminCMS() {
         >
             <div className="flex items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-2xl font-bold tracking-tight">CMS Website Engine</h1>
+                    <h1 className="font-display text-2xl font-bold tracking-tight">CMS Website Engine (Realtime)</h1>
                     <p className="text-xs text-muted-foreground mt-1">
-                        Manage pages, layout blocks, assets, and navigation menus.
+                        Manage pages, layout blocks, assets, and navigation menus effortlessly.
                     </p>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/5 px-3 py-1.5 text-[10px] font-bold text-muted-foreground">
@@ -512,8 +525,9 @@ function AdminCMS() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-4">
-                {/* Page Manager Sidebar */}
+                {/* Sidebar */}
                 <div className="space-y-4">
+                    {/* Page Manager */}
                     <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
                         <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center justify-between">
                             <span>Active Pages</span>
@@ -525,8 +539,6 @@ function AdminCMS() {
                                 <Plus className="h-4 w-4" />
                             </button>
                         </div>
-
-                        {/* Page search */}
                         <div className="relative mb-3">
                             <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
                             <input
@@ -536,16 +548,7 @@ function AdminCMS() {
                                 onChange={(e) => setPageSearchText(e.target.value)}
                                 className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1 text-[11px] focus:outline-none text-foreground"
                             />
-                            {pageSearchText && (
-                                <button
-                                    onClick={() => setPageSearchText("")}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                >
-                                    <X className="h-2.5 w-2.5" />
-                                </button>
-                            )}
                         </div>
-
                         <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
                             {filteredPages.map((p) => (
                                 <div key={p.id} className="group relative w-full">
@@ -562,8 +565,6 @@ function AdminCMS() {
                                             {p.path}
                                         </span>
                                     </button>
-
-                                    {/* Page Delete hover icon */}
                                     <button
                                         onClick={(e) => handleDeletePage(p.id, e)}
                                         className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-muted-foreground hover:text-rose-400 bg-card/90 backdrop-blur-sm border border-white/5 transition-opacity cursor-pointer shadow"
@@ -573,11 +574,6 @@ function AdminCMS() {
                                     </button>
                                 </div>
                             ))}
-                            {filteredPages.length === 0 && (
-                                <div className="text-center py-4 text-[11px] text-muted-foreground">
-                                    No pages match query
-                                </div>
-                            )}
                         </div>
                     </div>
 
@@ -586,31 +582,24 @@ function AdminCMS() {
                         <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                             Blog & News Feed
                         </div>
-
-                        {blogList.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center text-center py-6">
-                                <Inbox className="h-6 w-6 text-muted-foreground mb-1.5" />
-                                <p className="text-[11px] font-semibold">No posts yet</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                                {blogList.map((blog) => (
-                                    <div key={blog.id} className="flex items-center justify-between rounded-xl bg-white/5 p-2.5 text-[11px]">
-                                        <div className="overflow-hidden mr-2">
-                                            <p className="font-semibold truncate leading-snug text-foreground">{blog.title}</p>
-                                            <span className="text-[9px] text-muted-foreground">{blog.date} • {blog.status}</span>
-                                        </div>
-                                        <button
-                                            onClick={() => handleDeleteBlog(blog.id)}
-                                            className="text-muted-foreground hover:text-rose-400 p-1 shrink-0 cursor-pointer"
-                                        >
+                        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                            {blogList.map((blog) => (
+                                <div key={blog.id} className="flex items-center justify-between rounded-xl bg-white/5 p-2.5 text-[11px]">
+                                    <div className="overflow-hidden mr-2">
+                                        <p className="font-semibold truncate leading-snug text-foreground">{blog.title}</p>
+                                        <span className="text-[9px] text-muted-foreground">{blog.date} • {blog.status}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button onClick={() => { setEditingBlogId(blog.id); setBlogContent(blog.content || ""); }} className="text-muted-foreground hover:text-brand-cyan p-1 shrink-0 cursor-pointer">
+                                            <Edit3 className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={() => handleDeleteBlog(blog.id)} className="text-muted-foreground hover:text-rose-400 p-1 shrink-0 cursor-pointer">
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-
+                                </div>
+                            ))}
+                        </div>
                         <div className="mt-3 flex gap-2">
                             <input
                                 type="text"
@@ -629,439 +618,228 @@ function AdminCMS() {
                     </div>
                 </div>
 
-                {/* Visual Canvas layout editor */}
+                {/* Editor Area */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
-                        <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3 gap-2">
-                            <div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                        Visual Editor Canvas
-                                    </h3>
-                                    {unsavedChangesCount > 0 && (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
-                                            <span className="h-1 w-1 rounded-full bg-amber-400"></span>
-                                            {unsavedChangesCount} unsaved
-                                        </span>
-                                    )}
+                    {editingBlogId ? (
+                        <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
+                            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                    Rich Text Editor (Blog)
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setEditingBlogId(null)}
+                                        className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 text-muted-foreground hover:bg-white/5"
+                                    >
+                                        Close
+                                    </button>
+                                    <button
+                                        onClick={handleSaveBlogContent}
+                                        className="flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-lg bg-brand-magenta text-white hover:opacity-90"
+                                    >
+                                        <Save className="h-3.5 w-3.5" /> Save Post
+                                    </button>
                                 </div>
-                                <p className="text-[10px] text-muted-foreground mt-0.5">
-                                    Selected page: <span className="text-foreground font-semibold">{selectedPage?.name || ""}</span>
-                                </p>
                             </div>
-                            <button
-                                onClick={handleSavePage}
-                                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md transition-all cursor-pointer ${
-                                    showSavedFeedback
-                                        ? "bg-emerald-600 hover:bg-emerald-700 scale-100"
-                                        : "bg-gradient-to-r from-brand-magenta to-brand-blue hover:scale-[1.02]"
-                                }`}
-                            >
-                                {showSavedFeedback ? (
-                                    <>
-                                        <Check className="h-3.5 w-3.5 animate-bounce" /> Saved!
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="h-3.5 w-3.5" /> Save layout
-                                    </>
-                                )}
-                            </button>
+                            <div className="bg-white rounded-lg overflow-hidden">
+                                <Editor
+                                    apiKey="no-api-key"
+                                    value={blogContent}
+                                    onEditorChange={(newContent) => setBlogContent(newContent)}
+                                    init={{
+                                        height: 400,
+                                        menubar: false,
+                                        plugins: [
+                                            'advlist autolink lists link image charmap print preview anchor',
+                                            'searchreplace visualblocks code fullscreen',
+                                            'insertdatetime media table paste code help wordcount'
+                                        ],
+                                        toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                                        alignleft aligncenter alignright alignjustify | \
+                                        bullist numlist outdent indent | removeformat | help'
+                                    }}
+                                />
+                            </div>
                         </div>
-
-                        {/* Canvas Simulator Area */}
-                        <div className="border border-white/5 bg-background/50 rounded-xl p-4 space-y-4 max-h-[380px] overflow-y-auto min-h-[300px]">
-                            <div className="text-[9px] uppercase tracking-widest text-muted-foreground border-b border-white/5 pb-1 font-bold">
-                                Live Render Preview
+                    ) : (
+                        <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
+                            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3 gap-2">
+                                <div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                            Visual Editor Canvas
+                                        </h3>
+                                        {unsavedChangesCount > 0 && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+                                                <span className="h-1 w-1 rounded-full bg-amber-400"></span>
+                                                {unsavedChangesCount} unsaved
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                                        Selected page: <span className="text-foreground font-semibold">{selectedPage?.name || ""}</span>
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={handleSavePage}
+                                    className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md transition-all cursor-pointer ${
+                                        showSavedFeedback ? "bg-emerald-600" : "bg-linear-to-r from-brand-magenta to-brand-blue hover:scale-[1.02]"
+                                    }`}
+                                >
+                                    {showSavedFeedback ? <><Check className="h-3.5 w-3.5" /> Saved!</> : <><Save className="h-3.5 w-3.5" /> Save layout</>}
+                                </button>
                             </div>
 
-                            {selectedPage?.blocks.map((block, index) => (
-                                <div
-                                    key={block.id}
-                                    className="group relative border border-dashed border-white/10 hover:border-brand-magenta/40 p-4 rounded-xl transition"
-                                >
-                                    {/* Block Hover Actions */}
-                                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5 z-10 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/10 shadow">
-                                        <button
-                                            disabled={index === 0}
-                                            onClick={(e) => handleMoveBlock(block.id, "up", e)}
-                                            className="text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none p-1 transition cursor-pointer"
-                                            title="Move Up"
-                                        >
-                                            <ChevronUp className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button
-                                            disabled={index === (selectedPage.blocks.length - 1)}
-                                            onClick={(e) => handleMoveBlock(block.id, "down", e)}
-                                            className="text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none p-1 transition cursor-pointer"
-                                            title="Move Down"
-                                        >
-                                            <ChevronDown className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleDeleteBlock(block.id, e)}
-                                            className="text-muted-foreground hover:text-rose-400 p-1 transition cursor-pointer"
-                                            title="Delete Block"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
-                                        <span className="text-[9px] uppercase font-mono bg-white/10 px-1.5 py-0.5 rounded text-muted-foreground">
-                                            {block.type}
-                                        </span>
-                                    </div>
-
-                                    {block.type === "header" && (
-                                        <h2 className="font-display text-xl font-bold tracking-tight text-gradient">
-                                            {block.content}
-                                        </h2>
-                                    )}
-
-                                    {block.type === "text" && (
-                                        <p className="text-xs text-muted-foreground leading-relaxed">{block.content}</p>
-                                    )}
-
-                                    {block.type === "button" && (
-                                        <div className="pt-2">
-                                            <span className="inline-flex rounded-full bg-gradient-brand px-4 py-1.5 text-[11px] font-bold text-white shadow">
-                                                {block.content}
-                                            </span>
-                                            <span className="ml-2 text-[9px] text-muted-foreground font-mono">({block.meta})</span>
+                            <div className="border border-white/5 bg-background/50 rounded-xl p-4 space-y-4 max-h-[380px] overflow-y-auto min-h-[300px]">
+                                {selectedPage?.blocks?.map((block, index) => (
+                                    <div key={block.id} className="group relative border border-dashed border-white/10 hover:border-brand-magenta/40 p-4 rounded-xl transition">
+                                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5 z-10 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/10 shadow">
+                                            <button disabled={index === 0} onClick={(e) => handleMoveBlock(block.id, "up", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronUp className="h-3.5 w-3.5" /></button>
+                                            <button disabled={index === (selectedPage.blocks.length - 1)} onClick={(e) => handleMoveBlock(block.id, "down", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronDown className="h-3.5 w-3.5" /></button>
+                                            <button onClick={(e) => handleDeleteBlock(block.id, e)} className="text-muted-foreground hover:text-rose-400 p-1 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                                            <span className="text-[9px] uppercase font-mono bg-white/10 px-1.5 py-0.5 rounded text-muted-foreground">{block.type}</span>
                                         </div>
-                                    )}
 
-                                    {block.type === "media" && (
-                                        <div className="my-2 rounded-lg overflow-hidden border border-white/5 bg-black/20 max-h-48 flex items-center justify-center p-2">
-                                            {block.content ? (
-                                                <img src={block.content} className="max-h-40 object-contain rounded" alt="CMS Media Block" />
-                                            ) : (
-                                                <div className="p-8 text-xs text-muted-foreground flex items-center gap-1.5">
-                                                    <AlertCircle className="h-3.5 w-3.5" /> No image source URL
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="mt-3 hidden group-hover:block border-t border-white/5 pt-3">
-                                        <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
-                                            {block.type === "media" ? "Media URL / Link" : "Edit Content"}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={block.content}
-                                            onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
-                                            className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
-                                        />
+                                        {block.type === "header" && <h2 className="font-display text-xl font-bold tracking-tight text-gradient">{block.content}</h2>}
+                                        {block.type === "text" && <div className="text-xs text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: block.content }} />}
                                         {block.type === "button" && (
-                                            <div className="mt-2">
-                                                <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">
-                                                    Button Link (to)
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={block.meta || ""}
-                                                    onChange={(e) => handleUpdateBlockMeta(block.id, e.target.value)}
-                                                    className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
-                                                />
+                                            <div className="pt-2">
+                                                <span className="inline-flex rounded-full bg-gradient-brand px-4 py-1.5 text-[11px] font-bold text-white shadow">{block.content}</span>
+                                                <span className="ml-2 text-[9px] text-muted-foreground font-mono">({block.meta})</span>
                                             </div>
                                         )}
                                         {block.type === "media" && (
-                                            <p className="text-[9px] text-muted-foreground mt-1">
-                                                Tip: Copy any uploaded asset link from the Media Library on the right.
-                                            </p>
+                                            <div className="my-2 rounded-lg overflow-hidden border border-white/5 bg-black/20 max-h-48 flex items-center justify-center p-2">
+                                                {block.content ? <img src={block.content} className="max-h-40 object-contain rounded" alt="CMS Media Block" /> : <div className="p-8 text-xs text-muted-foreground flex items-center gap-1.5"><AlertCircle className="h-3.5 w-3.5" /> No image source URL</div>}
+                                            </div>
                                         )}
+
+                                        <div className="mt-3 hidden group-hover:block border-t border-white/5 pt-3">
+                                            {block.type === "text" ? (
+                                                <div className="bg-white rounded-lg overflow-hidden mt-2">
+                                                    <Editor
+                                                        apiKey="no-api-key"
+                                                        value={block.content}
+                                                        onEditorChange={(newContent) => handleUpdateBlockContent(block.id, newContent)}
+                                                        init={{ height: 200, menubar: false, plugins: ['link textcolor'], toolbar: 'bold italic underline | link' }}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">{block.type === "media" ? "Media URL" : "Edit Content"}</label>
+                                                    <input type="text" value={block.content} onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)} className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors" />
+                                                </>
+                                            )}
+                                            {block.type === "button" && (
+                                                <div className="mt-2">
+                                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">Button Link (to)</label>
+                                                    <input type="text" value={block.meta || ""} onChange={(e) => handleUpdateBlockMeta(block.id, e.target.value)} className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors" />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                                {(!selectedPage || !selectedPage.blocks || selectedPage.blocks.length === 0) && (
+                                    <div className="flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
+                                        <Inbox className="h-8 w-8 mb-2 opacity-40" />
+                                        <p className="text-xs font-semibold">No blocks on this page layout</p>
+                                    </div>
+                                )}
+                            </div>
 
-                            {(!selectedPage || selectedPage.blocks.length === 0) && (
-                                <div className="flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
-                                    <Inbox className="h-8 w-8 mb-2 opacity-40" />
-                                    <p className="text-xs font-semibold">No blocks on this page layout</p>
-                                    <p className="text-[10px] opacity-75 mt-0.5">Use the creator tools below to insert elements.</p>
+                            <div className="mt-4 border-t border-white/5 pt-4">
+                                <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-2.5 tracking-wider">Insert Layout Block</span>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {['header', 'text', 'button', 'media'].map(type => (
+                                        <button key={type} onClick={() => handleAddBlock(type as any)} className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-foreground transition cursor-pointer capitalize">
+                                            <Plus className="h-3.5 w-3.5 text-brand-magenta" /> {type}
+                                        </button>
+                                    ))}
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Block Creator Buttons */}
-                        <div className="mt-4 border-t border-white/5 pt-4">
-                            <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-2.5 tracking-wider">
-                                Insert Layout Block
-                            </span>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                <button
-                                    onClick={() => handleAddBlock("header")}
-                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-foreground transition cursor-pointer"
-                                >
-                                    <Plus className="h-3.5 w-3.5 text-brand-magenta" /> Header
-                                </button>
-                                <button
-                                    onClick={() => handleAddBlock("text")}
-                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-foreground transition cursor-pointer"
-                                >
-                                    <Plus className="h-3.5 w-3.5 text-brand-magenta" /> Text
-                                </button>
-                                <button
-                                    onClick={() => handleAddBlock("button")}
-                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-foreground transition cursor-pointer"
-                                >
-                                    <Plus className="h-3.5 w-3.5 text-brand-magenta" /> Button
-                                </button>
-                                <button
-                                    onClick={() => handleAddBlock("media")}
-                                    className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-foreground transition cursor-pointer"
-                                >
-                                    <Plus className="h-3.5 w-3.5 text-brand-magenta" /> Media
-                                </button>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Media Library & Menus */}
                 <div className="space-y-4">
-                    {/* Media Grid */}
                     <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl flex flex-col">
                         <div className="flex items-center justify-between mb-3 gap-2">
                             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Media Library</div>
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/5 px-2.5 py-1 text-[10px] hover:bg-white/10 font-bold transition cursor-pointer shrink-0"
-                            >
-                                <Upload className="h-3 w-3 text-brand-cyan" /> Upload File
+                            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/5 px-2.5 py-1 text-[10px] hover:bg-white/10 font-bold transition cursor-pointer shrink-0">
+                                <Upload className="h-3 w-3 text-brand-cyan" /> Upload
                             </button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={(e) => {
-                                    if (e.target.files && e.target.files.length > 0) {
-                                        handleFilesSelected(e.target.files);
-                                    }
-                                }}
-                                multiple
-                                accept="image/*,application/pdf,video/*"
-                                className="hidden"
-                            />
+                            <input type="file" ref={fileInputRef} onChange={(e) => { if (e.target.files) handleFilesSelected(e.target.files); }} multiple accept="image/*,application/pdf,video/*" className="hidden" />
                         </div>
 
-                        {/* Search Media Library */}
                         <div className="relative mb-3">
                             <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
-                            <input
-                                type="text"
-                                placeholder="Search library..."
-                                value={mediaSearchText}
-                                onChange={(e) => setMediaSearchText(e.target.value)}
-                                className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1 text-[11px] focus:outline-none text-foreground"
-                            />
-                            {mediaSearchText && (
-                                <button
-                                    onClick={() => setMediaSearchText("")}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                >
-                                    <X className="h-2.5 w-2.5" />
-                                </button>
-                            )}
+                            <input type="text" placeholder="Search library..." value={mediaSearchText} onChange={(e) => setMediaSearchText(e.target.value)} className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1 text-[11px] focus:outline-none text-foreground" />
                         </div>
 
-                        {/* Drag & Drop Zone */}
-                        <div
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                            className={`border border-dashed rounded-xl p-3 mb-3 text-center transition-all flex flex-col items-center justify-center min-h-[90px] ${
-                                isDragging
-                                    ? "border-brand-magenta bg-brand-magenta/10 scale-[0.98] shadow-glow"
-                                    : "border-white/10 hover:border-brand-magenta/30 bg-background/20 hover:bg-background/40"
-                            }`}
-                        >
-                            <Upload className={`h-5 w-5 mb-1.5 transition-transform duration-300 ${isDragging ? "animate-bounce text-brand-magenta" : "text-muted-foreground"}`} />
-                            <p className="text-[10px] font-semibold text-foreground">
-                                {isDragging ? "Drop to upload!" : "Drag & drop files here"}
-                            </p>
-                            <p className="text-[8px] text-muted-foreground mt-0.5">
-                                or click "Upload File" above
-                            </p>
+                        <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`border border-dashed rounded-xl p-3 mb-3 text-center transition-all flex flex-col items-center justify-center min-h-[90px] ${isDragging ? "border-brand-magenta bg-brand-magenta/10 scale-[0.98]" : "border-white/10 hover:border-brand-magenta/30 bg-background/20"}`}>
+                            <Upload className={`h-5 w-5 mb-1.5 ${isDragging ? "animate-bounce text-brand-magenta" : "text-muted-foreground"}`} />
+                            <p className="text-[10px] font-semibold">{isDragging ? "Drop to upload!" : "Drag files here (WebP auto-convert)"}</p>
                         </div>
 
-                        {filteredMediaList.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center text-center py-6">
-                                <ImageIcon className="h-6 w-6 text-muted-foreground mb-1.5" />
-                                <p className="text-[10px] font-semibold text-muted-foreground">No assets found</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
-                                {filteredMediaList.map((file) => (
-                                    <div key={file.id} className="relative group rounded-lg border border-white/5 overflow-hidden bg-background">
-                                        {file.type === "image" ? (
-                                            <img src={file.url} className="h-16 w-full object-cover" alt="" />
-                                        ) : (
-                                            <div className="h-16 w-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted-foreground">
-                                                {file.type.toUpperCase()}
-                                            </div>
+                        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
+                            {filteredMediaList.map((file) => (
+                                <div key={file.id} className="relative group rounded-lg border border-white/5 overflow-hidden bg-background">
+                                    {file.type === "image" ? <img src={file.url} className="h-16 w-full object-cover" alt="" /> : <div className="h-16 w-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted-foreground">{file.type.toUpperCase()}</div>}
+                                    <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1 transition-all">
+                                        <span className="text-[8px] text-white truncate font-semibold">{file.name}</span>
+                                        {file.url && (
+                                            <button onClick={() => { navigator.clipboard.writeText(file.url); toast.success("Copied!"); }} className="bg-brand-blue text-white rounded px-1.5 py-0.5 text-[8px] mx-auto cursor-pointer">
+                                                Copy Link
+                                            </button>
                                         )}
-                                        <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1 transition-all">
-                                            <span className="text-[8px] text-white truncate font-semibold" title={file.name}>
-                                                {file.name}
-                                            </span>
-                                            
-                                            {/* File Asset URL Clipboard Copier */}
-                                            {file.url && file.url !== "#" && (
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(file.url);
-                                                        toast.success(`Copied URL for "${file.name}"`);
-                                                    }}
-                                                    className="bg-brand-blue/80 hover:bg-brand-blue text-white rounded px-1.5 py-0.5 text-[8px] font-bold mx-auto select-all cursor-pointer transition shadow"
-                                                >
-                                                    Copy Link
-                                                </button>
-                                            )}
-
-                                            <div className="flex items-center justify-between mt-auto">
-                                                <span className="text-[7px] text-white/70">{file.size}</span>
-                                                <Trash2
-                                                    className="h-3 w-3 text-rose-400 cursor-pointer hover:scale-110"
-                                                    onClick={() => handleDeleteMedia(file.id)}
-                                                />
-                                            </div>
+                                        <div className="flex items-center justify-between mt-auto">
+                                            <span className="text-[7px] text-white/70">{file.size}</span>
+                                            <Trash2 className="h-3 w-3 text-rose-400 cursor-pointer" onClick={() => handleDeleteMedia(file.id, file.url)} />
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                        <button
-                            onClick={handleAddMediaMock}
-                            className="mt-2 text-[9px] text-brand-magenta hover:underline text-left cursor-pointer"
-                        >
-                            + Quick Add Mock Image Asset
-                        </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Navigation Menu Editor */}
                     <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
-                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                            Header Navigation Menu
+                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Header Navigation Menu</div>
+                        <div className="space-y-1.5 max-h-36 overflow-y-auto mb-3 pr-1">
+                            {headerLinks.map((link) => (
+                                <div key={link.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-1.5 text-[11px]">
+                                    <span className="font-semibold">{link.label}</span>
+                                    <span className="font-mono text-muted-foreground text-[9px]">{link.to_path}</span>
+                                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-rose-400 cursor-pointer" onClick={() => handleDeleteNavLink(link.id)} />
+                                </div>
+                            ))}
                         </div>
-
-                        {headerLinks.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center text-center py-6 mb-3">
-                                <p className="text-[11px] font-semibold text-muted-foreground">No nav links yet</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-1.5 max-h-36 overflow-y-auto mb-3 pr-1">
-                                {headerLinks.map((link) => (
-                                    <div key={link.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-1.5 text-[11px]">
-                                        <span className="font-semibold text-foreground">{link.label}</span>
-                                        <span className="font-mono text-muted-foreground text-[9px]">{link.to}</span>
-                                        <Trash2
-                                            className="h-3 w-3 text-muted-foreground hover:text-rose-400 cursor-pointer"
-                                            onClick={() => handleDeleteNavLink(link.id)}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
                         <div className="space-y-2 border-t border-white/5 pt-3">
                             <div className="grid grid-cols-2 gap-1.5">
-                                <input
-                                    type="text"
-                                    placeholder="Label"
-                                    value={newNavLink.label}
-                                    onChange={(e) => setNewNavLink({ ...newNavLink, label: e.target.value })}
-                                    className="rounded-lg border border-border bg-background px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Route"
-                                    value={newNavLink.to}
-                                    onChange={(e) => setNewNavLink({ ...newNavLink, to: e.target.value })}
-                                    className="rounded-lg border border-border bg-background px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
-                                />
+                                <input type="text" placeholder="Label" value={newNavLink.label} onChange={(e) => setNewNavLink({ ...newNavLink, label: e.target.value })} className="rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none" />
+                                <input type="text" placeholder="Route" value={newNavLink.to_path} onChange={(e) => setNewNavLink({ ...newNavLink, to_path: e.target.value })} className="rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none" />
                             </div>
-                            <button
-                                onClick={handleAddNavLink}
-                                className="w-full rounded-lg bg-brand-blue text-white py-1.5 text-[10px] font-bold shadow-md hover:opacity-90 transition cursor-pointer"
-                            >
-                                Add Navigation Link
-                            </button>
+                            <button onClick={handleAddNavLink} className="w-full rounded-lg bg-brand-blue text-white py-1.5 text-[10px] font-bold hover:opacity-90">Add Navigation Link</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Page Creation Modal */}
+            {/* Create Page Modal */}
             <AnimatePresence>
                 {isCreatePageModalOpen && (
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-card border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-elegant space-y-4 text-foreground"
-                        >
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-elegant space-y-4">
                             <div className="flex items-center justify-between border-b border-white/5 pb-3">
                                 <h3 className="font-display font-bold text-sm tracking-tight">Create New CMS Page</h3>
-                                <button
-                                    onClick={() => {
-                                        setIsCreatePageModalOpen(false);
-                                        setNewPageName("");
-                                        setNewPagePath("");
-                                    }}
-                                    className="text-muted-foreground hover:text-foreground p-1 rounded transition cursor-pointer"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
+                                <button onClick={() => setIsCreatePageModalOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
                             </div>
                             <form onSubmit={handleCreatePageSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1.5 tracking-wider">
-                                        Page Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Portfolio"
-                                        value={newPageName}
-                                        onChange={(e) => setNewPageName(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
-                                        required
-                                        autoFocus
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] uppercase font-bold text-muted-foreground mb-1.5 tracking-wider">
-                                        Page Path / Route
-                                    </label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. /portfolio"
-                                        value={newPagePath}
-                                        onChange={(e) => setNewPagePath(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
-                                        required
-                                    />
-                                    <p className="text-[9px] text-muted-foreground mt-1">
-                                        Must start with / and be a unique route.
-                                    </p>
-                                </div>
+                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Name</label><input type="text" value={newPageName} onChange={(e) => setNewPageName(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
+                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Path</label><input type="text" value={newPagePath} onChange={(e) => setNewPagePath(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
                                 <div className="flex items-center gap-2 pt-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsCreatePageModalOpen(false);
-                                            setNewPageName("");
-                                            setNewPagePath("");
-                                        }}
-                                        className="flex-1 rounded-xl border border-white/10 hover:bg-white/5 py-2.5 text-xs font-semibold transition text-center cursor-pointer"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-1 rounded-xl bg-brand-magenta text-white py-2.5 text-xs font-semibold shadow-md hover:opacity-90 transition text-center cursor-pointer"
-                                    >
-                                        Create Page
-                                    </button>
+                                    <button type="button" onClick={() => setIsCreatePageModalOpen(false)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-xs font-semibold">Cancel</button>
+                                    <button type="submit" className="flex-1 rounded-xl bg-brand-magenta text-white py-2.5 text-xs font-semibold">Create Page</button>
                                 </div>
                             </form>
                         </motion.div>

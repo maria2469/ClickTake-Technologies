@@ -71,10 +71,19 @@ function AdminCrmPage() {
 
     const leadsChannel = supabase.channel('custom-insert-channel')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, async (payload) => {
-        setLeads((currentLeads) => [payload.new, ...currentLeads]);
-        await supabase.from('audit_logs').insert({ user_email: "System", action: `New Lead: ${payload.new.name}` });
+        setLeads((currentLeads) => {
+          if (currentLeads.some(l => l.id === payload.new.id)) return currentLeads;
+          return [payload.new, ...currentLeads];
+        });
         toast.success(`New Lead Inquiry from ${payload.new.name}!`);
-      }).subscribe();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'leads' }, (payload) => {
+        setLeads((currentLeads) => currentLeads.map((l) => (l.id === payload.new.id ? payload.new : l)));
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'leads' }, (payload) => {
+        setLeads((currentLeads) => currentLeads.filter((l) => l.id !== payload.old.id));
+      })
+      .subscribe();
 
     return () => { supabase.removeChannel(leadsChannel); };
   }, []);
@@ -105,38 +114,109 @@ function AdminCrmPage() {
   };
 
   const handleAddNote = async () => {
-    if (!newNoteText.trim() || !selectedLeadId) return;
-    const existingNotes = Array.isArray(selectedLead?.internal_notes) ? selectedLead.internal_notes : [];
+    if (!newNoteText.trim() || !selectedLeadId || !selectedLead) return;
+    let existingNotes: string[] = [];
+    try { existingNotes = typeof selectedLead.internal_notes === 'string' ? JSON.parse(selectedLead.internal_notes) : (Array.isArray(selectedLead.internal_notes) ? selectedLead.internal_notes : []); } catch (e) { existingNotes = []; }
     const newNotes = [...existingNotes, newNoteText.trim()];
     const previousLeads = [...leads];
-    setLeads(leads.map((l) => l.id === selectedLeadId ? { ...l, internal_notes: newNotes } : l));
-    const { error } = await supabase.from('leads').update({ internal_notes: newNotes }).eq('id', selectedLeadId);
+    setLeads(leads.map((l) => l.id === selectedLeadId ? { ...l, internal_notes: JSON.stringify(newNotes) } : l));
+    const { error } = await supabase.from('leads').update({ internal_notes: JSON.stringify(newNotes) }).eq('id', selectedLeadId);
     if (error) { setLeads(previousLeads); toast.error("Failed to save note"); return; }
     setNewNoteText("");
     toast.success("Comment appended to audit trail");
   };
 
-  // Note deletion not supported in Supabase schema currently
-  const handleDeleteNote = (_index: number) => {
-    toast.error("Note deletion is disabled in live CRM");
+  const handleDeleteNote = async (index: number) => {
+    if (!selectedLeadId || !selectedLead) return;
+    let existingNotes: string[] = [];
+    try { existingNotes = typeof selectedLead.internal_notes === 'string' ? JSON.parse(selectedLead.internal_notes) : (Array.isArray(selectedLead.internal_notes) ? [...selectedLead.internal_notes] : []); } catch (e) { existingNotes = []; }
+    existingNotes.splice(index, 1);
+    
+    const previousLeads = [...leads];
+    setLeads(leads.map((l) => l.id === selectedLeadId ? { ...l, internal_notes: JSON.stringify(existingNotes) } : l));
+    const { error } = await supabase.from('leads').update({ internal_notes: JSON.stringify(existingNotes) }).eq('id', selectedLeadId);
+    if (error) { setLeads(previousLeads); toast.error("Failed to delete note"); return; }
+    toast.success("Note deleted successfully");
   };
 
-  // Lead deletion removed for safety
-  const handleDeleteLead = (_leadId: string) => {
-    toast.error("Lead deletion is disabled in live CRM");
+  const handleDeleteLead = async (leadId: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this lead?")) return;
+    const previousLeads = [...leads];
+    setLeads(leads.filter(l => l.id !== leadId));
+    if (selectedLeadId === leadId) {
+      setSelectedLeadId(leads.find(l => l.id !== leadId)?.id || "");
+    }
+    const { error } = await supabase.from('leads').delete().eq('id', leadId);
+    if (error) { 
+      setLeads(previousLeads); 
+      toast.error(`Failed to delete lead: ${error.message}`); 
+      console.error("Supabase delete error:", error);
+      return; 
+    }
+    toast.success("Lead deleted successfully from Supabase");
   };
 
-  const handleAddLeadSubmit = (e: React.FormEvent) => {
+  const handleAddLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.error("Disabled in live CRM");
+    const newLead = {
+      name: newLeadName,
+      email: newLeadEmail,
+      phone: newLeadPhone,
+      service_interest: newLeadInterest,
+      source_page: newLeadSource,
+      status: "New",
+      internal_notes: JSON.stringify(newLeadNote ? [newLeadNote] : [])
+    };
+    const { error } = await supabase.from('leads').insert(newLead);
+    if (error) { 
+      toast.error(`Failed to create lead: ${error.message}`); 
+      console.error("Supabase insert error:", error);
+      return; 
+    }
+    
+    setIsAddLeadModalOpen(false);
+    setNewLeadName("");
+    setNewLeadEmail("");
+    setNewLeadPhone("");
+    setNewLeadNote("");
+    toast.success("New lead created successfully");
   };
 
   const handleExportCSV = () => {
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: "Generating Excel spreadsheet...",
-      success: "Leads database exported successfully! clicktake_leads_2026.xlsx downloaded.",
-      error: "Export failed",
-    });
+    if (leads.length === 0) {
+      toast.error("No leads to export");
+      return;
+    }
+    try {
+      const headers = ["Name", "Email", "Phone", "Interest", "Source", "Date", "Status", "Notes"];
+      const rows = leads.map(l => {
+        let notesArr: string[] = [];
+        try { notesArr = typeof l.internal_notes === 'string' ? JSON.parse(l.internal_notes) : (Array.isArray(l.internal_notes) ? l.internal_notes : []); } catch(e) {}
+        const notesStr = notesArr.join("; ");
+        return [
+          `"${l.name || ""}"`,
+          `"${l.email || ""}"`,
+          `"${l.phone || ""}"`,
+          `"${l.interest || l.service_interest || ""}"`,
+          `"${l.source || l.source_page || ""}"`,
+          `"${l.date || (l.created_at ? new Date(l.created_at).toLocaleDateString() : "")}"`,
+          `"${l.status || "New"}"`,
+          `"${notesStr}"`
+        ].join(",");
+      });
+      const csvContent = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `clicktake_leads_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Leads database exported successfully as CSV.");
+    } catch (err) {
+      toast.error("Export failed");
+    }
   };
 
   // Avatar Initials Creator
@@ -166,10 +246,11 @@ function AdminCrmPage() {
 
   const filteredLeads = useMemo(() => {
     return leads.filter((l) => {
+      const interestStr = (l.interest || l.service_interest || "").toLowerCase();
       const matchesSearch =
-        l.name.toLowerCase().includes(crmSearch.toLowerCase()) ||
-        l.email.toLowerCase().includes(crmSearch.toLowerCase()) ||
-        l.interest.toLowerCase().includes(crmSearch.toLowerCase());
+        (l.name || "").toLowerCase().includes(crmSearch.toLowerCase()) ||
+        (l.email || "").toLowerCase().includes(crmSearch.toLowerCase()) ||
+        interestStr.includes(crmSearch.toLowerCase());
       const matchesStatus = crmStatusFilter === "All" || l.status === crmStatusFilter;
       return matchesSearch && matchesStatus;
     });
@@ -288,7 +369,7 @@ function AdminCrmPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.02] text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-white/10 bg-white/2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   <th className="p-4">Client info</th>
                   <th className="p-4">Project area</th>
                   <th className="p-4">Date logged</th>
@@ -309,7 +390,7 @@ function AdminCrmPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         {/* Gradient initial avatar badge */}
-                        <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${getAvatarGradient(lead.id)} flex items-center justify-center text-[10px] font-bold text-white shadow-sm shrink-0`}>
+                        <div className={`h-8 w-8 rounded-full bg-linear-to-br{getAvatarGradient(lead.id)} flex items-center justify-center text-[10px] font-bold text-white shadow-sm shrink-0`}>
                           {getInitials(lead.name)}
                         </div>
                         <div className="overflow-hidden">
@@ -401,28 +482,34 @@ function AdminCrmPage() {
 
                   {/* Comments timeline list */}
                   <div className="relative pl-3 border-l border-white/10 space-y-3 max-h-[170px] overflow-y-auto pr-1">
-                    {(Array.isArray(selectedLead.internal_notes) ? selectedLead.internal_notes : []).map((note: string, index: number) => (
-                      <div key={index} className="relative group/note bg-white/[0.02] border border-white/5 rounded-xl p-2.5 text-[10px] leading-relaxed">
-                        {/* Bullet timeline circle */}
-                        <div className="absolute -left-[17px] top-3.5 h-1.5 w-1.5 rounded-full bg-brand-magenta border border-background shadow-glow" />
+                    {(() => {
+                      let notes: string[] = [];
+                      try { notes = typeof selectedLead.internal_notes === 'string' ? JSON.parse(selectedLead.internal_notes) : (Array.isArray(selectedLead.internal_notes) ? selectedLead.internal_notes : []); } catch(e) {}
+                      if (notes.length === 0) {
+                        return (
+                          <div className="text-[10px] text-muted-foreground italic text-center py-4">
+                            No administrative logs appended.
+                          </div>
+                        );
+                      }
+                      return notes.map((note: string, index: number) => (
+                        <div key={index} className="relative group/note bg-white/2 border border-white/5 rounded-xl p-2.5 text-[10px] leading-relaxed">
+                          {/* Bullet timeline circle */}
+                          <div className="absolute left-[-17px] top-3.5 h-1.5 w-1.5 rounded-full bg-brand-magenta border border-background shadow-glow" />
 
-                        <div className="flex items-start justify-between gap-1.5">
-                          <span className="text-foreground">{note}</span>
-                          <button
-                            onClick={() => handleDeleteNote(index)}
-                            className="opacity-0 group-hover/note:opacity-100 text-muted-foreground hover:text-rose-400 p-0.5 rounded transition shrink-0 cursor-pointer"
-                            title="Delete Comment"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
+                          <div className="flex items-start justify-between gap-1.5">
+                            <span className="text-foreground">{note}</span>
+                            <button
+                              onClick={() => handleDeleteNote(index)}
+                              className="opacity-0 group-hover/note:opacity-100 text-muted-foreground hover:text-rose-400 p-0.5 rounded transition shrink-0 cursor-pointer"
+                              title="Delete Comment"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {(!selectedLead.internal_notes || selectedLead.internal_notes.length === 0) && (
-                      <div className="text-[10px] text-muted-foreground italic text-center py-4">
-                        No administrative logs appended.
-                      </div>
-                    )}
+                      ));
+                    })()}
                   </div>
                 </div>
               </div>

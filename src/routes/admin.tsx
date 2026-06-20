@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import {
   LayoutDashboard,
   FileText,
@@ -38,6 +39,44 @@ function AdminLayout() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const { data } = await supabase
+        .from('admin_notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (data) setNotifications(data);
+    };
+
+    fetchNotifications();
+
+    const notifChannel = supabase.channel('notifications-channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_notifications' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setNotifications(prev => [payload.new, ...prev].slice(0, 10));
+        } else if (payload.eventType === 'UPDATE') {
+          setNotifications(prev => prev.map(n => n.id === payload.new.id ? payload.new : n));
+        } else if (payload.eventType === 'DELETE') {
+          setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(notifChannel); };
+  }, []);
+
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
+    if (unreadIds.length === 0) return;
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    await supabase.from('admin_notifications').update({ is_read: true }).in('id', unreadIds);
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden transition-colors duration-300">
@@ -96,31 +135,38 @@ function AdminLayout() {
             <div className="relative group">
               <button className="relative rounded-full p-2 border border-border bg-card/80 hover:bg-secondary transition-colors">
                 <Bell className="h-4 w-4" />
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500 animate-pulse" />}
               </button>
 
               <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-border bg-card p-3 shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200">
-                <div className="text-xs font-bold border-b border-border pb-2 mb-2">Recent Notifications</div>
+                <div className="text-xs font-bold border-b border-border pb-2 mb-2 flex justify-between items-center">
+                   <span>Recent Notifications</span>
+                   {unreadCount > 0 && (
+                     <button onClick={markAllAsRead} className="text-[9px] font-normal text-brand-magenta hover:underline cursor-pointer">
+                       Mark all read
+                     </button>
+                   )}
+                </div>
                 <div className="space-y-2.5 max-h-60 overflow-y-auto">
-                  <div className="text-[11px] leading-normal">
-                    <span className="font-semibold text-brand-magenta">New Lead Submission:</span> Sarah Connor interest in AI Chatbots.
-                    <div className="text-[9px] text-muted-foreground">10 mins ago</div>
-                  </div>
-                  <div className="text-[11px] leading-normal border-t border-border/40 pt-2">
-                    <span className="font-semibold text-brand-blue">Security Alert:</span> 2 unsuccessful root logins from IP 185.220.101.4.
-                    <div className="text-[9px] text-muted-foreground">2 hours ago</div>
-                  </div>
-                  <div className="text-[11px] leading-normal border-t border-border/40 pt-2">
-                    <span className="font-semibold text-emerald-400">SMTP Server Status:</span> Connection resolved with healthy latency.
-                    <div className="text-[9px] text-muted-foreground">Yesterday</div>
-                  </div>
+                  {notifications.length === 0 ? (
+                    <div className="text-[10px] text-muted-foreground text-center py-4">No new notifications</div>
+                  ) : (
+                    notifications.map(n => (
+                      <div key={n.id} className={`text-[11px] leading-normal ${!n.is_read ? 'bg-white/5 p-2 rounded-md border border-white/10' : 'border-t border-border/40 pt-2'}`}>
+                        <span className={`font-semibold ${n.type === 'lead' ? 'text-brand-magenta' : n.type === 'security' ? 'text-rose-500' : 'text-brand-blue'}`}>
+                          {n.title}:
+                        </span> {n.message}
+                        <div className="text-[9px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Profile */}
             <div className="flex items-center gap-2 border-l border-border pl-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-brand-pink to-brand-magenta flex items-center justify-center text-white text-xs font-bold shadow-md">
+              <div className="h-8 w-8 rounded-full bg-linear-to-tr from-brand-pink to-brand-magenta flex items-center justify-center text-white text-xs font-bold shadow-md">
                 ZP
               </div>
               <div className="hidden lg:block text-left">
@@ -152,7 +198,7 @@ function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   className={`group flex items-center gap-3 rounded-xl px-4 py-3.5 text-left text-xs font-bold transition-all ${isActive
-                      ? "bg-gradient-to-r from-brand-magenta to-brand-blue text-white shadow-glow"
+                      ? "bg-linear-to-r from-brand-magenta to-brand-blue text-white shadow-glow"
                       : "hover:bg-secondary text-muted-foreground hover:text-foreground"
                     }`}
                 >
