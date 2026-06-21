@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { logAudit } from "@/lib/logAudit";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileSpreadsheet,
@@ -107,10 +108,15 @@ function AdminCrmPage() {
     const previousLeads = [...leads];
     setLeads(leads.map((l) => (l.id === leadId ? { ...l, status } : l)));
     const leadName = leads.find((l) => l.id === leadId)?.name || "Lead";
-    const { error } = await supabase.from('leads').update({ status }).eq('id', leadId);
-    if (error) { setLeads(previousLeads); toast.error("Failed to update status"); return; }
-    await supabase.from('audit_logs').insert({ user_email: "Admin", action: `Changed ${leadName} status to '${status}'` });
-    toast.success(`Updated ${leadName}'s status to ${status}`);
+    try {
+      const { error } = await supabase.from('leads').update({ status }).eq('id', leadId);
+      if (error) throw error;
+      await logAudit(`Changed ${leadName} status to '${status}'`, 'lead', leadId);
+      toast.success(`Updated ${leadName}'s status to ${status}`);
+    } catch (error: any) {
+      setLeads(previousLeads);
+      toast.error(`Failed to update status: ${error.message}`);
+    }
   };
 
   const handleAddNote = async () => {
@@ -120,10 +126,15 @@ function AdminCrmPage() {
     const newNotes = [...existingNotes, newNoteText.trim()];
     const previousLeads = [...leads];
     setLeads(leads.map((l) => l.id === selectedLeadId ? { ...l, internal_notes: JSON.stringify(newNotes) } : l));
-    const { error } = await supabase.from('leads').update({ internal_notes: JSON.stringify(newNotes) }).eq('id', selectedLeadId);
-    if (error) { setLeads(previousLeads); toast.error("Failed to save note"); return; }
-    setNewNoteText("");
-    toast.success("Comment appended to audit trail");
+    try {
+      const { error } = await supabase.from('leads').update({ internal_notes: JSON.stringify(newNotes) }).eq('id', selectedLeadId);
+      if (error) throw error;
+      setNewNoteText("");
+      toast.success("Comment appended to audit trail");
+    } catch (error: any) {
+      setLeads(previousLeads); 
+      toast.error(`Failed to save note: ${error.message}`);
+    }
   };
 
   const handleDeleteNote = async (index: number) => {
@@ -134,9 +145,14 @@ function AdminCrmPage() {
     
     const previousLeads = [...leads];
     setLeads(leads.map((l) => l.id === selectedLeadId ? { ...l, internal_notes: JSON.stringify(existingNotes) } : l));
-    const { error } = await supabase.from('leads').update({ internal_notes: JSON.stringify(existingNotes) }).eq('id', selectedLeadId);
-    if (error) { setLeads(previousLeads); toast.error("Failed to delete note"); return; }
-    toast.success("Note deleted successfully");
+    try {
+      const { error } = await supabase.from('leads').update({ internal_notes: JSON.stringify(existingNotes) }).eq('id', selectedLeadId);
+      if (error) throw error;
+      toast.success("Note deleted successfully");
+    } catch (error: any) {
+      setLeads(previousLeads); 
+      toast.error(`Failed to delete note: ${error.message}`);
+    }
   };
 
   const handleDeleteLead = async (leadId: string) => {
@@ -146,14 +162,16 @@ function AdminCrmPage() {
     if (selectedLeadId === leadId) {
       setSelectedLeadId(leads.find(l => l.id !== leadId)?.id || "");
     }
-    const { error } = await supabase.from('leads').delete().eq('id', leadId);
-    if (error) { 
+    try {
+      const { error } = await supabase.from('leads').delete().eq('id', leadId);
+      if (error) throw error;
+      await logAudit(`Deleted lead`, 'lead', leadId);
+      toast.success("Lead deleted successfully from Supabase");
+    } catch (error: any) {
       setLeads(previousLeads); 
       toast.error(`Failed to delete lead: ${error.message}`); 
       console.error("Supabase delete error:", error);
-      return; 
     }
-    toast.success("Lead deleted successfully from Supabase");
   };
 
   const handleAddLeadSubmit = async (e: React.FormEvent) => {

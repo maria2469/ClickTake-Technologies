@@ -13,6 +13,7 @@ import {
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect } from "react";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 
@@ -169,6 +170,8 @@ function RootComponent() {
         <main className="relative z-10">
           <Outlet />
         </main>
+        
+        <Toaster position="top-right" theme="dark" />
       </div>
     </QueryClientProvider>
   );

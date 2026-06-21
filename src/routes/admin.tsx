@@ -41,6 +41,8 @@ function AdminLayout() {
   const location = useLocation();
 
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [themeAccent, setThemeAccent] = useState("magenta");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -52,7 +54,18 @@ function AdminLayout() {
       if (data) setNotifications(data);
     };
 
+    const fetchSettings = async () => {
+      const { data } = await supabase.from('site_settings').select('key, value').in('key', ['theme_accent', 'logo_url']);
+      if (data) {
+        const theme = data.find(s => s.key === 'theme_accent')?.value;
+        const logo = data.find(s => s.key === 'logo_url')?.value;
+        if (theme) setThemeAccent(theme);
+        if (logo) setLogoUrl(logo);
+      }
+    };
+
     fetchNotifications();
+    fetchSettings();
 
     const notifChannel = supabase.channel('notifications-channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_notifications' }, (payload) => {
@@ -78,6 +91,15 @@ function AdminLayout() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  const activeColorTheme =
+      themeAccent === "magenta"
+          ? "from-brand-magenta to-brand-blue"
+          : themeAccent === "pink"
+              ? "from-brand-pink to-brand-magenta"
+              : themeAccent === "cyan"
+                  ? "from-brand-cyan to-brand-blue"
+                  : "from-brand-pink to-brand-cyan";
+
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden transition-colors duration-300">
       <BackgroundScene />
@@ -96,10 +118,14 @@ function AdminLayout() {
             </button>
 
             <Link to="/" className="flex items-center gap-3">
-              <div className="h-9 w-9 overflow-hidden rounded-lg ring-1 ring-border shadow-sm">
-                <div className="h-full w-full bg-gradient-brand flex items-center justify-center text-white font-display text-xs font-black">
-                  CT
-                </div>
+              <div className="h-9 w-9 overflow-hidden rounded-lg ring-1 ring-border shadow-sm flex items-center justify-center bg-card">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-gradient-brand flex items-center justify-center text-white font-display text-xs font-black">
+                    CT
+                  </div>
+                )}
               </div>
               <div>
                 <div className="font-display text-sm font-extrabold tracking-tight">ClickTake</div>
@@ -166,7 +192,7 @@ function AdminLayout() {
 
             {/* Profile */}
             <div className="flex items-center gap-2 border-l border-border pl-3">
-              <div className="h-8 w-8 rounded-full bg-linear-to-tr from-brand-pink to-brand-magenta flex items-center justify-center text-white text-xs font-bold shadow-md">
+              <div className={`h-8 w-8 rounded-full bg-linear-to-tr ${activeColorTheme} flex items-center justify-center text-white text-xs font-bold shadow-md`}>
                 ZP
               </div>
               <div className="hidden lg:block text-left">
@@ -198,7 +224,7 @@ function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   className={`group flex items-center gap-3 rounded-xl px-4 py-3.5 text-left text-xs font-bold transition-all ${isActive
-                      ? "bg-linear-to-r from-brand-magenta to-brand-blue text-white shadow-glow"
+                      ? `bg-linear-to-r ${activeColorTheme} text-white shadow-glow`
                       : "hover:bg-secondary text-muted-foreground hover:text-foreground"
                     }`}
                 >

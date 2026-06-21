@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
     Settings,
@@ -38,39 +38,53 @@ interface SocialLink {
     handle: string;
 }
 
-function AdminSettingsPage() {
-    // Branding
-    const [themeAccent, setThemeAccent] = useState("magenta");
-    const [logoPreview, setLogoPreview] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+import { supabase } from "@/lib/supabaseClient";
+import { logAudit } from "@/lib/logAudit";
 
-    // Contact info — pre-filled with sample data, consistent with admin/index.tsx
-    const [contactConfig, setContactConfig] = useState({
-        email: "hello@clicktake.co",
-        phone: "+44 121 288 8820",
-        address: "Colmore Row, Birmingham, B3 3AG, UK",
+function AdminSettingsPage() {
+    const [settings, setSettings] = useState<Record<string, string>>({
+        phone: "",
+        email: "",
+        address: "",
+        logo_url: "",
+        facebook_url: "",
+        linkedin_url: "",
+        twitter_url: "",
+        theme_accent: "magenta",
     });
 
-    // Social links — pre-filled, editable list
-    const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
-        { id: "s1", platform: "linkedin", label: "LinkedIn Profile", handle: "linkedin.com/company/clicktake" },
-        { id: "s2", platform: "x", label: "X (Twitter) Handle", handle: "x.com/clicktake" },
-        { id: "s3", platform: "github", label: "GitHub Organization", handle: "github.com/clicktake-tech" },
-        { id: "s4", platform: "instagram", label: "Instagram Handle", handle: "instagram.com/clicktake.tech" },
-    ]);
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { data, error } = await supabase.from('site_settings').select('*');
+                if (error) throw error;
+                if (data) {
+                    const newSettings = { ...settings };
+                    data.forEach(item => {
+                        newSettings[item.key] = item.value;
+                    });
+                    setSettings(newSettings);
+                }
+            } catch (err: any) {
+                toast.error(`Failed to load settings: ${err.message}`);
+            }
+        };
+        fetchSettings();
+    }, []);
 
-    const platformIcon = (platform: SocialLink["platform"]) => {
-        switch (platform) {
-            case "linkedin":
-                return Linkedin;
-            case "x":
-                return Twitter;
-            case "github":
-                return Github;
-            case "instagram":
-                return Instagram;
-            default:
-                return Globe;
+    const handleChange = (key: string, value: string) => {
+        setSettings(prev => ({ ...prev, [key]: value }));
+    };
+
+    const handleSaveAll = async () => {
+        const upserts = Object.keys(settings).map(key => ({ key, value: settings[key] }));
+        try {
+            const { error } = await supabase.from('site_settings').upsert(upserts, { onConflict: 'key' });
+            if (error) throw error;
+            await logAudit("Updated site settings", "settings", "global");
+            toast.success("Settings saved successfully!");
+        } catch (err: any) {
+            toast.error(`Failed to save settings: ${err.message}`);
         }
     };
 
@@ -78,39 +92,24 @@ function AdminSettingsPage() {
         const file = e.target.files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => setLogoPreview(reader.result as string);
+        reader.onload = () => {
+            handleChange("logo_url", reader.result as string);
+            toast.success(`${file.name} staged for upload`);
+        };
         reader.readAsDataURL(file);
-        toast.success(`${file.name} staged for upload`);
     };
 
     const handleRemoveLogo = () => {
-        setLogoPreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        handleChange("logo_url", "");
         toast.error("Logo removed from staging");
     };
 
-    const handleSocialChange = (id: string, value: string) => {
-        setSocialLinks((prev) => prev.map((s) => (s.id === id ? { ...s, handle: value } : s)));
-    };
-
-    const handleSaveContact = () => {
-        toast.success("Contact settings committed to API endpoints");
-    };
-
-    const handleSaveSocial = () => {
-        toast.success("Social anchors synchronized");
-    };
-
-    const handleSaveBranding = () => {
-        toast.success("Branding preferences saved successfully");
-    };
-
     const activeColorTheme =
-        themeAccent === "magenta"
+        settings.theme_accent === "magenta"
             ? "from-brand-magenta to-brand-blue"
-            : themeAccent === "pink"
+            : settings.theme_accent === "pink"
                 ? "from-brand-pink to-brand-magenta"
-                : themeAccent === "cyan"
+                : settings.theme_accent === "cyan"
                     ? "from-brand-cyan to-brand-blue"
                     : "from-brand-pink to-brand-cyan";
 
@@ -149,7 +148,6 @@ function AdminSettingsPage() {
                         </label>
 
                         <input
-                            ref={fileInputRef}
                             type="file"
                             accept="image/*"
                             onChange={handleLogoSelect}
@@ -157,10 +155,10 @@ function AdminSettingsPage() {
                             id="logo-upload-input"
                         />
 
-                        {logoPreview ? (
+                        {settings.logo_url ? (
                             <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3">
                                 <div className="h-12 w-12 rounded-lg overflow-hidden ring-1 ring-border shrink-0 bg-background">
-                                    <img src={logoPreview} alt="Logo preview" className="h-full w-full object-cover" />
+                                    <img src={settings.logo_url} alt="Logo preview" className="h-full w-full object-cover" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[11px] font-semibold truncate">Logo staged</p>
@@ -168,7 +166,7 @@ function AdminSettingsPage() {
                                 </div>
                                 <button
                                     onClick={handleRemoveLogo}
-                                    className="text-muted-foreground hover:text-rose-400 p-1.5 shrink-0"
+                                    className="text-muted-foreground hover:text-rose-400 p-1.5 shrink-0 hover:bg-white/5 rounded-lg"
                                     aria-label="Remove logo"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -177,7 +175,7 @@ function AdminSettingsPage() {
                         ) : (
                             <label
                                 htmlFor="logo-upload-input"
-                                className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/10 bg-background/40 py-8 px-4 text-center cursor-pointer hover:border-brand-magenta/40 hover:bg-white/[0.02] transition-all"
+                                className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/10 bg-background/40 py-8 px-4 text-center cursor-pointer hover:border-brand-magenta/40 hover:bg-white/2 transition-all"
                             >
                                 <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center">
                                     <ImageIcon className="h-4.5 w-4.5 text-muted-foreground" />
@@ -209,23 +207,23 @@ function AdminSettingsPage() {
                             ].map((theme) => (
                                 <button
                                     key={theme.id}
-                                    onClick={() => setThemeAccent(theme.id)}
-                                    className={`flex items-center gap-2 rounded-xl border p-2.5 text-[11px] font-bold transition ${themeAccent === theme.id ? "border-brand-magenta bg-white/5" : "border-white/5 hover:border-white/15"
+                                    onClick={() => handleChange("theme_accent", theme.id)}
+                                    className={`flex items-center gap-2 rounded-xl border p-2.5 text-[11px] font-bold transition ${settings.theme_accent === theme.id ? "border-brand-magenta bg-white/5" : "border-white/5 hover:border-white/15"
                                         }`}
                                 >
                                     <span className={`h-3 w-3 rounded-full ${theme.color} shrink-0`} />
                                     <span className="truncate">{theme.label}</span>
-                                    {themeAccent === theme.id && <Check className="h-3 w-3 text-brand-magenta ml-auto shrink-0" />}
+                                    {settings.theme_accent === theme.id && <Check className="h-3 w-3 text-brand-magenta ml-auto shrink-0" />}
                                 </button>
                             ))}
                         </div>
                     </div>
 
                     <button
-                        onClick={handleSaveBranding}
-                        className={`mt-5 w-full flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${activeColorTheme} text-white py-2.5 text-xs font-bold shadow-md hover:scale-[1.02] transition`}
+                        onClick={handleSaveAll}
+                        className={`mt-5 w-full flex items-center justify-center gap-1.5 rounded-xl bg-linear-to-r ${activeColorTheme} text-white py-2.5 text-xs font-bold shadow-md hover:scale-[1.02] transition`}
                     >
-                        <Save className="h-3.5 w-3.5" /> Save Branding
+                        <Save className="h-3.5 w-3.5" /> Save All Settings
                     </button>
                 </div>
 
@@ -242,8 +240,8 @@ function AdminSettingsPage() {
                             </label>
                             <input
                                 type="email"
-                                value={contactConfig.email}
-                                onChange={(e) => setContactConfig({ ...contactConfig, email: e.target.value })}
+                                value={settings.email}
+                                onChange={(e) => handleChange("email", e.target.value)}
                                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
                             />
                         </div>
@@ -253,8 +251,8 @@ function AdminSettingsPage() {
                             </label>
                             <input
                                 type="text"
-                                value={contactConfig.phone}
-                                onChange={(e) => setContactConfig({ ...contactConfig, phone: e.target.value })}
+                                value={settings.phone}
+                                onChange={(e) => handleChange("phone", e.target.value)}
                                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
                             />
                         </div>
@@ -264,15 +262,15 @@ function AdminSettingsPage() {
                             </label>
                             <textarea
                                 rows={3}
-                                value={contactConfig.address}
-                                onChange={(e) => setContactConfig({ ...contactConfig, address: e.target.value })}
+                                value={settings.address}
+                                onChange={(e) => handleChange("address", e.target.value)}
                                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors resize-none"
                             />
                         </div>
                     </div>
 
                     <button
-                        onClick={handleSaveContact}
+                        onClick={handleSaveAll}
                         className="w-full rounded-xl bg-brand-magenta text-white py-2.5 text-xs font-bold shadow-md hover:scale-[1.02] transition mt-4"
                     >
                         Update Contact Profile
@@ -288,35 +286,44 @@ function AdminSettingsPage() {
                         <Sparkles className="h-3.5 w-3.5 text-brand-magenta" />
                     </div>
 
-                    {socialLinks.length === 0 ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center py-10">
-                            <Globe className="h-8 w-8 text-muted-foreground mb-2" />
-                            <p className="text-xs font-semibold">No social profiles linked</p>
-                            <p className="text-[10px] text-muted-foreground mt-1">Add a platform to get started</p>
+                    <div className="space-y-3 flex-1">
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                <Linkedin className="h-3 w-3" /> LinkedIn Profile
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.linkedin_url}
+                                onChange={(e) => handleChange("linkedin_url", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
                         </div>
-                    ) : (
-                        <div className="space-y-3 flex-1">
-                            {socialLinks.map((link) => {
-                                const Icon = platformIcon(link.platform);
-                                return (
-                                    <div key={link.id}>
-                                        <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
-                                            <Icon className="h-3 w-3" /> {link.label}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={link.handle}
-                                            onChange={(e) => handleSocialChange(link.id, e.target.value)}
-                                            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
-                                        />
-                                    </div>
-                                );
-                            })}
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                <Twitter className="h-3 w-3" /> Twitter Profile
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.twitter_url}
+                                onChange={(e) => handleChange("twitter_url", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
                         </div>
-                    )}
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                <Globe className="h-3 w-3" /> Facebook Profile
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.facebook_url}
+                                onChange={(e) => handleChange("facebook_url", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
+                        </div>
+                    </div>
 
                     <button
-                        onClick={handleSaveSocial}
+                        onClick={handleSaveAll}
                         className="w-full rounded-xl bg-brand-blue text-white py-2.5 mt-4 text-xs font-bold shadow-md hover:scale-[1.02] transition"
                     >
                         Save Social Anchors

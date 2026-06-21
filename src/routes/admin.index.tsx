@@ -42,17 +42,35 @@ export const Route = createFileRoute("/admin/")({
 
 
 
+import { toast } from "sonner";
+
 function AdminDashboard() {
   const [leads, setLeads] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [totalPageViews, setTotalPageViews] = useState<number | string>("...");
 
   useEffect(() => {
-    supabase.from('leads').select('*').order('created_at', { ascending: false }).then(({ data }) => setLeads(data ?? []));
-    supabase.from('page_views').select('*', { count: 'exact', head: true }).then(({ count }) => { if (count !== null) setTotalPageViews(count); });
-    supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(6).then(({ data }) => {
-      if (data) setAuditLogs(data.map((d: any) => ({ id: d.id, user: d.user_email, action: d.action, time: new Date(d.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })));
-    });
+    const fetchData = async () => {
+      try {
+        const { data: leadsData, error: leadsError } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+        if (leadsError) throw leadsError;
+        setLeads(leadsData ?? []);
+
+        const { count, error: viewsError } = await supabase.from('page_views').select('*', { count: 'exact', head: true });
+        if (viewsError && viewsError.code !== '42P01') {
+          toast.error(`Failed to fetch page views: ${viewsError.message}`);
+        } else if (count !== null) {
+          setTotalPageViews(count);
+        }
+
+        const { data: logsData, error: logsError } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(6);
+        if (logsError && logsError.code !== '42P01') throw logsError;
+        if (logsData) setAuditLogs(logsData.map((d: any) => ({ id: d.id, user: d.user_email, action: d.action, time: new Date(d.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })));
+      } catch (err: any) {
+        toast.error(`Dashboard fetch error: ${err.message}`);
+      }
+    };
+    fetchData();
   }, []);
 
   const { total, monthly, active, conversionRate, chartData, pieData } = useMemo(() => {
@@ -270,23 +288,43 @@ function AdminDashboard() {
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Recent Server & User Logs</h3>
-          <div className="space-y-3">
-            {auditLogs.map((log) => (
-              <div key={log.id} className="flex items-start justify-between border-b border-white/5 pb-2.5 last:border-b-0 last:pb-0">
-                <div className="flex items-start gap-3">
-                  <div className="h-2 w-2 rounded-full bg-brand-magenta mt-1.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold leading-normal">{log.action}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      Triggered by <span className="text-foreground">{log.user}</span>
-                    </p>
+        <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl flex flex-col md:flex-row gap-6">
+          <div className="flex-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Recent Leads</h3>
+            <div className="space-y-3">
+              {leads.slice(0, 5).map((lead) => (
+                <div key={lead.id} className="flex items-start justify-between border-b border-white/5 pb-2.5 last:border-b-0 last:pb-0">
+                  <div className="flex items-start gap-3">
+                    <div className="h-2 w-2 rounded-full bg-brand-cyan mt-1.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold leading-normal">{lead.name || 'Unnamed'}</p>
+                      <p className="text-[10px] text-muted-foreground">Interest: <span className="text-foreground">{lead.service_interest || lead.interest || 'Unknown'}</span></p>
+                    </div>
                   </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{new Date(lead.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">{log.time}</span>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Recent Server Logs</h3>
+            <div className="space-y-3">
+              {auditLogs.slice(0, 5).map((log) => (
+                <div key={log.id} className="flex items-start justify-between border-b border-white/5 pb-2.5 last:border-b-0 last:pb-0">
+                  <div className="flex items-start gap-3">
+                    <div className="h-2 w-2 rounded-full bg-brand-magenta mt-1.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-semibold leading-normal">{log.action}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Triggered by <span className="text-foreground">{log.user}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{log.time}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

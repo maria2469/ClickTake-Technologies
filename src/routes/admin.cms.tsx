@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { logAudit } from "@/lib/logAudit";
 import { motion, AnimatePresence } from "framer-motion";
 import { Editor } from '@tinymce/tinymce-react';
 import {
@@ -42,8 +43,9 @@ interface PageBlock {
 
 interface CMSPage {
     id: string;
-    name: string;
-    path: string;
+    title: string;
+    slug: string;
+    is_published: boolean;
     blocks: PageBlock[];
 }
 
@@ -67,10 +69,23 @@ interface BlogPost {
 /* ───────────────── COMPONENT ───────────────── */
 
 function AdminCMS() {
-    // Pages State
     const [pages, setPages] = useState<CMSPage[]>([]);
     const [savedPages, setSavedPages] = useState<CMSPage[]>([]);
     const [selectedPageId, setSelectedPageId] = useState<string>("");
+    
+    const handleTogglePublish = async (pageId: string, currentStatus: boolean, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const { error } = await supabase.from('pages').update({ is_published: !currentStatus }).eq('id', pageId);
+            if (error) throw error;
+            await logAudit(`Changed page publish status to ${!currentStatus}`, "page", pageId);
+            toast.success(`Page ${!currentStatus ? 'published' : 'unpublished'}`);
+            setPages(pages.map(p => p.id === pageId ? { ...p, is_published: !currentStatus } : p));
+            setSavedPages(savedPages.map(p => p.id === pageId ? { ...p, is_published: !currentStatus } : p));
+        } catch (err: any) {
+            toast.error(`Failed to update publish status: ${err.message}`);
+        }
+    };
 
     // Media Library State
     const [mediaList, setMediaList] = useState<MediaFile[]>([]);
@@ -87,8 +102,8 @@ function AdminCMS() {
 
     // Modals & Feedback UI States
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
-    const [newPageName, setNewPageName] = useState("");
-    const [newPagePath, setNewPagePath] = useState("");
+    const [newPageTitle, setNewPageTitle] = useState("");
+    const [newPageSlug, setNewPageSlug] = useState("");
     const [showSavedFeedback, setShowSavedFeedback] = useState(false);
 
     // Search Filter States
@@ -97,11 +112,12 @@ function AdminCMS() {
 
     useEffect(() => {
         const fetchInitialData = async () => {
-            const { data: pagesData } = await supabase.from('cms_pages').select('*');
+            const { data: pagesData } = await supabase.from('pages').select('*');
             if (pagesData && pagesData.length > 0) {
-                setPages(pagesData);
-                setSavedPages(pagesData);
-                setSelectedPageId(pagesData[0].id);
+                const mappedPages = pagesData.map(p => ({ ...p, blocks: p.blocks || [] }));
+                setPages(mappedPages);
+                setSavedPages(mappedPages);
+                setSelectedPageId(mappedPages[0].id);
             }
 
             const { data: mediaData } = await supabase.from('cms_media').select('*').order('created_at', { ascending: false });
@@ -116,7 +132,7 @@ function AdminCMS() {
         fetchInitialData();
 
         const channel = supabase.channel('cms-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_pages' }, fetchInitialData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'pages' }, fetchInitialData)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_media' }, fetchInitialData)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_blogs' }, fetchInitialData)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_nav_links' }, fetchInitialData)
@@ -139,12 +155,12 @@ function AdminCMS() {
             if (!saved) {
                 count++; // New page
             } else {
-                if (saved.name !== p.name || saved.path !== p.path) {
+                if (saved.title !== p.title || saved.slug !== p.slug) {
                     count++;
                 } else {
-                    if (saved.blocks.length !== p.blocks.length) {
+                    if ((saved.blocks?.length || 0) !== (p.blocks?.length || 0)) {
                         count++;
-                    } else {
+                    } else if (p.blocks && saved.blocks) {
                         let blocksDiff = false;
                         for (let i = 0; i < p.blocks.length; i++) {
                             const cb = p.blocks[i];
@@ -173,8 +189,8 @@ function AdminCMS() {
     const filteredPages = useMemo(() => {
         return pages.filter(
             (p) =>
-                p.name.toLowerCase().includes(pageSearchText.toLowerCase()) ||
-                p.path.toLowerCase().includes(pageSearchText.toLowerCase())
+                p.title.toLowerCase().includes(pageSearchText.toLowerCase()) ||
+                p.slug.toLowerCase().includes(pageSearchText.toLowerCase())
         );
     }, [pages, pageSearchText]);
 
@@ -210,10 +226,10 @@ function AdminCMS() {
     const handleSavePage = async () => {
         for (const page of pages) {
             const { error } = await supabase
-                .from('cms_pages')
-                .upsert({ id: page.id, name: page.name, path: page.path, blocks: page.blocks }, { onConflict: 'id' });
+                .from('pages')
+                .upsert({ id: page.id, title: page.title, slug: page.slug, is_published: page.is_published, blocks: page.blocks }, { onConflict: 'id' });
             if (error) {
-                toast.error(`Failed to save page ${page.name}`);
+                toast.error(`Failed to save page ${page.title}`);
                 return;
             }
         }
@@ -221,7 +237,7 @@ function AdminCMS() {
         // Handle deletions
         for (const sp of savedPages) {
             if (!pages.some(p => p.id === sp.id)) {
-                await supabase.from('cms_pages').delete().eq('id', sp.id);
+                await supabase.from('pages').delete().eq('id', sp.id);
             }
         }
 
@@ -236,34 +252,35 @@ function AdminCMS() {
     // Page Creation Form Submit
     const handleCreatePageSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const trimmedName = newPageName.trim();
-        let trimmedPath = newPagePath.trim();
+        const trimmedTitle = newPageTitle.trim();
+        let trimmedSlug = newPageSlug.trim();
 
-        if (!trimmedName || !trimmedPath) return;
-        if (!trimmedPath.startsWith("/")) trimmedPath = "/" + trimmedPath;
+        if (!trimmedTitle || !trimmedSlug) return;
+        if (!trimmedSlug.startsWith("/")) trimmedSlug = "/" + trimmedSlug;
 
-        if (pages.some((p) => p.path.toLowerCase() === trimmedPath.toLowerCase())) {
-            toast.error(`A page with route path "${trimmedPath}" already exists.`);
+        if (pages.some((p) => p.slug.toLowerCase() === trimmedSlug.toLowerCase())) {
+            toast.error(`A page with route slug "${trimmedSlug}" already exists.`);
             return;
         }
 
-        const newId = trimmedName.toLowerCase().replace(/[^a-z0-9]/g, "-") || `page-${Date.now()}`;
+        const newId = trimmedTitle.toLowerCase().replace(/[^a-z0-9]/g, "-") || `page-${Date.now()}`;
         if (pages.some((p) => p.id === newId)) {
-            toast.error(`A page with name "${trimmedName}" already exists.`);
+            toast.error(`A page with title "${trimmedTitle}" already exists.`);
             return;
         }
 
         const newPage: CMSPage = {
             id: newId,
-            name: trimmedName,
-            path: trimmedPath,
+            title: trimmedTitle,
+            slug: trimmedSlug,
+            is_published: false,
             blocks: [
-                { id: `b-h-${Date.now()}`, type: "header", content: `Welcome to ${trimmedName}` },
+                { id: `b-h-${Date.now()}`, type: "header", content: `Welcome to ${trimmedTitle}` },
                 { id: `b-t-${Date.now()}`, type: "text", content: "This is a brand new page. Customize your text here." }
             ]
         };
 
-        const { error } = await supabase.from('cms_pages').insert(newPage);
+        const { error } = await supabase.from('pages').insert(newPage);
         if (error) {
             toast.error("Failed to create page on server");
             return;
@@ -272,12 +289,11 @@ function AdminCMS() {
         setPages([...pages, newPage]);
         setSelectedPageId(newId);
         setIsCreatePageModalOpen(false);
-        setNewPageName("");
-        setNewPagePath("");
-        toast.success(`Created page "${trimmedName}" successfully!`);
+        setNewPageTitle("");
+        setNewPageSlug("");
+        toast.success(`Created page "${trimmedTitle}" successfully!`);
     };
 
-    // Page Deletion Action
     const handleDeletePage = async (pageId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (pages.length <= 1) {
@@ -285,21 +301,23 @@ function AdminCMS() {
             return;
         }
 
-        const { error } = await supabase.from('cms_pages').delete().eq('id', pageId);
+        const { error } = await supabase.from('pages').delete().eq('id', pageId);
         if (error) {
             toast.error("Failed to delete page");
             return;
         }
 
-        const deletedPageName = pages.find((p) => p.id === pageId)?.name || "Page";
+        const deletedPageTitle = pages.find((p) => p.id === pageId)?.title || "Page";
         const updatedPages = pages.filter((p) => p.id !== pageId);
         setPages(updatedPages);
+        
+        await logAudit(`Deleted page ${deletedPageTitle}`, "page", pageId);
 
         if (selectedPageId === pageId) {
             setSelectedPageId(updatedPages[0].id);
         }
 
-        toast.error(`Deleted page "${deletedPageName}"`);
+        toast.error(`Deleted page "${deletedPageTitle}"`);
     };
 
     // Block Creation
@@ -560,18 +578,27 @@ function AdminCMS() {
                                                 : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                                         }`}
                                     >
-                                        <span className="truncate pr-5">{p.name}</span>
+                                        <span className="truncate pr-10">{p.title}</span>
                                         <span className="text-[9px] font-mono text-muted-foreground opacity-60 group-hover:opacity-0 transition-opacity truncate shrink-0">
-                                            {p.path}
+                                            {p.slug}
                                         </span>
                                     </button>
-                                    <button
-                                        onClick={(e) => handleDeletePage(p.id, e)}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-muted-foreground hover:text-rose-400 bg-card/90 backdrop-blur-sm border border-white/5 transition-opacity cursor-pointer shadow"
-                                        title="Delete Page"
-                                    >
-                                        <Trash2 className="h-3 w-3" />
-                                    </button>
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/5 transition-opacity shadow">
+                                        <button
+                                            onClick={(e) => handleTogglePublish(p.id, p.is_published, e)}
+                                            className={`p-1 rounded cursor-pointer ${p.is_published ? "text-emerald-400 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-white/10"}`}
+                                            title={p.is_published ? "Unpublish" : "Publish"}
+                                        >
+                                            <Check className="h-3 w-3" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDeletePage(p.id, e)}
+                                            className="p-1 rounded text-muted-foreground hover:text-rose-400 hover:bg-white/10 cursor-pointer"
+                                            title="Delete Page"
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -677,7 +704,7 @@ function AdminCMS() {
                                         )}
                                     </div>
                                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                                        Selected page: <span className="text-foreground font-semibold">{selectedPage?.name || ""}</span>
+                                        Selected page: <span className="text-foreground font-semibold">{selectedPage?.title || ""}</span>
                                     </p>
                                 </div>
                                 <button
@@ -835,8 +862,8 @@ function AdminCMS() {
                                 <button onClick={() => setIsCreatePageModalOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
                             </div>
                             <form onSubmit={handleCreatePageSubmit} className="space-y-4">
-                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Name</label><input type="text" value={newPageName} onChange={(e) => setNewPageName(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
-                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Path</label><input type="text" value={newPagePath} onChange={(e) => setNewPagePath(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
+                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Title</label><input type="text" value={newPageTitle} onChange={(e) => setNewPageTitle(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
+                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Slug</label><input type="text" value={newPageSlug} onChange={(e) => setNewPageSlug(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
                                 <div className="flex items-center gap-2 pt-2">
                                     <button type="button" onClick={() => setIsCreatePageModalOpen(false)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-xs font-semibold">Cancel</button>
                                     <button type="submit" className="flex-1 rounded-xl bg-brand-magenta text-white py-2.5 text-xs font-semibold">Create Page</button>
