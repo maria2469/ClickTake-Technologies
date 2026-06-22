@@ -90,6 +90,8 @@ function AdminCMS() {
     // Media Library State
     const [mediaList, setMediaList] = useState<MediaFile[]>([]);
     const [isDragging, setIsDragging] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Blog & Navigation States
@@ -406,14 +408,29 @@ function AdminCMS() {
         });
     };
 
-    // File Upload Handler (Supabase Storage)
+    // File Upload Handler (Cloudinary)
     const handleFilesSelected = async (files: FileList) => {
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+        if (!cloudName || !uploadPreset) {
+            toast.error("Missing Cloudinary credentials in .env (VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET)");
+            return;
+        }
+
         toast.info(`Uploading ${files.length} file(s)...`);
         
-        for (const rawFile of Array.from(files)) {
+        setUploading(true);
+        setUploadProgress(0);
+
+        const filesArray = Array.from(files);
+        for (let i = 0; i < filesArray.length; i++) {
+            const rawFile = filesArray[i];
             let file = rawFile;
             
-            // WebP Conversion for images
+            console.log("Uploading file:", file.name);
+
+            // WebP Conversion for images (Client-side savings)
             if (file.type.startsWith('image/')) {
                 file = await convertToWebP(file);
             }
@@ -422,36 +439,74 @@ function AdminCMS() {
             if (file.type.startsWith("video/")) type = "video";
             else if (file.type === "application/pdf") type = "pdf";
 
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-            const filePath = `cms-uploads/${fileName}`;
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", uploadPreset);
 
-            // Upload to Supabase Storage Bucket 'media'
-            const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
-            
-            if (uploadError) {
-                toast.error(`Upload failed for ${file.name}: ${uploadError.message}`);
-                continue;
+            try {
+                // Upload to Cloudinary Unsigned API
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error?.message || "Cloudinary upload failed");
+                }
+
+                const data = await res.json();
+                console.log("Cloud response:", data);
+                let publicUrl = data.secure_url;
+
+                // Enforce WebP and auto quality via Cloudinary transformations if it's an image
+                if (type === "image") {
+                    const parts = publicUrl.split("/upload/");
+                    if (parts.length === 2) {
+                        publicUrl = `${parts[0]}/upload/f_webp,q_auto/${parts[1]}`;
+                    }
+                }
+
+                let sizeStr = "";
+                const bytes = file.size;
+                if (bytes < 1024) sizeStr = `${bytes} B`;
+                else if (bytes < 1024 * 1024) sizeStr = `${(bytes / 1024).toFixed(1)} KB`;
+                else sizeStr = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+                const newMedia = {
+                    name: file.name,
+                    type,
+                    size: sizeStr,
+                    url: publicUrl
+                };
+
+                // Insert reference into Supabase CMS Media table
+                const { data: insertedData, error: dbError } = await supabase
+                    .from('cms_media')
+                    .insert(newMedia)
+                    .select()
+                    .single();
+
+                console.log("Supabase insert response:", { data: insertedData, dbError });
+
+                if (dbError) {
+                    throw new Error(`DB Insert failed: ${dbError.message}`);
+                }
+
+                // UPDATE UI IMMEDIATELY
+                setMediaList((prev) => [insertedData, ...prev]);
+
+                toast.success(`${file.name} uploaded successfully`);
+
+            } catch (err: any) {
+                toast.error(`Upload failed for ${file.name}: ${err.message}`);
             }
 
-            const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-
-            let sizeStr = "";
-            const bytes = file.size;
-            if (bytes < 1024) sizeStr = `${bytes} B`;
-            else if (bytes < 1024 * 1024) sizeStr = `${(bytes / 1024).toFixed(1)} KB`;
-            else sizeStr = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-
-            const newMedia = {
-                id: `m-${Date.now()}`,
-                name: file.name,
-                type,
-                size: sizeStr,
-                url: publicUrl
-            };
-
-            await supabase.from('cms_media').insert(newMedia);
+            setUploadProgress(Math.round(((i + 1) / filesArray.length) * 100));
         }
+        
+        setUploading(false);
+        setUploadProgress(100);
         toast.success(`Uploads complete`);
     };
 
@@ -793,6 +848,11 @@ function AdminCMS() {
                     <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl flex flex-col">
                         <div className="flex items-center justify-between mb-3 gap-2">
                             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Media Library</div>
+                            {uploading && (
+                              <div className="text-[10px] text-muted-foreground mt-1">
+                                Uploading... {uploadProgress}%
+                              </div>
+                            )}
                             <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/5 px-2.5 py-1 text-[10px] hover:bg-white/10 font-bold transition cursor-pointer shrink-0">
                                 <Upload className="h-3 w-3 text-brand-cyan" /> Upload
                             </button>
