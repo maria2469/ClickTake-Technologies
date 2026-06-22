@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import {
   Mail,
   MapPin,
@@ -9,9 +9,8 @@ import {
   Sparkles,
   Clock3,
   CheckCircle2,
+  Send,
 } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/lib/supabaseClient";
 
 const contactMethods = [
   {
@@ -59,55 +58,8 @@ const benefits = [
 ];
 
 export function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    service: "Web Development",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const { error } = await supabase.from('leads').insert({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone || null,
-      service_interest: formData.service || null,
-      message: formData.message,
-      source_page: window.location.pathname,
-      status: 'new',
-    });
-
-    setIsSubmitting(false);
-
-    if (error) {
-      console.error('Lead save error:', error);
-      toast.error("Something went wrong. Please try again.");
-    } else {
-      // Fire an audit log for the admin dashboard feed
-      supabase.from('audit_logs').insert({
-        user_email: "System",
-        action: `New Lead: ${formData.name} (${formData.service || 'Inquiry'})`
-      }).then();
-      
-      toast.success("Message sent successfully!");
-      setFormData({ name: "", email: "", phone: "", service: "Web Development", message: "" });
-    }
-  };
-
   return (
-    <section
-      id="contact"
-      className="relative overflow-hidden py-24 lg:py-36"
-    >
+    <section id="contact" className="relative overflow-hidden py-24 lg:py-36">
       {/* BACKGROUND */}
       <div className="absolute inset-0 " />
 
@@ -127,7 +79,6 @@ export function Contact() {
       <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-fuchsia-500/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-4">
-
         {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -140,7 +91,6 @@ export function Contact() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
             </span>
-
             LET'S BUILD SOMETHING AMAZING
           </div>
 
@@ -152,21 +102,19 @@ export function Contact() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Whether you're launching a startup, scaling an AI product,
-            or redesigning your brand — we help ambitious companies
-            move faster with premium design and engineering.
+            Whether you're launching a startup, scaling an AI product, or
+            redesigning your brand — we help ambitious companies move faster
+            with premium design and engineering.
           </p>
         </motion.div>
 
         {/* MAIN CARD */}
         <div className="relative mt-16 overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/70 shadow-[0_20px_80px_rgba(0,0,0,0.25)] backdrop-blur-2xl">
-
           {/* animated glow */}
           <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
           <div className="absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
 
           <div className="relative grid gap-12 p-6 lg:grid-cols-[1fr_0.95fr] lg:p-14">
-
             {/* LEFT SIDE */}
             <motion.div
               initial={{ opacity: 0, x: -40 }}
@@ -191,9 +139,9 @@ export function Contact() {
               </h3>
 
               <p className="mt-4 max-w-lg text-muted-foreground leading-relaxed">
-                We partner with startups, creators and enterprises to
-                build high-performance websites, AI systems, mobile apps
-                and growth-focused digital experiences.
+                We partner with startups, creators and enterprises to build
+                high-performance websites, AI systems, mobile apps and
+                growth-focused digital experiences.
               </p>
 
               {/* BENEFITS */}
@@ -230,7 +178,7 @@ export function Contact() {
                       <m.icon className="h-5 w-5" />
                     </div>
 
-                    <div className="relative flex-1 min-w-0">
+                    <div className="relative min-w-0 flex-1">
                       <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
                         {m.label}
                       </div>
@@ -240,96 +188,48 @@ export function Contact() {
                       </div>
                     </div>
 
-                    <ArrowUpRight className="relative h-5 w-5 shrink-0 text-muted-foreground transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:text-primary" />
+                    <ArrowUpRight className="relative h-5 w-5 shrink-0 text-muted-foreground transition-all duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-primary" />
                   </a>
                 ))}
               </div>
             </motion.div>
 
-            {/* FORM */}
-            <motion.form
-              onSubmit={handleSubmit}
+            {/* RIGHT SIDE — CTA panel (replaces duplicate form) */}
+            <motion.div
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative overflow-hidden rounded-3xl border border-border/60 bg-background/80 p-6 backdrop-blur-xl lg:p-8"
+              className="relative flex flex-col justify-center overflow-hidden rounded-3xl border border-border/60 bg-background/80 p-6 backdrop-blur-xl lg:p-8"
             >
               {/* glow */}
               <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
 
-              <div className="relative">
-                <h4 className="font-display text-2xl font-bold">
-                  Tell us about your project
-                </h4>
-
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Fill out the form and our team will get back to you shortly.
-                </p>
-
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  <input
-                    required
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Your name"
-                    className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  />
-
-                  <input
-                    required
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Your email"
-                    className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <input
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Phone number"
-                    className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  />
-
-                  <select
-                    name="service"
-                    value={formData.service}
-                    onChange={handleChange}
-                    className="h-12 rounded-xl border border-border bg-card/60 px-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option>Web Development</option>
-                    <option>AI Automation</option>
-                    <option>Mobile App</option>
-                    <option>Branding</option>
-                    <option>SEO & Marketing</option>
-                  </select>
-                </div>
-
-                <textarea
-                  rows={6}
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Tell us about your idea, goals, timeline and requirements..."
-                  className="mt-4 w-full rounded-2xl border border-border bg-card/60 px-4 py-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-brand px-6 py-4 font-semibold text-white shadow-glow transition-all duration-300 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? "Sending..." : "Send Project Inquiry"}
-
-                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                </button>
+              <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-gradient-brand text-white shadow-glow">
+                <Send className="h-7 w-7" />
               </div>
-            </motion.form>
+
+              <h4 className="relative mt-6 font-display text-2xl font-bold">
+                Tell us about your project
+              </h4>
+
+              <p className="relative mt-3 text-sm leading-relaxed text-muted-foreground">
+                Fill out our strategic inquiry form, or book a discovery call
+                directly on our calendar — both take less than two minutes.
+              </p>
+
+              <Link
+                to="/contact"
+                className="group relative mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-brand px-6 py-4 font-semibold text-white shadow-glow transition-all duration-300 hover:scale-[1.02]"
+              >
+                Go to Contact Page
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </Link>
+
+              <p className="relative mt-4 text-center text-[11px] text-muted-foreground/70">
+                Project inquiry form · Discovery call scheduler · Office
+                details
+              </p>
+            </motion.div>
           </div>
 
           {/* OFFICES */}

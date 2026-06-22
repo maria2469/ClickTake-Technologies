@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Send,
@@ -25,6 +25,9 @@ import {
     ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabaseClient";
+import { sendAdminReply, sendAdminCompose } from "./emailServerFunctions";
+
 
 export const Route = createFileRoute("/admin/email")({
     head: () => ({
@@ -127,20 +130,76 @@ const initialSmtpLogs: SmtpLog[] = [
 
 /* ───────────────── COMPONENT ───────────────── */
 
+function parseReplies(lead: any): ReplyItem[] {
+    const replies: ReplyItem[] = [];
+    
+    const createdDate = new Date(lead.created_at);
+    const timeString = isNaN(createdDate.getTime()) 
+        ? "Just now" 
+        : createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    let bodyText = lead.message || "";
+    
+    let notes: string[] = [];
+    try {
+        notes = typeof lead.internal_notes === 'string' 
+            ? JSON.parse(lead.internal_notes) 
+            : (Array.isArray(lead.internal_notes) ? lead.internal_notes : []);
+    } catch (e) {}
+
+    if (!bodyText && notes.length > 0) {
+        const msgNote = notes.find(n => typeof n === 'string' && n.startsWith("Message: "));
+        if (msgNote) {
+            bodyText = msgNote.replace("Message: ", "").trim();
+        }
+    }
+
+    if (!bodyText) {
+        bodyText = `New Lead registered. Interested in: ${lead.service_interest || "Digital Solutions"}.`;
+    }
+
+    replies.push({
+        sender: "User",
+        text: bodyText,
+        date: timeString,
+    });
+
+    notes.forEach((note) => {
+        if (typeof note === "string" && note.startsWith("📧 Email Sent:")) {
+            const text = note.replace("📧 Email Sent:", "").trim();
+            replies.push({
+                sender: "Admin",
+                text,
+                date: "Sent",
+            });
+        } else if (typeof note === "string" && note.startsWith("📧 Email Sent (Outbound")) {
+            const colonIdx = note.indexOf("):");
+            const text = colonIdx !== -1 ? note.slice(colonIdx + 2).trim() : note;
+            replies.push({
+                sender: "Admin",
+                text,
+                date: "Sent",
+            });
+        }
+    });
+
+    return replies;
+}
+
 function AdminEmail() {
     // SMTP state
     const [smtpConfig, setSmtpConfig] = useState({
-        server: "smtp.sendgrid.net",
+        server: "smtp.gmail.com",
         port: "587",
-        user: "apikey",
+        user: "tomarianoor@gmail.com",
         password: "••••••••••••••••••••••••",
         ssl: true,
     });
     const [smtpStatus, setSmtpStatus] = useState<"Connected" | "Testing" | "Disconnected">("Connected");
 
     // Communication States
-    const [inbox, setInbox] = useState<Message[]>(initialInbox);
-    const [activeMessageId, setActiveMessageId] = useState<string | null>("msg1");
+    const [inbox, setInbox] = useState<Message[]>([]);
+    const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
     const [replyText, setReplyText] = useState("");
     const [selectedTemplateId, setSelectedTemplateId] = useState("");
 
@@ -168,37 +227,108 @@ function AdminEmail() {
         setSmtpLogs(prev => [newLog, ...prev]);
     };
 
+    const fetchInbox = async () => {
+        const { data: leadsData, error } = await supabase
+            .from("leads")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Failed to load inbox:", error);
+            toast.error("Failed to load email conversations from database.");
+            return;
+        }
+
+        if (leadsData) {
+            const mappedMessages = leadsData.map((lead: any) => {
+                const replies = parseReplies(lead);
+                
+                const dateObj = new Date(lead.created_at);
+                let formattedDate = "Just now";
+                if (!isNaN(dateObj.getTime())) {
+                    const today = new Date();
+                    if (dateObj.toDateString() === today.toDateString()) {
+                        formattedDate = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    } else {
+                        formattedDate = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                    }
+                }
+
+                let status: "unread" | "replied" | "unanswered" = "unanswered";
+                if (lead.status === "Contacted" || lead.status === "In Progress" || lead.status === "Converted") {
+                    status = "replied";
+                } else if (lead.status === "New") {
+                    status = "unanswered";
+                }
+
+                const subject = `Inquiry: ${lead.service_interest || "Digital Solutions"}`;
+
+                return {
+                    id: lead.id,
+                    sender: lead.name,
+                    email: lead.email,
+                    subject,
+                    body: replies[0]?.text || "No details provided.",
+                    date: formattedDate,
+                    status,
+                    replies,
+                };
+            });
+
+            setInbox(mappedMessages);
+            if (mappedMessages.length > 0 && activeMessageId === null) {
+                setActiveMessageId(mappedMessages[0].id);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchInbox();
+
+        const leadsChannel = supabase.channel('email-inbox-channel')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+                fetchInbox();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(leadsChannel);
+        };
+    }, [activeMessageId]);
+
     // Memoized active conversation
     const activeMessage = useMemo(() => {
         return inbox.find((m) => m.id === activeMessageId) || null;
     }, [inbox, activeMessageId]);
 
     // SMTP Handlers
-    const handleSendReply = () => {
+    const handleSendReply = async () => {
         if (!replyText.trim() || !activeMessage) return;
         
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const updatedInbox = inbox.map((m) => {
-            if (m.id === activeMessage.id) {
-                return {
-                    ...m,
-                    status: "replied" as const,
-                    replies: [...m.replies, { sender: "Admin" as const, text: replyText.trim(), date: timestamp }],
-                };
-            }
-            return m;
-        });
-
-        setInbox(updatedInbox);
-        addSmtpLog("dispatch", `SMTP relay dispatched reply message to ${activeMessage.email}`);
+        const originalText = replyText.trim();
         setReplyText("");
         setSelectedTemplateId("");
-        toast.success("Reply dispatched via SMTP relay");
+
+        toast.promise(
+            sendAdminReply({ data: { leadId: activeMessage.id, replyText: originalText } }),
+            {
+                loading: "Relaying email dispatch through Gmail SMTP...",
+                success: () => {
+                    addSmtpLog("dispatch", `SMTP relay dispatched reply message to ${activeMessage.email}`);
+                    fetchInbox();
+                    return "Reply dispatched via Gmail SMTP!";
+                },
+                error: (err: any) => {
+                    setReplyText(originalText);
+                    return `SMTP Dispatch failed: ${err.message || err}`;
+                }
+            }
+        );
     };
 
     const handleTestSMTP = () => {
         setSmtpStatus("Testing");
-        addSmtpLog("config", "Initiating outbound connection test...");
+        addSmtpLog("config", "Initiating outbound connection test to Gmail SMTP server...");
         
         toast.promise(
             new Promise((resolve) => setTimeout(resolve, 1400)),
@@ -262,7 +392,7 @@ function AdminEmail() {
     };
 
     // Compose new thread submit
-    const handleComposeSubmit = (e: React.FormEvent) => {
+    const handleComposeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedEmail = composeTo.trim();
         const trimmedName = composeName.trim();
@@ -271,32 +401,38 @@ function AdminEmail() {
 
         if (!trimmedEmail || !trimmedName || !trimmedSub || !trimmedBody) return;
 
-        const newMsgId = `msg-${Date.now()}`;
-        const newMsg: Message = {
-            id: newMsgId,
-            sender: trimmedName,
-            email: trimmedEmail,
-            subject: trimmedSub,
-            body: trimmedBody,
-            date: "Just now",
-            status: "replied",
-            replies: [
-                { sender: "Admin", text: trimmedBody, date: "Just now" }
-            ]
-        };
-
-        setInbox([newMsg, ...inbox]);
-        setActiveMessageId(newMsgId);
-        addSmtpLog("dispatch", `SMTP relay created new outbound thread to ${trimmedEmail} (${trimmedName})`);
-        toast.success(`Outbound thread initiated to ${trimmedName}`);
-
-        // Reset
-        setComposeTo("");
-        setComposeName("");
-        setComposeSubject("");
-        setComposeBody("");
-        setComposeTemplateId("");
         setIsComposeOpen(false);
+
+        toast.promise(
+            sendAdminCompose({
+                data: {
+                    email: trimmedEmail,
+                    name: trimmedName,
+                    subject: trimmedSub,
+                    bodyText: trimmedBody,
+                }
+            }),
+            {
+                loading: "Relaying outbound email through Gmail SMTP...",
+                success: (res: any) => {
+                    addSmtpLog("dispatch", `SMTP relay created new outbound thread to ${trimmedEmail} (${trimmedName})`);
+                    if (res && res.leadId) {
+                        setActiveMessageId(res.leadId);
+                    }
+                    setComposeTo("");
+                    setComposeName("");
+                    setComposeSubject("");
+                    setComposeBody("");
+                    setComposeTemplateId("");
+                    fetchInbox();
+                    return `Outbound thread initiated to ${trimmedName}`;
+                },
+                error: (err: any) => {
+                    setIsComposeOpen(true);
+                    return `Outbound dispatch failed: ${err.message || err}`;
+                }
+            }
+        );
     };
 
     // Initials helper

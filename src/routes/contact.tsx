@@ -1,16 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mail, Phone, MapPin, Clock, ArrowUpRight, CheckCircle2, MessageSquare,
-  Sparkles, Calendar, User, Building, Laptop, DollarSign, Send, X, AlertCircle
+  Mail, Phone, MapPin, Clock, CheckCircle2, MessageSquare,
+  Calendar, Send, X, AlertCircle
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
-import { supabase } from "@/lib/supabaseClient";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { toast } from "sonner";
+import {
+  inquirySchema,
+  bookingSchema,
+  type InquiryFormValues,
+  type BookingFormValues,
+} from "./ContactSchema";
+import { submitInquiry, submitBooking } from "./contactFunction"
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -25,8 +34,6 @@ export const Route = createFileRoute("/contact")({
   }),
   component: ContactPage,
 });
-
-// ─── Data ────────────────────────────────────────────────────────────────────
 
 const officeAddresses = [
   {
@@ -52,7 +59,6 @@ const officeAddresses = [
   },
 ];
 
-// Available Mock Booking slots
 const mockTimes = ["10:00 AM", "11:30 AM", "02:00 PM", "03:30 PM", "05:00 PM"];
 const mockDates = [
   { day: "Wed", num: "27", month: "May" },
@@ -63,74 +69,88 @@ const mockDates = [
 ];
 
 function ContactPage() {
-  // Inquiry Form State
-  const [inquiryName, setInquiryName] = useState("");
-  const [inquiryEmail, setInquiryEmail] = useState("");
-  const [inquiryCompany, setInquiryCompany] = useState("");
-  const [inquiryService, setInquiryService] = useState("Web Dev");
-  const [inquiryBudget, setInquiryBudget] = useState("£5,000 - £10,000");
-  const [inquiryMessage, setInquiryMessage] = useState("");
-  const [inquirySubmitting, setInquirySubmitting] = useState(false);
+  const {
+    register: registerInquiry,
+    handleSubmit: handleInquiryFormSubmit,
+    formState: { errors: inquiryErrors, isSubmitting: inquirySubmitting },
+    setValue: setInquiryValue,
+    reset: resetInquiryForm,
+    watch: watchInquiry,
+  } = useForm<InquiryFormValues>({
+    resolver: zodResolver(inquirySchema),
+    defaultValues: {
+      service: "Web Dev",
+      budget: "£5,000 - £10,000",
+    },
+  });
+
   const [inquirySuccess, setInquirySuccess] = useState(false);
+  const [inquiryResetTrigger, setInquiryResetTrigger] = useState(0);
+  const [submittedInquiryName, setSubmittedInquiryName] = useState("");
+  const [submittedInquiryEmail, setSubmittedInquiryEmail] = useState("");
 
-  // Scheduler State
-  const [selectedDate, setSelectedDate] = useState(0);
-  const [selectedTime, setSelectedTime] = useState("");
-  const [bookName, setBookName] = useState("");
-  const [bookEmail, setBookEmail] = useState("");
-  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const onInquirySubmit = async (values: InquiryFormValues) => {
+    try {
+      await submitInquiry({ data: values });
+      setSubmittedInquiryName(values.name);
+      setSubmittedInquiryEmail(values.email);
+      setInquirySuccess(true);
+      resetInquiryForm();
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setInquiryResetTrigger((n) => n + 1);
+      setInquiryValue("turnstileToken", "");
+    }
+  };
+
+  const {
+    register: registerBooking,
+    handleSubmit: handleBookingFormSubmit,
+    formState: { errors: bookingErrors, isSubmitting: bookingSubmitting },
+    setValue: setBookingValue,
+    reset: resetBookingForm,
+    watch: watchBooking,
+  } = useForm<BookingFormValues>({
+    resolver: zodResolver(bookingSchema),
+    defaultValues: {
+      date: `${mockDates[0].day}, ${mockDates[0].num} ${mockDates[0].month}`,
+      time: mockTimes[0],
+    }
+  });
+
+  const [selectedDateIdx, setSelectedDateIdx] = useState(0);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [bookingError, setBookingError] = useState("");
+  const [bookingResetTrigger, setBookingResetTrigger] = useState(0);
+  const [submittedBooking, setSubmittedBooking] = useState({ name: "", email: "", date: "", time: "" });
 
-  // Live Chat state
+  const selectedTime = watchBooking("time");
+
+  const onBookingSubmit = async (values: BookingFormValues) => {
+    console.log("BOOKING SUBMIT TRIGGERED", values);
+    try {
+      await submitBooking({ data: values });
+      setSubmittedBooking({
+        name: values.name,
+        email: values.email,
+        date: values.date,
+        time: values.time,
+      });
+      setBookingSuccess(true);
+      resetBookingForm();
+    } catch (err) {
+      console.error(err);
+      toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setBookingResetTrigger((n) => n + 1);
+      setBookingValue("turnstileToken", "");
+    }
+  };
+
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<Array<{ sender: "user" | "agent"; text: string }>>([
     { sender: "agent", text: "Hey! Zain here from ClickTake. What digital challenge can we help you solve today?" }
   ]);
-
-  const handleInquirySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setInquirySubmitting(true);
-    
-    const { error } = await supabase.from('leads').insert({
-      name: inquiryName,
-      email: inquiryEmail,
-      service_interest: inquiryService,
-      message: `${inquiryCompany ? `Company: ${inquiryCompany}\n` : ''}Budget: ${inquiryBudget}\n\n${inquiryMessage}`,
-      source_page: window.location.pathname,
-      status: 'new',
-    });
-    
-    setInquirySubmitting(false);
-    
-    if (error) {
-      console.error('Lead save error:', error);
-      toast.error("Something went wrong. Please try again.");
-    } else {
-      // Fire an audit log for the admin dashboard feed
-      supabase.from('audit_logs').insert({
-        user_email: "System",
-        action: `New Lead: ${inquiryName} (${inquiryService || 'Inquiry'})`
-      }).then();
-      
-      setInquirySuccess(true);
-    }
-  };
-
-  const handleBookingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTime) {
-      setBookingError("Please select a time slot.");
-      return;
-    }
-    setBookingError("");
-    setBookingSubmitting(true);
-    setTimeout(() => {
-      setBookingSubmitting(false);
-      setBookingSuccess(true);
-    }, 1500);
-  };
 
   const sendChatMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +159,6 @@ function ContactPage() {
     setChatMessages((prev) => [...prev, { sender: "user", text: userMsg }]);
     setChatInput("");
 
-    // Simulate Agent auto reply
     setTimeout(() => {
       setChatMessages((prev) => [
         ...prev,
@@ -158,8 +177,7 @@ function ContactPage() {
       <Navbar />
 
       <main className="relative z-10 pt-28 pb-24">
-        
-        {/* HERO SECTION */}
+
         <section className="relative overflow-hidden py-12 lg:py-16">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-violet-500/10 blur-[130px]" />
@@ -178,18 +196,16 @@ function ContactPage() {
               </h1>
 
               <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                Submit a project inquiry or book a discovery call directly on our calendar. 
+                Submit a project inquiry or book a discovery call directly on our calendar.
                 Our leads will follow up within 24 hours.
               </p>
             </motion.div>
           </div>
         </section>
 
-        {/* FORMS & SCHEDULER GRID */}
         <section className="mx-auto max-w-7xl px-4 py-8">
           <div className="grid gap-10 lg:grid-cols-2 items-stretch">
-            
-            {/* INQUIRY FORM CARD */}
+
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -201,7 +217,7 @@ function ContactPage() {
               </div>
 
               {!inquirySuccess ? (
-                <form onSubmit={handleInquirySubmit} className="space-y-4 relative">
+                <form onSubmit={handleInquiryFormSubmit(onInquirySubmit)} className="space-y-4 relative">
                   <div>
                     <h3 className="font-display text-xl font-bold">1. Strategic Inquiry Form</h3>
                     <p className="text-xs text-muted-foreground mt-1">Tell us about your target goals, project scope, and budget.</p>
@@ -211,23 +227,25 @@ function ContactPage() {
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Full Name</label>
                       <input
-                        required
-                        value={inquiryName}
-                        onChange={(e) => setInquiryName(e.target.value)}
+                        {...registerInquiry("name")}
                         placeholder="John Doe"
                         className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
                       />
+                      {inquiryErrors.name && (
+                        <FieldError message={inquiryErrors.name.message} />
+                      )}
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Business Email</label>
                       <input
-                        required
+                        {...registerInquiry("email")}
                         type="email"
-                        value={inquiryEmail}
-                        onChange={(e) => setInquiryEmail(e.target.value)}
                         placeholder="john@company.com"
                         className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
                       />
+                      {inquiryErrors.email && (
+                        <FieldError message={inquiryErrors.email.message} />
+                      )}
                     </div>
                   </div>
 
@@ -235,17 +253,18 @@ function ContactPage() {
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Company Name</label>
                       <input
-                        value={inquiryCompany}
-                        onChange={(e) => setInquiryCompany(e.target.value)}
+                        {...registerInquiry("company")}
                         placeholder="Acme Corp"
                         className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
                       />
+                      {inquiryErrors.company && (
+                        <FieldError message={inquiryErrors.company.message} />
+                      )}
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Primary Goal</label>
                       <select
-                        value={inquiryService}
-                        onChange={(e) => setInquiryService(e.target.value)}
+                        {...registerInquiry("service")}
                         className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
                       >
                         <option value="Web Dev">Web & Headless Development</option>
@@ -260,8 +279,7 @@ function ContactPage() {
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Budget Bracket</label>
                     <select
-                      value={inquiryBudget}
-                      onChange={(e) => setInquiryBudget(e.target.value)}
+                      {...registerInquiry("budget")}
                       className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
                     >
                       <option value="Under £5,000">Under £5,000</option>
@@ -274,19 +292,31 @@ function ContactPage() {
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Project Brief / Description</label>
                     <textarea
-                      required
+                      {...registerInquiry("message")}
                       rows={5}
-                      value={inquiryMessage}
-                      onChange={(e) => setInquiryMessage(e.target.value)}
                       placeholder="Outline your requirements, timelines, and technical integration goals..."
                       className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-3 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none resize-none"
                     />
+                    {inquiryErrors.message && (
+                      <FieldError message={inquiryErrors.message.message} />
+                    )}
+                  </div>
+
+                  <div>
+                    <TurnstileWidget
+                      resetTrigger={inquiryResetTrigger}
+                      onVerify={(token) => setInquiryValue("turnstileToken", token, { shouldValidate: true })}
+                      onExpire={() => setInquiryValue("turnstileToken", "")}
+                    />
+                    {inquiryErrors.turnstileToken && (
+                      <FieldError message={inquiryErrors.turnstileToken.message} />
+                    )}
                   </div>
 
                   <button
                     type="submit"
                     disabled={inquirySubmitting}
-                    className="w-full rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform"
+                    className="w-full rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {inquirySubmitting ? "Sending Inquiry..." : "Submit Strategic Inquiry"}
                   </button>
@@ -298,16 +328,11 @@ function ContactPage() {
                   </div>
                   <h3 className="font-display text-xl font-bold">Inquiry Submitted!</h3>
                   <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                    Thanks, {inquiryName}. Our client strategist will review your brief and follow up at <strong className="text-foreground">{inquiryEmail}</strong> shortly.
+                    Thanks, {submittedInquiryName}. Our client strategist will review your brief and follow up at{" "}
+                    <strong className="text-foreground">{submittedInquiryEmail}</strong> shortly. A confirmation email is on its way.
                   </p>
                   <button
-                    onClick={() => {
-                      setInquirySuccess(false);
-                      setInquiryName("");
-                      setInquiryEmail("");
-                      setInquiryCompany("");
-                      setInquiryMessage("");
-                    }}
+                    onClick={() => setInquirySuccess(false)}
                     className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold hover:border-white/20 transition-all"
                   >
                     Send Another Inquiry
@@ -316,7 +341,6 @@ function ContactPage() {
               )}
             </motion.div>
 
-            {/* MOCK CALENDLY SCHEDULER CARD */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -328,13 +352,12 @@ function ContactPage() {
               </div>
 
               {!bookingSuccess ? (
-                <form onSubmit={handleBookingSubmit} className="space-y-4 relative">
+                <form onSubmit={handleBookingFormSubmit(onBookingSubmit)} className="space-y-4 relative">
                   <div>
                     <h3 className="font-display text-xl font-bold">2. Book a Discovery Call</h3>
                     <p className="text-xs text-muted-foreground mt-1">Select a date & time for a 30-min discovery session via Google Meet.</p>
                   </div>
 
-                  {/* Date Selector */}
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Available Dates (2026)</label>
                     <div className="grid grid-cols-5 gap-2">
@@ -342,12 +365,14 @@ function ContactPage() {
                         <button
                           key={i}
                           type="button"
-                          onClick={() => setSelectedDate(i)}
-                          className={`rounded-xl p-2.5 text-center transition-all ${
-                            selectedDate === i
-                              ? "bg-linear-to-r from-violet-500 to-fuchsia-600 border-none text-white shadow-md"
-                              : "border border-white/10 bg-background/50 text-muted-foreground hover:border-white/20"
-                          }`}
+                          onClick={() => {
+                            setSelectedDateIdx(i);
+                            setBookingValue("date", `${d.day}, ${d.num} ${d.month}`, { shouldValidate: true });
+                          }}
+                          className={`rounded-xl p-2.5 text-center transition-all ${selectedDateIdx === i
+                            ? "bg-linear-to-r from-violet-500 to-fuchsia-600 border-none text-white shadow-md"
+                            : "border border-white/10 bg-background/50 text-muted-foreground hover:border-white/20"
+                            }`}
                         >
                           <div className="text-[9px] uppercase font-bold">{d.day}</div>
                           <div className="text-sm font-black">{d.num}</div>
@@ -357,7 +382,6 @@ function ContactPage() {
                     </div>
                   </div>
 
-                  {/* Time Selector */}
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Available Time Slots</label>
                     <div className="grid grid-cols-3 gap-2">
@@ -365,60 +389,70 @@ function ContactPage() {
                         <button
                           key={time}
                           type="button"
-                          onClick={() => {
-                            setSelectedTime(time);
-                            setBookingError("");
-                          }}
-                          className={`rounded-lg py-2 text-center text-xs font-semibold transition-all ${
-                            selectedTime === time
-                              ? "bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow"
-                              : "border border-white/5 bg-background/40 text-muted-foreground hover:bg-white/5"
-                          }`}
+                          onClick={() => setBookingValue("time", time, { shouldValidate: true })}
+                          className={`rounded-lg py-2 text-center text-xs font-semibold transition-all ${selectedTime === time
+                            ? "bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow"
+                            : "border border-white/5 bg-background/40 text-muted-foreground hover:bg-white/5"
+                            }`}
                         >
                           {time}
                         </button>
                       ))}
                     </div>
+                    {bookingErrors.time && (
+                      <FieldError message={bookingErrors.time.message} />
+                    )}
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Your Name</label>
                       <input
-                        required
-                        value={bookName}
-                        onChange={(e) => setBookName(e.target.value)}
+                        {...registerBooking("name")}
                         placeholder="John Doe"
                         className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-violet-500/50 focus:outline-none"
                       />
+                      {bookingErrors.name && (
+                        <FieldError message={bookingErrors.name.message} />
+                      )}
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Email Address</label>
                       <input
-                        required
+                        {...registerBooking("email")}
                         type="email"
-                        value={bookEmail}
-                        onChange={(e) => setBookEmail(e.target.value)}
                         placeholder="john@company.com"
                         className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-violet-500/50 focus:outline-none"
                       />
+                      {bookingErrors.email && (
+                        <FieldError message={bookingErrors.email.message} />
+                      )}
                     </div>
                   </div>
 
-                  {bookingError && (
-                    <div className="text-xs text-rose-400 flex items-center gap-1">
-                      <AlertCircle className="h-3.5 w-3.5" />
-                      <span>{bookingError}</span>
-                    </div>
-                  )}
+                  <div>
+                    <TurnstileWidget
+                      resetTrigger={bookingResetTrigger}
+                      onVerify={(token) => setBookingValue("turnstileToken", token, { shouldValidate: true })}
+                      onExpire={() => setBookingValue("turnstileToken", "")}
+                    />
+                    {bookingErrors.turnstileToken && (
+                      <FieldError message={bookingErrors.turnstileToken.message} />
+                    )}
+                  </div>
 
                   <button
                     type="submit"
                     disabled={bookingSubmitting}
-                    className="w-full rounded-xl bg-linear-to-r from-violet-500 to-fuchsia-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform"
+                    className="w-full rounded-xl bg-linear-to-r from-violet-500 to-fuchsia-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {bookingSubmitting ? "Booking call..." : "Schedule Call"}
                   </button>
+                  {bookingSubmitting && (
+                    <p className="text-xs text-cyan-400 mt-2 text-center">
+                      Scheduling your call...
+                    </p>
+                  )}
                 </form>
               ) : (
                 <div className="text-center py-16 space-y-4">
@@ -427,18 +461,15 @@ function ContactPage() {
                   </div>
                   <h3 className="font-display text-xl font-bold">Call Scheduled!</h3>
                   <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                    Excellent, {bookName}. We have booked a discovery session on <strong className="text-foreground">{mockDates[selectedDate].day}, {mockDates[selectedDate].num} {mockDates[selectedDate].month}</strong> at <strong className="text-foreground">{selectedTime}</strong>. 
+                    Excellent, {submittedBooking.name}. We have booked a discovery session on{" "}
+                    <strong className="text-foreground">{submittedBooking.date}</strong> at{" "}
+                    <strong className="text-foreground">{submittedBooking.time}</strong>.
                   </p>
                   <p className="text-[10px] text-muted-foreground/60">
-                    An calendar invitation with the Google Meet link has been sent to {bookEmail}.
+                    A confirmation email with the Google Meet link has been sent to {submittedBooking.email}.
                   </p>
                   <button
-                    onClick={() => {
-                      setBookingSuccess(false);
-                      setBookName("");
-                      setBookEmail("");
-                      setSelectedTime("");
-                    }}
+                    onClick={() => setBookingSuccess(false)}
                     className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold hover:border-white/20 transition-all"
                   >
                     Schedule Another Time
@@ -450,7 +481,6 @@ function ContactPage() {
           </div>
         </section>
 
-        {/* OFFICE LOCATIONS */}
         <section className="mx-auto max-w-7xl px-4 py-16 border-t border-white/5">
           <div className="text-center mb-12">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2">Office Locations</h3>
@@ -471,7 +501,7 @@ function ContactPage() {
                   <div>
                     <h4 className="font-display font-bold text-sm text-foreground">{o.city}</h4>
                     <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{o.address}</p>
-                    
+
                     <div className="mt-4 pt-4 border-t border-white/5 space-y-2 text-[10px] text-muted-foreground">
                       <div className="flex items-center gap-1.5">
                         <Phone className="h-3 w-3 text-cyan-400" />
@@ -490,7 +520,6 @@ function ContactPage() {
         </section>
       </main>
 
-      {/* ─── LIVE CHAT / WHATSAPP WIDGET ─── */}
       <div className="fixed bottom-6 right-6 z-50">
         <AnimatePresence>
           {chatOpen && (
@@ -500,7 +529,6 @@ function ContactPage() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="absolute bottom-16 right-0 w-80 rounded-2xl border border-white/15 bg-card shadow-2xl overflow-hidden flex flex-col justify-between z-50"
             >
-              {/* Header */}
               <div className="bg-linear-to-r from-cyan-500 to-violet-600 p-4 flex items-center justify-between text-white">
                 <div className="flex items-center gap-2">
                   <div className="relative">
@@ -520,22 +548,19 @@ function ContactPage() {
                 </button>
               </div>
 
-              {/* Chat body */}
               <div className="p-4 h-64 overflow-y-auto space-y-3 bg-background/50">
                 {chatMessages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] rounded-xl px-3 py-2 text-xs leading-relaxed ${
-                      msg.sender === "user"
-                        ? "bg-cyan-500 text-white"
-                        : "bg-white/5 border border-white/5 text-muted-foreground"
-                    }`}>
+                    <div className={`max-w-[75%] rounded-xl px-3 py-2 text-xs leading-relaxed ${msg.sender === "user"
+                      ? "bg-cyan-500 text-white"
+                      : "bg-white/5 border border-white/5 text-muted-foreground"
+                      }`}>
                       {msg.text}
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Chat input */}
               <form onSubmit={sendChatMessage} className="p-3 border-t border-white/5 flex gap-2 bg-card">
                 <input
                   value={chatInput}
@@ -554,7 +579,6 @@ function ContactPage() {
           )}
         </AnimatePresence>
 
-        {/* Floating Toggle Button */}
         <motion.button
           onClick={() => setChatOpen(!chatOpen)}
           whileHover={{ scale: 1.05 }}
@@ -568,5 +592,15 @@ function ContactPage() {
 
       <Footer />
     </div>
+  );
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="mt-1 flex items-center gap-1 text-[10px] text-rose-400">
+      <AlertCircle className="h-3 w-3" />
+      {message}
+    </p>
   );
 }
