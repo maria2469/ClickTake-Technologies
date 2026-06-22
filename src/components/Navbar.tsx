@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowUpRight, ChevronDown, Sparkles } from "lucide-react";
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 
-import logo from "@/assets/clicktake-logo.jpg";
+import logo from "@/assets/clicktake-logo.png";
 import { ThemeToggle } from "../components/ThemeToggle";
 
 /* ───────────────── SERVICES MEGA MENU DATA ───────────────── */
@@ -105,14 +105,8 @@ export function Navbar() {
             }`}
         >
           {/* LOGO */}
-          <Link to="/" className="flex items-center gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-xl ring-1 ring-border shadow-md">
-              <img src={logo} className="h-full w-full object-cover" alt="ClickTake" />
-            </div>
-            <div>
-              <div className="font-display text-sm font-extrabold tracking-tight">ClickTake</div>
-              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Technologies</div>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img src={logo} className="h-10 w-auto object-contain scale-[1.5] origin-left ml-2" alt="ClickTake Logo" />
           </Link>
 
           {/* DESKTOP NAV */}

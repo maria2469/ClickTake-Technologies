@@ -520,9 +520,19 @@ function AdminCMS() {
     };
 
     const handleDeleteMedia = async (id: string, url: string) => {
+        // Optimistic UI update
+        setMediaList((prev) => prev.filter((m) => m.id !== id));
+        
         // Extract filePath from URL if needed to delete from storage, but for now just delete DB record
-        await supabase.from('cms_media').delete().eq('id', id);
-        toast.success("Asset deleted");
+        const { error } = await supabase.from('cms_media').delete().eq('id', id);
+        
+        if (error) {
+            toast.error(`Failed to delete asset: ${error.message}`);
+            // If it failed, we could refetch here or let the realtime channel handle sync,
+            // but for now showing the error is enough.
+        } else {
+            toast.success("Asset deleted");
+        }
     };
 
     // Blog Management
