@@ -13,11 +13,13 @@ import {
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 
 /* ───────────────── NOT FOUND ───────────────── */
+
 
 function NotFoundComponent() {
   return (
@@ -159,20 +161,22 @@ function RootComponent() {
   }, [pathname]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="relative min-h-screen overflow-x-hidden">
-        {/* ───── BACKGROUND LAYER ───── */}
-        <div className="fixed inset-0 z-0">
-          <BackgroundScene />
-        </div>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <div className="relative min-h-screen overflow-x-hidden">
+          {/* ───── BACKGROUND LAYER ───── */}
+          <div className="fixed inset-0 z-0">
+            <BackgroundScene />
+          </div>
 
-        {/* ───── CONTENT LAYER ───── */}
-        <main className="relative z-10">
-          <Outlet />
-        </main>
-        
-        <Toaster position="top-right" theme="dark" />
-      </div>
-    </QueryClientProvider>
+          {/* ───── CONTENT LAYER ───── */}
+          <main className="relative z-10">
+            <Outlet />
+          </main>
+          
+          <Toaster position="top-right" theme="dark" />
+        </div>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }

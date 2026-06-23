@@ -10,6 +10,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
+import { SEOHead } from "@/components/SEOHead";
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -591,6 +592,7 @@ function PortfolioPage() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
+      <SEOHead slug="/portfolio" title="Portfolio & Case Studies — ClickTake Technologies" description="Explore ClickTake's case studies — real results across e-commerce, SaaS, AI, marketing and branding projects." />
       <BackgroundScene />
       <CustomCursor />
       <Navbar />

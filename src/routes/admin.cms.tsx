@@ -18,7 +18,8 @@ import {
     Search,
     X,
     AlertCircle,
-    Edit3
+    Edit3,
+    Globe
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,6 +48,10 @@ interface CMSPage {
     slug: string;
     is_published: boolean;
     blocks: PageBlock[];
+    meta_title?: string;
+    meta_description?: string;
+    canonical_url?: string;
+    og_image_url?: string;
 }
 
 interface MediaFile {
@@ -72,6 +77,7 @@ function AdminCMS() {
     const [pages, setPages] = useState<CMSPage[]>([]);
     const [savedPages, setSavedPages] = useState<CMSPage[]>([]);
     const [selectedPageId, setSelectedPageId] = useState<string>("");
+    const [expandedSeoPageId, setExpandedSeoPageId] = useState<string | null>(null);
     
     const handleTogglePublish = async (pageId: string, currentStatus: boolean, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -157,7 +163,14 @@ function AdminCMS() {
             if (!saved) {
                 count++; // New page
             } else {
-                if (saved.title !== p.title || saved.slug !== p.slug) {
+                if (
+                    saved.title !== p.title || 
+                    saved.slug !== p.slug ||
+                    (saved.meta_title || '') !== (p.meta_title || '') ||
+                    (saved.meta_description || '') !== (p.meta_description || '') ||
+                    (saved.canonical_url || '') !== (p.canonical_url || '') ||
+                    (saved.og_image_url || '') !== (p.og_image_url || '')
+                ) {
                     count++;
                 } else {
                     if ((saved.blocks?.length || 0) !== (p.blocks?.length || 0)) {
@@ -186,6 +199,42 @@ function AdminCMS() {
 
         return count;
     }, [pages, savedPages]);
+
+    // Update SEO settings fields locally
+    const handleUpdatePageSeo = (pageId: string, field: 'meta_title' | 'meta_description' | 'canonical_url' | 'og_image_url', value: string) => {
+        setPages(pages.map(p => p.id === pageId ? { ...p, [field]: value } : p));
+    };
+
+    // Save individual page SEO settings directly to Supabase
+    const handleSavePageSeo = async (pageId: string) => {
+        const page = pages.find(p => p.id === pageId);
+        if (!page) return;
+        try {
+            const { error } = await supabase
+                .from('pages')
+                .update({
+                    meta_title: page.meta_title || null,
+                    meta_description: page.meta_description || null,
+                    canonical_url: page.canonical_url || null,
+                    og_image_url: page.og_image_url || null
+                })
+                .eq('id', pageId);
+            
+            if (error) throw error;
+            
+            setSavedPages(savedPages.map(sp => sp.id === pageId ? { 
+                ...sp, 
+                meta_title: page.meta_title,
+                meta_description: page.meta_description,
+                canonical_url: page.canonical_url,
+                og_image_url: page.og_image_url
+            } : sp));
+
+            toast.success(`SEO Settings for "${page.title}" saved successfully!`);
+        } catch (err: any) {
+            toast.error(`Failed to save SEO Settings: ${err.message}`);
+        }
+    };
 
     // Page Search Filtering
     const filteredPages = useMemo(() => {
@@ -229,7 +278,17 @@ function AdminCMS() {
         for (const page of pages) {
             const { error } = await supabase
                 .from('pages')
-                .upsert({ id: page.id, title: page.title, slug: page.slug, is_published: page.is_published, blocks: page.blocks }, { onConflict: 'id' });
+                .upsert({ 
+                    id: page.id, 
+                    title: page.title, 
+                    slug: page.slug, 
+                    is_published: page.is_published, 
+                    blocks: page.blocks,
+                    meta_title: page.meta_title || null,
+                    meta_description: page.meta_description || null,
+                    canonical_url: page.canonical_url || null,
+                    og_image_url: page.og_image_url || null
+                }, { onConflict: 'id' });
             if (error) {
                 toast.error(`Failed to save page ${page.title}`);
                 return;
@@ -260,19 +319,13 @@ function AdminCMS() {
         if (!trimmedTitle || !trimmedSlug) return;
         if (!trimmedSlug.startsWith("/")) trimmedSlug = "/" + trimmedSlug;
 
+        // Check if page with slug exists
         if (pages.some((p) => p.slug.toLowerCase() === trimmedSlug.toLowerCase())) {
             toast.error(`A page with route slug "${trimmedSlug}" already exists.`);
             return;
         }
 
-        const newId = trimmedTitle.toLowerCase().replace(/[^a-z0-9]/g, "-") || `page-${Date.now()}`;
-        if (pages.some((p) => p.id === newId)) {
-            toast.error(`A page with title "${trimmedTitle}" already exists.`);
-            return;
-        }
-
-        const newPage: CMSPage = {
-            id: newId,
+        const newPageData = {
             title: trimmedTitle,
             slug: trimmedSlug,
             is_published: false,
@@ -282,14 +335,16 @@ function AdminCMS() {
             ]
         };
 
-        const { error } = await supabase.from('pages').insert(newPage);
-        if (error) {
-            toast.error("Failed to create page on server");
+        const { data, error } = await supabase.from('pages').insert(newPageData).select().single();
+        if (error || !data) {
+            toast.error(`Failed to create page on server: ${error?.message || 'Unknown error'}`);
             return;
         }
 
+        const newPage = { ...data, blocks: data.blocks || newPageData.blocks };
+
         setPages([...pages, newPage]);
-        setSelectedPageId(newId);
+        setSelectedPageId(newPage.id);
         setIsCreatePageModalOpen(false);
         setNewPageTitle("");
         setNewPageSlug("");
@@ -632,38 +687,110 @@ function AdminCMS() {
                                 className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1 text-[11px] focus:outline-none text-foreground"
                             />
                         </div>
-                        <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+                        <div className="space-y-2 max-h-[450px] overflow-y-auto pr-1">
                             {filteredPages.map((p) => (
-                                <div key={p.id} className="group relative w-full">
-                                    <button
-                                        onClick={() => setSelectedPageId(p.id)}
-                                        className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all cursor-pointer ${
-                                            selectedPageId === p.id
-                                                ? "bg-white/10 text-foreground border-l-2 border-brand-magenta"
-                                                : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                                        }`}
-                                    >
-                                        <span className="truncate pr-10">{p.title}</span>
-                                        <span className="text-[9px] font-mono text-muted-foreground opacity-60 group-hover:opacity-0 transition-opacity truncate shrink-0">
-                                            {p.slug}
-                                        </span>
-                                    </button>
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/5 transition-opacity shadow">
+                                <div key={p.id} className="group relative w-full border border-white/5 rounded-xl bg-white/5 p-1">
+                                    <div className="flex items-center justify-between w-full">
                                         <button
-                                            onClick={(e) => handleTogglePublish(p.id, p.is_published, e)}
-                                            className={`p-1 rounded cursor-pointer ${p.is_published ? "text-emerald-400 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-white/10"}`}
-                                            title={p.is_published ? "Unpublish" : "Publish"}
+                                            onClick={() => setSelectedPageId(p.id)}
+                                            className={`flex-1 flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                                                selectedPageId === p.id
+                                                    ? "bg-white/15 text-foreground border-l-2 border-brand-magenta"
+                                                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                                            }`}
                                         >
-                                            <Check className="h-3 w-3" />
+                                            <span className="truncate pr-10">{p.title}</span>
+                                            <span className="text-[9px] font-mono text-muted-foreground opacity-60 group-hover:opacity-0 transition-opacity truncate shrink-0">
+                                                {p.slug}
+                                            </span>
                                         </button>
-                                        <button
-                                            onClick={(e) => handleDeletePage(p.id, e)}
-                                            className="p-1 rounded text-muted-foreground hover:text-rose-400 hover:bg-white/10 cursor-pointer"
-                                            title="Delete Page"
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </button>
+                                        <div className="absolute right-2 top-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/5 transition-opacity shadow z-10">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setExpandedSeoPageId(expandedSeoPageId === p.id ? null : p.id);
+                                                }}
+                                                className={`p-1 rounded cursor-pointer ${expandedSeoPageId === p.id ? "text-brand-cyan hover:bg-brand-cyan/10" : "text-muted-foreground hover:bg-white/10"}`}
+                                                title="SEO Settings"
+                                            >
+                                                <Globe className="h-3 w-3" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleTogglePublish(p.id, p.is_published, e)}
+                                                className={`p-1 rounded cursor-pointer ${p.is_published ? "text-emerald-400 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-white/10"}`}
+                                                title={p.is_published ? "Unpublish" : "Publish"}
+                                            >
+                                                <Check className="h-3 w-3" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleDeletePage(p.id, e)}
+                                                className="p-1 rounded text-muted-foreground hover:text-rose-400 hover:bg-white/10 cursor-pointer"
+                                                title="Delete Page"
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </button>
+                                        </div>
                                     </div>
+                                    
+                                    {/* Expandable SEO Settings */}
+                                    {expandedSeoPageId === p.id && (
+                                        <div className="mt-2 p-2 border-t border-white/5 space-y-2 bg-black/20 rounded-lg">
+                                            <div className="text-[10px] font-bold text-brand-cyan uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                <Globe className="h-3 w-3" /> SEO Settings
+                                            </div>
+                                            
+                                            <div className="space-y-1">
+                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Meta Title</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Meta title..."
+                                                    value={p.meta_title || ""}
+                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'meta_title', e.target.value)}
+                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Meta Description</label>
+                                                <textarea
+                                                    placeholder="Meta description..."
+                                                    rows={2}
+                                                    value={p.meta_description || ""}
+                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'meta_description', e.target.value)}
+                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan resize-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Canonical URL</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Canonical URL..."
+                                                    value={p.canonical_url || ""}
+                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'canonical_url', e.target.value)}
+                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">OG Image URL</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="OG Image URL..."
+                                                    value={p.og_image_url || ""}
+                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'og_image_url', e.target.value)}
+                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
+                                                />
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleSavePageSeo(p.id)}
+                                                className="w-full rounded bg-brand-cyan hover:opacity-90 text-black py-1 text-[10px] font-bold transition cursor-pointer"
+                                            >
+                                                Save SEO Settings
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

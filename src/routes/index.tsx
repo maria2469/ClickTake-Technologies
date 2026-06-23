@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { SEOHead } from "@/components/SEOHead";
 
 import { CustomCursor } from "@/components/CustomCursor";
 import { BackgroundScene } from "@/components/BackgroundScene";
@@ -29,8 +32,46 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const [seo, setSeo] = useState({
+    title: "ClickTake Technologies — AI-Powered Digital Agency · UK & Pakistan",
+    description: "ClickTake builds AI-powered websites, apps and growth systems.",
+    canonical: "",
+    ogImage: ""
+  });
+
+  useEffect(() => {
+    const fetchSeoSettings = async () => {
+      try {
+        const { data, error } = await supabase.from('site_settings').select('*');
+        if (error) throw error;
+        if (data) {
+          const settingsMap: Record<string, string> = {};
+          data.forEach(item => {
+            settingsMap[item.key] = item.value;
+          });
+          
+          setSeo({
+            title: settingsMap['seo_title'] || settingsMap['meta_title'] || settingsMap['site_title'] || "ClickTake Technologies — AI-Powered Digital Agency · UK & Pakistan",
+            description: settingsMap['seo_description'] || settingsMap['meta_description'] || settingsMap['site_description'] || "ClickTake builds AI-powered websites, apps and growth systems.",
+            canonical: settingsMap['seo_canonical'] || settingsMap['canonical_url'] || "",
+            ogImage: settingsMap['seo_og_image'] || settingsMap['og_image_url'] || settingsMap['logo_url'] || ""
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load default SEO values from site_settings:", err);
+      }
+    };
+    fetchSeoSettings();
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-background text-foreground">
+      <SEOHead 
+        title={seo.title}
+        description={seo.description}
+        canonical={seo.canonical || undefined}
+        ogImage={seo.ogImage || undefined}
+      />
       {/* Background */}
       <BackgroundScene />
 

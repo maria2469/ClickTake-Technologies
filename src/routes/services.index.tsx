@@ -10,6 +10,7 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { CustomCursor } from "@/components/CustomCursor";
 import { BackgroundScene } from "@/components/BackgroundScene";
+import { SEOHead } from "@/components/SEOHead";
 
 export const Route = createFileRoute("/services/")({
     head: () => ({
@@ -185,6 +186,7 @@ const stats = [
 function ServicesIndex() {
     return (
         <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+            <SEOHead slug="/services" title="Services — ClickTake Technologies" description="AI solutions, web development, digital marketing, creative services, and our flagship Business Development Starter Kit." />
             <BackgroundScene />
             <CustomCursor />
             <Navbar />

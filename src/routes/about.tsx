@@ -9,6 +9,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
+import { SEOHead } from "@/components/SEOHead";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -197,6 +198,7 @@ function AboutPage() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+      <SEOHead slug="/about" title="About Us — ClickTake Technologies" description="Learn about ClickTake Technologies — our mission, our multi-national team in Birmingham and Multan, our core values, and open careers." />
       <BackgroundScene />
       <CustomCursor />
       <Navbar />
