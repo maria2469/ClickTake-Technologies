@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Award, Zap, Globe, Clock, Mail, ChevronRight, CheckCircle2,
@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
 import { SEOHead } from "@/components/SEOHead";
+import { supabase } from "@/lib/supabaseClient";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -156,6 +157,7 @@ const jobs: OpenPosition[] = [
 
 function AboutPage() {
   const [selectedJob, setSelectedJob] = useState<OpenPosition | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(team);
   
   // Job Application Form State
   const [appStep, setAppStep] = useState(1);
@@ -167,7 +169,75 @@ function AboutPage() {
   const [appSuccess, setAppSuccess] = useState(false);
   const [appError, setAppError] = useState("");
 
-  const handleApplySubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function loadTeam() {
+      try {
+        const { data, error } = await supabase
+          .from("team_members")
+          .select("*")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const mapped = data.map((member: any, idx: number) => {
+            let initials = "";
+            if (member.full_name) {
+              initials = member.full_name
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase();
+            }
+
+            let gradient = "from-cyan-500 to-blue-600";
+            let skills: string[] = ["Headless E-Com", "Shopify API", "React/Node", "System Architecture"];
+            
+            if (member.full_name === "Zain Paracha") {
+              gradient = "from-cyan-500 to-blue-600";
+              skills = ["Headless E-Com", "Shopify API", "React/Node", "System Architecture"];
+            } else if (member.full_name === "Adam Kitts") {
+              gradient = "from-violet-500 to-indigo-600";
+              skills = ["LLM Workflows", "n8n Automation", "Client Relations", "Agile Sprints"];
+            } else if (member.full_name === "Maria Qasim") {
+              gradient = "from-fuchsia-500 to-pink-600";
+              skills = ["UI/UX Prototyping", "Framer Motion", "Figma", "Brand Guidelines"];
+            } else if (member.full_name === "Hamza Farooq") {
+              gradient = "from-emerald-500 to-teal-600";
+              skills = ["Technical SEO", "Google Ads", "HubSpot CRM", "Conversion Funnels"];
+            } else {
+              const gradients = [
+                "from-cyan-500 to-blue-600",
+                "from-violet-500 to-indigo-600",
+                "from-fuchsia-500 to-pink-600",
+                "from-emerald-500 to-teal-600",
+                "from-amber-500 to-orange-600"
+              ];
+              gradient = gradients[idx % gradients.length];
+              skills = ["Custom Solutions", "Consultation", "Strategy", "Client Success"];
+            }
+
+            return {
+              name: member.full_name || "",
+              role: member.role_title || "",
+              bio: member.bio || "",
+              skills: skills,
+              gradient: gradient,
+              avatarInitials: initials || "CT",
+            };
+          });
+          setTeamMembers(mapped);
+        }
+      } catch (err) {
+        console.error("Error loading team members:", err);
+      }
+    }
+    loadTeam();
+  }, []);
+
+  const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (appStep < 2) {
       if (!appName || !appEmail) {
@@ -178,10 +248,28 @@ function AboutPage() {
       setAppStep(2);
     } else {
       setSubmittingApp(true);
-      setTimeout(() => {
-        setSubmittingApp(false);
+      setAppError("");
+      try {
+        if (!selectedJob) return;
+        const { error } = await supabase.from("leads").insert({
+          name: appName,
+          email: appEmail,
+          phone: "",
+          service_interest: `Job Application: ${selectedJob.title}`,
+          message: `GitHub/Portfolio: ${appGithub || "None"}\n\nCover Letter:\n${appCover}`,
+          status: "New",
+          source_page: "/about#careers",
+          source: "Careers Portal"
+        });
+
+        if (error) throw error;
         setAppSuccess(true);
-      }, 1500);
+      } catch (err: any) {
+        console.error("Error submitting job application:", err);
+        setAppError(err.message || "Failed to submit application. Please try again.");
+      } finally {
+        setSubmittingApp(false);
+      }
     }
   };
 
@@ -299,7 +387,7 @@ function AboutPage() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {team.map((member, idx) => (
+            {teamMembers.map((member, idx) => (
               <motion.div
                 key={member.name}
                 initial={{ opacity: 0, y: 30 }}

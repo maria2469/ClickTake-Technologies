@@ -232,8 +232,6 @@ function CaseStudyCard({ cs, featured }: { cs: CaseStudy; featured?: boolean }) 
                 {/* External link */}
                 <a
                     href={cs.url}
-                    target="_blank"
-                    rel="noreferrer"
                     className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-black/30 text-white backdrop-blur-md transition-all duration-300 hover:rotate-12 hover:bg-white hover:text-black"
                 >
                     <ExternalLink className="h-4 w-4" />
@@ -318,8 +316,6 @@ function CaseStudyCard({ cs, featured }: { cs: CaseStudy; featured?: boolean }) 
                         </button>
                         <a
                             href={cs.url}
-                            target="_blank"
-                            rel="noreferrer"
                             className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r ${cs.gradient} px-4 py-1.5 text-xs font-semibold text-white shadow-md hover:scale-105 transition-transform`}
                         >
                             Live site <ArrowUpRight className="h-3 w-3" />
@@ -336,12 +332,75 @@ function CaseStudyCard({ cs, featured }: { cs: CaseStudy; featured?: boolean }) 
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
 function PortfolioPage() {
     const [industry, setIndustry] = useState<Industry>("All");
     const [service, setService] = useState<Service>("All");
     const [search, setSearch] = useState("");
+    const [caseStudiesList, setCaseStudiesList] = useState<CaseStudy[]>(caseStudies);
 
-    const filtered = caseStudies.filter((cs) => {
+    useEffect(() => {
+        async function loadCaseStudies() {
+            try {
+                const { data, error } = await supabase
+                    .from("portfolio_items")
+                    .select("*")
+                    .eq("is_published", true)
+                    .order("created_at", { ascending: true });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    const mapped = data.map((item: any, idx: number) => {
+                        let resArray: string[] = [];
+                        if (typeof item.results === "string") {
+                            resArray = item.results.split(".").map((r: string) => r.trim()).filter((r: string) => r.length > 0);
+                        } else if (Array.isArray(item.results)) {
+                            resArray = item.results;
+                        }
+
+                        const indVal = INDUSTRIES.includes(item.industry as Industry) ? (item.industry as Industry) : "All";
+                        const svcVal = SERVICES.includes(item.service_category as Service) ? (item.service_category as Service) : "All";
+
+                        return {
+                            title: item.title,
+                            category: `${item.service_category || "Service"} · ${item.industry || "Industry"}`,
+                            industry: indVal,
+                            service: svcVal,
+                            description: item.challenge || item.solution || "",
+                            challenge: item.challenge || "",
+                            solution: item.solution || "",
+                            results: resArray,
+                            metric: item.metrics?.value || "Case Study",
+                            metricLabel: item.metrics?.label || "",
+                            tags: item.technologies || [],
+                            glow: idx % 4 === 0 ? "shadow-cyan-500/20" :
+                                  idx % 4 === 1 ? "shadow-indigo-500/20" :
+                                  idx % 4 === 2 ? "shadow-violet-500/20" : "shadow-fuchsia-500/20",
+                            gradient: idx % 4 === 0 ? "from-cyan-500 to-blue-600" :
+                                      idx % 4 === 1 ? "from-violet-500 to-indigo-600" :
+                                      idx % 4 === 2 ? "from-fuchsia-500 to-violet-600" : "from-pink-500 to-rose-600",
+                            image: (item.images && item.images.length > 0 && (item.images[0].startsWith("from-") || item.images[0].startsWith("http"))) ? item.images[0] : 
+                                   (idx % 4 === 0 ? "from-cyan-900 via-blue-900 to-slate-900" :
+                                    idx % 4 === 1 ? "from-violet-900 via-indigo-900 to-slate-900" :
+                                    idx % 4 === 2 ? "from-fuchsia-900 via-purple-900 to-slate-900" : "from-rose-900 via-pink-900 to-slate-900"),
+                            url: `/portfolio#${item.slug || ""}`,
+                            featured: idx < 2,
+                        };
+                    });
+                    setCaseStudiesList(mapped);
+                }
+            } catch (err) {
+                console.error("Error loading case studies:", err);
+            }
+        }
+        loadCaseStudies();
+    }, []);
+
+    const filtered = caseStudiesList.filter((cs) => {
+
         const matchIndustry = industry === "All" || cs.industry === industry;
         const matchService = service === "All" || cs.service === service;
         const matchSearch =

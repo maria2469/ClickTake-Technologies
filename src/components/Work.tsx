@@ -1,13 +1,26 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 import image1 from "@/assets/image1.png";
 import image2 from "@/assets/image2.jpg";
 import image3 from "@/assets/image3.jpg";
 import image4 from "@/assets/image4.jpg";
 
-const projects = [
+interface ProjectItem {
+  title: string;
+  category: string;
+  description: string;
+  metric: string;
+  tags: string[];
+  image: string;
+  glow: string;
+  url: string;
+}
+
+const fallbackProjects: ProjectItem[] = [
   {
     title: "Lumen Commerce",
     category: "E-Commerce · Headless Shopify",
@@ -55,6 +68,58 @@ const projects = [
 ];
 
 export function Work() {
+  const [projects, setProjects] = useState<ProjectItem[]>(fallbackProjects);
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const { data, error } = await supabase
+          .from("portfolio_items")
+          .select("*")
+          .eq("is_published", true)
+          .order("created_at", { ascending: true })
+          .limit(4);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const mapped = data.map((item: any, idx: number) => {
+            let img = fallbackProjects[idx % fallbackProjects.length].image;
+            if (item.images && item.images.length > 0) {
+              const firstImage = item.images[0];
+              if (firstImage.startsWith("http") || firstImage.startsWith("/")) {
+                img = firstImage;
+              }
+            }
+
+            let metricStr = "";
+            if (item.metrics) {
+              metricStr = `${item.metrics.value || ""} ${item.metrics.label || ""}`.trim();
+            }
+
+            return {
+              title: item.title,
+              category: `${item.service_category || "Service"} · ${item.industry || "Industry"}`,
+              description: item.challenge || item.solution || "",
+              metric: metricStr || "Case Study",
+              tags: item.technologies || [],
+              image: img,
+              glow: idx % 4 === 0 ? "hover:shadow-cyan-500/20" :
+                    idx % 4 === 1 ? "hover:shadow-indigo-500/20" :
+                    idx % 4 === 2 ? "hover:shadow-violet-500/20" : "hover:shadow-fuchsia-500/20",
+              url: `/portfolio#${item.slug || ""}`,
+            };
+          });
+          setProjects(mapped);
+        }
+      } catch (err) {
+        console.error("Error loading portfolio items:", err);
+      }
+    }
+
+    loadProjects();
+  }, []);
+
   return (
     <section
       id="work"
@@ -135,8 +200,6 @@ export function Work() {
                 {/* external button */}
                 <a
                   href={p.url}
-                  target="_blank"
-                  rel="noreferrer"
                   className="absolute right-5 top-5 grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-black/30 text-white backdrop-blur-md transition-all duration-300 hover:rotate-12 hover:bg-white hover:text-black"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -181,8 +244,6 @@ export function Work() {
                   {/* button */}
                   <a
                     href={p.url}
-                    target="_blank"
-                    rel="noreferrer"
                     className="group/btn inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:scale-105"
                   >
                     View project

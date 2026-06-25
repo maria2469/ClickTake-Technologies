@@ -1,10 +1,11 @@
 import { motion, useMotionValue, useSpring, useTransform, useInView } from "framer-motion";
-import { useRef, MouseEvent } from "react";
+import { useRef, MouseEvent, useState, useEffect } from "react";
 import {
     MapPin, Mail, Phone, Globe, Clock, Users, Award, Zap,
     ArrowUpRight, Building2, Star, TrendingUp, Code2, Megaphone,
     Facebook, Instagram, Linkedin, Youtube, ExternalLink,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 /* ─── DATA ────────────────────────────────────────────────────── */
 
@@ -13,27 +14,6 @@ const stats = [
     { val: "80+", label: "Happy Clients", icon: Users, color: "from-violet-500 to-fuchsia-500" },
     { val: "5.0", label: "Average Rating", icon: Star, color: "from-amber-400 to-orange-500" },
     { val: "6+", label: "Years Active", icon: TrendingUp, color: "from-teal-400 to-cyan-500" },
-];
-
-const offices = [
-    {
-        flag: "🇵🇰",
-        country: "Pakistan",
-        city: "Multan",
-        address: "Office No #12, B.C.G Chowk, Paracha Street, Multan, Punjab 60600",
-        phone: "+92 306 9753003",
-        color: "from-emerald-500 to-teal-500",
-        glow: "rgba(16,185,129,0.25)",
-    },
-    {
-        flag: "🇬🇧",
-        country: "United Kingdom",
-        city: "Birmingham",
-        address: "Flat 312, Kitts Green Road, Birmingham B33 9SB",
-        phone: "+44 7391 653377",
-        color: "from-cyan-500 to-blue-600",
-        glow: "rgba(0,200,255,0.25)",
-    },
 ];
 
 const values = [
@@ -67,17 +47,39 @@ const values = [
     },
 ];
 
-const socials = [
-    { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/clicktaketechnologies/" },
-    { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/clicktaketechnologiesuk/" },
-    { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/company/click-take-technologies/" },
-    { icon: Youtube, label: "YouTube", href: "https://www.youtube.com/channel/UCt527M4hxeFOavWdXSRTsdw" },
-];
-
 const services = [
     "Custom Web Development", "Mobile Applications", "E-Commerce Systems",
     "SEO & Search Strategy", "Paid Media Campaigns", "Brand Identity",
     "AI Automations", "Lead Generation", "Growth Operations",
+];
+/* ─── SOCIALS & OFFICES ────────────────────────────────────────── */
+
+const socials = [
+    { icon: Facebook, label: "Facebook", href: "https://facebook.com/clicktaketech" },
+    { icon: Instagram, label: "Instagram", href: "https://instagram.com/clicktaketech" },
+    { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com/company/clicktaketech" },
+    { icon: Youtube, label: "YouTube", href: "https://youtube.com/clicktaketech" },
+];
+
+const offices: Office[] = [
+    {
+        flag: "🇬🇧",
+        country: "United Kingdom",
+        city: "Birmingham",
+        address: "123 Innovation Street, Birmingham, B1 1AA, UK",
+        phone: "+44 123 456 7890",
+        color: "from-blue-500 to-cyan-500",
+        glow: "rgba(0,200,255,0.3)",
+    },
+    {
+        flag: "🇵🇰",
+        country: "Pakistan",
+        city: "Multan",
+        address: "456 Tech Hub, Multan, Punjab, Pakistan",
+        phone: "+92 300 1234567",
+        color: "from-emerald-500 to-teal-500",
+        glow: "rgba(20,184,166,0.3)",
+    },
 ];
 
 /* ─── TILT CARD (reused pattern from Services) ─────────────────── */
@@ -194,7 +196,17 @@ function ValueCard({ v, i }: { v: typeof values[0]; i: number }) {
 
 /* ─── OFFICE CARD ───────────────────────────────────────────────── */
 
-function OfficeCard({ o, i }: { o: typeof offices[0]; i: number }) {
+interface Office {
+    flag: string;
+    country: string;
+    city: string;
+    address: string;
+    phone: string;
+    color: string;
+    glow: string;
+}
+
+function OfficeCard({ o, i }: { o: Office; i: number }) {
     const ref = useRef<HTMLDivElement>(null);
     const inView = useInView(ref, { once: true, margin: "-40px" });
 
@@ -250,6 +262,7 @@ function OfficeCard({ o, i }: { o: typeof offices[0]; i: number }) {
         </motion.div>
     );
 }
+
 
 /* ─── MAIN EXPORT ───────────────────────────────────────────────── */
 

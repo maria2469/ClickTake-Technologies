@@ -1,13 +1,24 @@
 import { motion } from "framer-motion";
 import { Quote, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
-const items = [
+interface TestimonialItem {
+  quote: string;
+  author: string;
+  role: string;
+  location: string;
+  rating: number;
+}
+
+const fallbackItems: TestimonialItem[] = [
   {
     quote:
       "ClickTake rebuilt our entire stack and tripled our online revenue in just four months. They genuinely felt like an extension of our internal team.",
     author: "Sarah Mitchell",
     role: "Founder, Lumen Commerce",
     location: "London, UK",
+    rating: 5,
   },
   {
     quote:
@@ -15,6 +26,7 @@ const items = [
     author: "James O'Connor",
     role: "CTO, Northwind",
     location: "Manchester, UK",
+    rating: 5,
   },
   {
     quote:
@@ -22,10 +34,42 @@ const items = [
     author: "Aisha Khan",
     role: "Marketing Director, Verve Studio",
     location: "Birmingham, UK",
+    rating: 5,
   },
 ];
 
 export function Testimonials() {
+  const [items, setItems] = useState<TestimonialItem[]>(fallbackItems);
+
+  useEffect(() => {
+    async function loadTestimonials() {
+      try {
+        const { data, error } = await supabase
+          .from("testimonials")
+          .select("*")
+          .eq("is_featured", true)
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const mapped = data.map((t: any) => ({
+            quote: t.message || "",
+            author: t.client_name || "",
+            role: t.company || "",
+            location: t.rating === 5 ? "Verified Client" : "Client Partner",
+            rating: t.rating || 5,
+          }));
+          setItems(mapped);
+        }
+      } catch (err) {
+        console.error("Error loading testimonials:", err);
+      }
+    }
+
+    loadTestimonials();
+  }, []);
+
   return (
     <section
       id="testimonials"
@@ -101,7 +145,7 @@ export function Testimonials() {
 
               {/* stars */}
               <div className="relative flex items-center gap-1">
-                {[...Array(5)].map((_, idx) => (
+                {[...Array(t.rating)].map((_, idx) => (
                   <Star
                     key={idx}
                     className="h-4 w-4 fill-cyan-400 text-cyan-400"
@@ -137,4 +181,4 @@ export function Testimonials() {
       </div>
     </section>
   );
-}
+}
