@@ -50,6 +50,11 @@ function AdminSettingsPage() {
         facebook_url: "",
         linkedin_url: "",
         twitter_url: "",
+        instagram_url: "",
+        youtube_url: "",
+        ga4_measurement_id: "",
+        gsc_verification_code: "",
+        favicon_url: "",
         theme_accent: "magenta",
     });
 
@@ -320,6 +325,28 @@ function AdminSettingsPage() {
                                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
                             />
                         </div>
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                <Instagram className="h-3 w-3" /> Instagram Profile
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.instagram_url}
+                                onChange={(e) => handleChange("instagram_url", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                <Globe className="h-3 w-3" /> YouTube Profile
+                            </label>
+                            <input
+                                type="text"
+                                value={settings.youtube_url}
+                                onChange={(e) => handleChange("youtube_url", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
+                        </div>
                     </div>
 
                     <button
@@ -327,6 +354,59 @@ function AdminSettingsPage() {
                         className="w-full rounded-xl bg-brand-blue text-white py-2.5 mt-4 text-xs font-bold shadow-md hover:scale-[1.02] transition"
                     >
                         Save Social Anchors
+                    </button>
+                </div>
+            </div>
+
+            {/* SEO & Tracking Panel */}
+            <div className="grid gap-6 lg:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl flex flex-col">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-1.5">
+                        <Globe className="h-3.5 w-3.5" /> SEO & Analytics
+                    </h3>
+                    <div className="space-y-3 flex-1">
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                GA4 Measurement ID
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="e.g. G-XXXXXXXXXX"
+                                value={settings.ga4_measurement_id}
+                                onChange={(e) => handleChange("ga4_measurement_id", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                Google Search Console Verification Code
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="e.g. abc123def456"
+                                value={settings.gsc_verification_code}
+                                onChange={(e) => handleChange("gsc_verification_code", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
+                        </div>
+                        <div>
+                            <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1 uppercase font-semibold">
+                                <ImageIcon className="h-3 w-3" /> Favicon URL
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="https://example.com/favicon.ico"
+                                value={settings.favicon_url}
+                                onChange={(e) => handleChange("favicon_url", e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-magenta transition-colors"
+                            />
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleSaveAll}
+                        className="w-full rounded-xl bg-gradient-brand text-white py-2.5 mt-4 text-xs font-bold shadow-md hover:scale-[1.02] transition"
+                    >
+                        Save SEO Config
                     </button>
                 </div>
             </div>

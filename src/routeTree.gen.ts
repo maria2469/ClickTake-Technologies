@@ -19,8 +19,10 @@ import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as ServicesStarterKitRouteImport } from './routes/services.starter-kit'
 import { Route as ServicesSeoRouteImport } from './routes/services.seo'
+import { Route as RobotsTxtRouteImport } from './routes/robots.txt'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
@@ -98,6 +100,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesStarterKitRoute = ServicesStarterKitRouteImport.update({
   id: '/starter-kit',
   path: '/starter-kit',
@@ -107,6 +114,11 @@ const ServicesSeoRoute = ServicesSeoRouteImport.update({
   id: '/seo',
   path: '/seo',
   getParentRoute: () => ServicesRoute,
+} as any)
+const RobotsTxtRoute = RobotsTxtRouteImport.update({
+  id: '/robots/txt',
+  path: '/robots/txt',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LegalTermsRoute = LegalTermsRouteImport.update({
   id: '/legal/terms',
@@ -268,8 +280,10 @@ export interface FileRoutesByFullPath {
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/admin/': typeof AdminIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
@@ -306,8 +320,10 @@ export interface FileRoutesByTo {
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/admin': typeof AdminIndexRoute
   '/services': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
@@ -347,8 +363,10 @@ export interface FileRoutesById {
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/admin/': typeof AdminIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
@@ -389,8 +407,10 @@ export interface FileRouteTypes {
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/robots/txt'
     | '/services/seo'
     | '/services/starter-kit'
+    | '/sitemap/xml'
     | '/admin/'
     | '/services/'
     | '/services/ai/chatbots'
@@ -427,8 +447,10 @@ export interface FileRouteTypes {
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/robots/txt'
     | '/services/seo'
     | '/services/starter-kit'
+    | '/sitemap/xml'
     | '/admin'
     | '/services'
     | '/services/ai/chatbots'
@@ -467,8 +489,10 @@ export interface FileRouteTypes {
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/robots/txt'
     | '/services/seo'
     | '/services/starter-kit'
+    | '/sitemap/xml'
     | '/admin/'
     | '/services/'
     | '/services/ai/chatbots'
@@ -498,6 +522,8 @@ export interface RootRouteChildren {
   LegalCookiesRoute: typeof LegalCookiesRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  RobotsTxtRoute: typeof RobotsTxtRoute
+  SitemapXmlRoute: typeof SitemapXmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -572,6 +598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services/starter-kit': {
       id: '/services/starter-kit'
       path: '/starter-kit'
@@ -585,6 +618,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/services/seo'
       preLoaderRoute: typeof ServicesSeoRouteImport
       parentRoute: typeof ServicesRoute
+    }
+    '/robots/txt': {
+      id: '/robots/txt'
+      path: '/robots/txt'
+      fullPath: '/robots/txt'
+      preLoaderRoute: typeof RobotsTxtRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/legal/terms': {
       id: '/legal/terms'
@@ -857,6 +897,8 @@ const rootRouteChildren: RootRouteChildren = {
   LegalCookiesRoute: LegalCookiesRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  RobotsTxtRoute: RobotsTxtRoute,
+  SitemapXmlRoute: SitemapXmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { supabase } from "@/lib/supabaseClient";
 
 interface SendMailParams {
   to: string;
@@ -11,6 +12,7 @@ export async function sendMail({ to, subject, html }: SendMailParams) {
   const gmailUser = process.env.GMAIL_USER || process.env.VITE_GMAIL_USER;
   const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.VITE_GMAIL_APP_PASSWORD;
 
+  // Try environment variables first
   if (resendApiKey) {
     const fromAddress = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
     const res = await fetch("https://api.resend.com/emails", {
@@ -51,11 +53,39 @@ export async function sendMail({ to, subject, html }: SendMailParams) {
 
     const info = await transporter.sendMail(mailOptions);
     return { success: true, messageId: info.messageId };
-  } else {
-    throw new Error(
-      "No mail credentials found. Please configure RESEND_API_KEY or GMAIL_USER and GMAIL_APP_PASSWORD in your environment."
-    );
   }
+
+  // Fallback: try DB-configured SMTP settings
+  const { data: settings } = await supabase
+    .from('site_settings')
+    .select('key, value')
+    .in('key', ['smtp_server', 'smtp_port', 'smtp_user', 'smtp_password']);
+
+  const getSetting = (key: string) => settings?.find(s => s.key === key)?.value || '';
+  const dbServer = getSetting('smtp_server');
+  const dbPort = parseInt(getSetting('smtp_port'), 10) || 587;
+  const dbUser = getSetting('smtp_user');
+  const dbPass = getSetting('smtp_password');
+
+  if (dbServer && dbUser && dbPass) {
+    const transporter = nodemailer.createTransport({
+      host: dbServer,
+      port: dbPort,
+      secure: dbPort === 465,
+      auth: { user: dbUser, pass: dbPass },
+    });
+    const info = await transporter.sendMail({
+      from: `"ClickTake Technologies" <${dbUser}>`,
+      to,
+      subject,
+      html,
+    });
+    return { success: true, messageId: info.messageId };
+  }
+
+  throw new Error(
+    "No mail credentials found. Please configure RESEND_API_KEY or GMAIL_USER/GMAIL_APP_PASSWORD in environment, or save SMTP settings in admin > Email Center."
+  );
 }
 
 function escapeHtml(str: string) {

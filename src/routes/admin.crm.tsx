@@ -51,6 +51,8 @@ function AdminCrmPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string>("L1");
   const [crmSearch, setCrmSearch] = useState("");
   const [crmStatusFilter, setCrmStatusFilter] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [newNoteText, setNewNoteText] = useState("");
 
   // Add Lead Modal State
@@ -270,9 +272,13 @@ function AdminCrmPage() {
         (l.email || "").toLowerCase().includes(crmSearch.toLowerCase()) ||
         interestStr.includes(crmSearch.toLowerCase());
       const matchesStatus = crmStatusFilter === "All" || l.status === crmStatusFilter;
-      return matchesSearch && matchesStatus;
+      const leadDate = new Date(l.created_at);
+      const matchesDateRange =
+        (!dateFrom || leadDate >= new Date(dateFrom)) &&
+        (!dateTo || leadDate <= new Date(dateTo + "T23:59:59"));
+      return matchesSearch && matchesStatus && matchesDateRange;
     });
-  }, [leads, crmSearch, crmStatusFilter]);
+  }, [leads, crmSearch, crmStatusFilter, dateFrom, dateTo]);
 
   return (
     <motion.div
@@ -377,6 +383,23 @@ function AdminCrmPage() {
             <option value="Converted">Converted</option>
             <option value="Lost">Lost</option>
           </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] uppercase font-bold text-muted-foreground">From:</span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:outline-none text-foreground"
+          />
+          <span className="text-[10px] uppercase font-bold text-muted-foreground">To:</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:outline-none text-foreground"
+          />
         </div>
       </div>
 

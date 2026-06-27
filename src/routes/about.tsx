@@ -111,46 +111,10 @@ const values = [
   },
 ];
 
-const jobs: OpenPosition[] = [
-  {
-    id: "fullstack-eng",
-    title: "Senior Full-Stack Engineer",
-    department: "Engineering",
-    location: "Multan Office / Hybrid",
-    type: "Full-Time",
-    description: "Lead headless Shopify and complex Next.js/React web app builds. Design custom API integrations and real-time database schemas.",
-    requirements: [
-      "4+ years of React, Next.js, Node.js and Tailwind CSS experience",
-      "Deep understanding of Shopify Storefront API and serverless architectures",
-      "Strong communication and project scoping capability",
-    ],
-  },
-  {
-    id: "seo-strategist",
-    title: "SEO & Growth Strategist",
-    department: "Marketing",
-    location: "Birmingham Office / Hybrid",
-    type: "Full-Time",
-    description: "Conduct technical SEO audits, manage content mapping systems, and run high-budget paid social/search ad funnels for global clients.",
-    requirements: [
-      "3+ years managing organic SEO and Google Business listings",
-      "Familiarity with Google Analytics, Semrush, and conversion rate optimization (CRO) testing",
-      "Experience executing local SEO campaigns in UK & international markets",
-    ],
-  },
-  {
-    id: "ai-solutions-architect",
-    title: "AI Solutions Architect",
-    department: "Automation",
-    location: "Remote (UK/PK Timezones)",
-    type: "Contract / Full-Time",
-    description: "Build custom LLM flows, deploy WhatsApp chatbots, and engineer API integrations with n8n, Make, or LangChain.",
-    requirements: [
-      "Proven projects fine-tuning LLMs, prompt engineering, and building retrieval-augmented generation (RAG)",
-      "Strong background in API automation, Node.js or Python backend systems",
-      "Ability to design systems with strong data security compliance",
-    ],
-  },
+const fallbackJobs: OpenPosition[] = [
+  { id: "fullstack-eng", title: "Senior Full-Stack Engineer", department: "Engineering", location: "Multan Office / Hybrid", type: "Full-Time", description: "Lead headless Shopify and complex Next.js/React web app builds. Design custom API integrations and real-time database schemas.", requirements: ["4+ years of React, Next.js, Node.js and Tailwind CSS experience", "Deep understanding of Shopify Storefront API and serverless architectures", "Strong communication and project scoping capability"] },
+  { id: "seo-strategist", title: "SEO & Growth Strategist", department: "Marketing", location: "Birmingham Office / Hybrid", type: "Full-Time", description: "Conduct technical SEO audits, manage content mapping systems, and run high-budget paid social/search ad funnels for global clients.", requirements: ["3+ years managing organic SEO and Google Business listings", "Familiarity with Google Analytics, Semrush, and conversion rate optimization (CRO) testing", "Experience executing local SEO campaigns in UK & international markets"] },
+  { id: "ai-solutions-architect", title: "AI Solutions Architect", department: "Automation", location: "Remote (UK/PK Timezones)", type: "Contract / Full-Time", description: "Build custom LLM flows, deploy WhatsApp chatbots, and engineer API integrations with n8n, Make, or LangChain.", requirements: ["Proven projects fine-tuning LLMs, prompt engineering, and building retrieval-augmented generation (RAG)", "Strong background in API automation, Node.js or Python backend systems", "Ability to design systems with strong data security compliance"] },
 ];
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -158,6 +122,7 @@ const jobs: OpenPosition[] = [
 function AboutPage() {
   const [selectedJob, setSelectedJob] = useState<OpenPosition | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(team);
+  const [openPositions, setOpenPositions] = useState<OpenPosition[]>([]);
   
   // Job Application Form State
   const [appStep, setAppStep] = useState(1);
@@ -170,9 +135,9 @@ function AboutPage() {
   const [appError, setAppError] = useState("");
 
   useEffect(() => {
-    async function loadTeam() {
+    async function loadData() {
       try {
-        const { data, error } = await supabase
+        const { data: teamData, error } = await supabase
           .from("team_members")
           .select("*")
           .eq("is_active", true)
@@ -180,51 +145,19 @@ function AboutPage() {
 
         if (error) throw error;
 
-        if (data && data.length > 0) {
-          const mapped = data.map((member: any, idx: number) => {
+        if (teamData && teamData.length > 0) {
+          const mapped = teamData.map((member: any, idx: number) => {
             let initials = "";
             if (member.full_name) {
-              initials = member.full_name
-                .split(" ")
-                .map((n: string) => n[0])
-                .join("")
-                .substring(0, 2)
-                .toUpperCase();
+              initials = member.full_name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
             }
-
-            let gradient = "from-cyan-500 to-blue-600";
-            let skills: string[] = ["Headless E-Com", "Shopify API", "React/Node", "System Architecture"];
-            
-            if (member.full_name === "Zain Paracha") {
-              gradient = "from-cyan-500 to-blue-600";
-              skills = ["Headless E-Com", "Shopify API", "React/Node", "System Architecture"];
-            } else if (member.full_name === "Adam Kitts") {
-              gradient = "from-violet-500 to-indigo-600";
-              skills = ["LLM Workflows", "n8n Automation", "Client Relations", "Agile Sprints"];
-            } else if (member.full_name === "Maria Qasim") {
-              gradient = "from-fuchsia-500 to-pink-600";
-              skills = ["UI/UX Prototyping", "Framer Motion", "Figma", "Brand Guidelines"];
-            } else if (member.full_name === "Hamza Farooq") {
-              gradient = "from-emerald-500 to-teal-600";
-              skills = ["Technical SEO", "Google Ads", "HubSpot CRM", "Conversion Funnels"];
-            } else {
-              const gradients = [
-                "from-cyan-500 to-blue-600",
-                "from-violet-500 to-indigo-600",
-                "from-fuchsia-500 to-pink-600",
-                "from-emerald-500 to-teal-600",
-                "from-amber-500 to-orange-600"
-              ];
-              gradient = gradients[idx % gradients.length];
-              skills = ["Custom Solutions", "Consultation", "Strategy", "Client Success"];
-            }
-
+            const gradients = ["from-cyan-500 to-blue-600", "from-violet-500 to-indigo-600", "from-fuchsia-500 to-pink-600", "from-emerald-500 to-teal-600", "from-amber-500 to-orange-600"];
             return {
               name: member.full_name || "",
               role: member.role_title || "",
               bio: member.bio || "",
-              skills: skills,
-              gradient: gradient,
+              skills: member.skills || ["Custom Solutions", "Consultation", "Strategy", "Client Success"],
+              gradient: gradients[idx % gradients.length],
               avatarInitials: initials || "CT",
             };
           });
@@ -233,8 +166,27 @@ function AboutPage() {
       } catch (err) {
         console.error("Error loading team members:", err);
       }
+
+      try {
+        const { data: jobData } = await supabase.from("job_openings").select("*").eq("is_active", true).order("display_order", { ascending: true });
+        if (jobData && jobData.length > 0) {
+          setOpenPositions(jobData.map((j: any) => ({
+            id: j.id,
+            title: j.title,
+            department: j.department,
+            location: j.location,
+            type: j.type,
+            description: j.description,
+            requirements: j.requirements || [],
+          })));
+        } else {
+          setOpenPositions(fallbackJobs);
+        }
+      } catch {
+        setOpenPositions(fallbackJobs);
+      }
     }
-    loadTeam();
+    loadData();
   }, []);
 
   const handleApplySubmit = async (e: React.FormEvent) => {
@@ -454,7 +406,9 @@ function AboutPage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            {jobs.map((job) => (
+            {openPositions.length === 0 ? (
+              <div className="lg:col-span-3 text-center py-12 text-muted-foreground text-sm">No open positions at this time. Check back later.</div>
+            ) : openPositions.map((job) => (
               <div
                 key={job.id}
                 className="group relative overflow-hidden rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-6 hover:border-white/20 transition-all duration-300 flex flex-col justify-between"

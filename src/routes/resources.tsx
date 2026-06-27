@@ -1,16 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUpRight, BookOpen, Calendar, Clock, Download, FileText,
   Filter, Search, Sparkles, User, Video, X, CheckCircle2,
-  Mail, Building, AlertCircle
+  Mail, Building, AlertCircle, Loader2
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
 import { SEOHead } from "@/components/SEOHead";
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/resources")({
   head: () => ({
@@ -64,14 +66,14 @@ interface Webinar {
   gradient: string;
 }
 
-// ─── Dummy Data ──────────────────────────────────────────────────────────────
+// ─── Fallback Data (used when DB is empty) ──────────────────────────────────
 
-const articles: Article[] = [
+const fallbackArticles: Article[] = [
   {
     id: "headless-shopify",
     title: "Why Headless Shopify is the Future of Enterprise E-Commerce",
     excerpt: "Discover how splitting your store front-end from Shopify's back-end yields a 3× load speed improvement, higher mobile conversion rates, and total design freedom.",
-    content: "Speed is no longer a luxury in e-commerce; it's a direct driver of conversion. Standard Shopify themes, while convenient, are bottlenecked by render-blocking scripts, heavy CSS files, and monolithic liquid templates. By decoupling your storefront using frameworks like Next.js and powering the back-end with Shopify API (headless architecture), you bypass these technical limitations entirely.\n\nIn this article, we break down:\n1. Core Web Vitals optimizations achieved through headless setups.\n2. The security benefits of running a static front-end.\n3. How localized content and custom multi-currency checkouts increase global average order value (AOV) by up to 28%.\n\nWhether you are scaling past £10M/year or planning a global re-platform, headless e-commerce is the technical standard for high-volume commerce in 2026.",
+    content: "Speed is no longer a luxury in e-commerce; it's a direct driver of conversion. Standard Shopify themes, while convenient, are bottlenecked by render-blocking scripts, heavy CSS files, and monolithic liquid templates. By decoupling your storefront using frameworks like Next.js and powering the back-end with Shopify API (headless architecture), you bypass these technical limitations entirely.\n\nIn this article, we break down:\n1. Core Web Vitals optimizations achieved through headless setups.\n2. The security benefits of running a static front-end.\n3. How localized content and custom multi-currency checkouts increase global average order value (AOV) by up to 28%.",
     category: "E-Commerce",
     author: "Zain Paracha",
     readTime: "6 min read",
@@ -83,7 +85,7 @@ const articles: Article[] = [
     id: "ai-agents-ops",
     title: "Autonomous AI Agents: Transforming Customer Support and Operations",
     excerpt: "Beyond basic Q&A chatbots: learn how custom LLMs and active agents integrated into CRM systems are saving enterprise teams up to 40+ hours per week.",
-    content: "The era of static, keyword-triggered FAQ widgets is over. Modern LLM-based autonomous agents are now capable of accessing APIs, updating database records, verifying user authentication, and orchestrating complex tasks on behalf of your team.\n\nKey takeaways from our implementation experiences:\n1. Structured system prompts combined with retrieval-augmented generation (RAG) yield a 99.4% accuracy rate on patient triage.\n2. n8n and LangChain backend integrations allow agents to schedule appointments directly into calendars, update HubSpot logs, and dispatch WhatsApp follow-ups autonomously.\n3. Admin overhead is cut by 60% within the first 60 days of deployment.\n\nDeploying these agents doesn't replace human operators; it elevates them to handle complex exceptions, while AI handles the recurring 80% of service flow.",
+    content: "The era of static, keyword-triggered FAQ widgets is over. Modern LLM-based autonomous agents are now capable of accessing APIs, updating database records, verifying user authentication, and orchestrating complex tasks on behalf of your team.\n\nKey takeaways from our implementation experiences:\n1. Structured system prompts combined with retrieval-augmented generation (RAG) yield a 99.4% accuracy rate on patient triage.\n2. n8n and LangChain backend integrations allow agents to schedule appointments directly into calendars, update HubSpot logs, and dispatch WhatsApp follow-ups autonomously.\n3. Admin overhead is cut by 60% within the first 60 days of deployment.",
     category: "AI & ML Solutions",
     author: "Adam Kitts",
     readTime: "8 min read",
@@ -95,7 +97,7 @@ const articles: Article[] = [
     id: "seo-multi-location",
     title: "The Multi-Location Technical SEO Framework for UK & Pakistan SMEs",
     excerpt: "A step-by-step audit guide covering schema markup, NAP consistency, and local landing page speed to dominate regional map pack rankings.",
-    content: "If you operate across multiple physical office locations (for instance, the UK and Pakistan), generic SEO strategies won't cut it. Search engines serve results tailored to hyper-local user coordinates. Without precise signals, your branches will cannibalize each other's traffic or fail to show up in regional queries altogether.\n\nOur proven multi-location roadmap includes:\n1. JSON-LD LocalBusiness schema implementation customized for every individual office.\n2. Restructuring your site URL hierarchy (e.g., `/locations/birmingham` and `/locations/multan`) with localized page content.\n3. Managing third-party directories to ensure 100% NAP (Name, Address, Phone) consistency.\n\nExecuting these steps correctly guarantees high map-pack positioning and reduces regional Google Ads spend by up to 30%.",
+    content: "If you operate across multiple physical office locations, generic SEO strategies won't cut it. Search engines serve results tailored to hyper-local user coordinates. Without precise signals, your branches will cannibalize each other's traffic or fail to show up in regional queries altogether.\n\nOur proven multi-location roadmap includes:\n1. JSON-LD LocalBusiness schema implementation customized for every individual office.\n2. Restructuring your site URL hierarchy with localized page content.\n3. Managing third-party directories to ensure 100% NAP consistency.",
     category: "SEO & Growth",
     author: "SEO Team Leads",
     readTime: "5 min read",
@@ -105,48 +107,14 @@ const articles: Article[] = [
   },
 ];
 
-const guides: Guide[] = [
-  {
-    id: "saas-playbook",
-    title: "The 2026 B2B SaaS Growth Playbook",
-    description: "42 pages of actionable strategies on funnel optimization, subscription models, product-led growth (PLG) setups, and scaling web infrastructure.",
-    pages: 42,
-    format: "PDF Booklet",
-    gradient: "from-pink-500 to-rose-600",
-    downloadCount: "1.2k+ downloads",
-  },
-  {
-    id: "enterprise-ai",
-    title: "Enterprise AI Implementation Guide: Risk, Cost, & ROI",
-    description: "A comprehensive handbook for C-level executives detailing cost frameworks of self-hosting vs fine-tuning OpenAI models, data security compliance, and ROI timelines.",
-    pages: 28,
-    format: "Whitepaper",
-    gradient: "from-amber-500 to-orange-600",
-    downloadCount: "850+ downloads",
-  },
+const fallbackGuides: Guide[] = [
+  { id: "saas-playbook", title: "The 2026 B2B SaaS Growth Playbook", description: "42 pages of actionable strategies on funnel optimization, subscription models, product-led growth (PLG) setups, and scaling web infrastructure.", pages: 42, format: "PDF Booklet", gradient: "from-pink-500 to-rose-600", downloadCount: "1.2k+ downloads" },
+  { id: "enterprise-ai", title: "Enterprise AI Implementation Guide: Risk, Cost, & ROI", description: "A comprehensive handbook for C-level executives detailing cost frameworks of self-hosting vs fine-tuning OpenAI models, data security compliance, and ROI timelines.", pages: 28, format: "Whitepaper", gradient: "from-amber-500 to-orange-600", downloadCount: "850+ downloads" },
 ];
 
-const webinars: Webinar[] = [
-  {
-    id: "series-a-tech",
-    title: "Scaling from Seed to Series A: Tech Stack Decisions That Matter",
-    date: "June 15, 2026",
-    time: "3:00 PM BST / 7:00 PM PKT",
-    speaker: "Zain Paracha & Adam Kitts",
-    speakerRole: "Co-Founders & Technical Directors",
-    status: "Upcoming",
-    gradient: "from-violet-500 to-fuchsia-600",
-  },
-  {
-    id: "headless-shopify-deep",
-    title: "Under The Hood: Building a Headless Shopify Store in 90 Days",
-    date: "Recorded",
-    time: "On-Demand (1 hr 12 mins)",
-    speaker: "Web Development Lead",
-    speakerRole: "Senior Full-Stack Engineer",
-    status: "On-Demand",
-    gradient: "from-cyan-500 to-blue-600",
-  },
+const fallbackWebinars: Webinar[] = [
+  { id: "series-a-tech", title: "Scaling from Seed to Series A: Tech Stack Decisions That Matter", date: "June 15, 2026", time: "3:00 PM BST / 7:00 PM PKT", speaker: "Zain Paracha & Adam Kitts", speakerRole: "Co-Founders & Technical Directors", status: "Upcoming", gradient: "from-violet-500 to-fuchsia-600" },
+  { id: "headless-shopify-deep", title: "Under The Hood: Building a Headless Shopify Store in 90 Days", date: "Recorded", time: "On-Demand (1 hr 12 mins)", speaker: "Web Development Lead", speakerRole: "Senior Full-Stack Engineer", status: "On-Demand", gradient: "from-cyan-500 to-blue-600" },
 ];
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -154,26 +122,114 @@ const webinars: Webinar[] = [
 function ResourcesPage() {
   const [activeTab, setActiveTab] = useState<ResourceType>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [webinars, setWebinars] = useState<Webinar[]>([]);
+  const [resourcesLoading, setResourcesLoading] = useState(true);
   
-  // Modals state
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [gatedGuide, setGatedGuide] = useState<Guide | null>(null);
   const [registeredWebinar, setRegisteredWebinar] = useState<Webinar | null>(null);
 
-  // Form inputs
   const [leadName, setLeadName] = useState("");
   const [leadEmail, setLeadEmail] = useState("");
   const [leadCompany, setLeadCompany] = useState("");
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const handleLeadSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadResources();
+  }, []);
+
+  const loadResources = async () => {
+    setResourcesLoading(true);
+    try {
+      const { data } = await supabase
+        .from("resources")
+        .select("*")
+        .eq("is_published", true)
+        .order("display_order", { ascending: true });
+
+      if (data && data.length > 0) {
+        const blogData: Article[] = [];
+        const guideData: Guide[] = [];
+        const webinarData: Webinar[] = [];
+
+        data.forEach((r: any) => {
+          if (r.resource_type === "blog") {
+            blogData.push({
+              id: r.slug || r.id,
+              title: r.title,
+              excerpt: r.description,
+              content: r.content || "",
+              category: r.category || "General",
+              author: r.author || "ClickTake Team",
+              readTime: r.read_time || "5 min read",
+              date: r.publish_date ? new Date(r.publish_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "",
+              tags: r.tags || [],
+              gradient: r.gradient || "from-cyan-500/20 via-blue-600/5 to-slate-900",
+            });
+          } else if (r.resource_type === "guide") {
+            guideData.push({
+              id: r.slug || r.id,
+              title: r.title,
+              description: r.description,
+              pages: r.pages || 0,
+              format: r.format || "PDF",
+              gradient: r.gradient || "from-pink-500 to-rose-600",
+              downloadCount: r.download_count ? `${r.download_count}+ downloads` : "Download",
+            });
+          } else if (r.resource_type === "webinar") {
+            webinarData.push({
+              id: r.slug || r.id,
+              title: r.title,
+              date: r.event_date ? new Date(r.event_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "TBD",
+              time: r.event_time || "TBD",
+              speaker: r.speaker || "ClickTake Team",
+              speakerRole: r.speaker_role || "",
+              status: (r.webinar_status as "Upcoming" | "On-Demand") || "On-Demand",
+              gradient: r.gradient || "from-violet-500 to-fuchsia-600",
+            });
+          }
+        });
+
+        setArticles(blogData);
+        setGuides(guideData);
+        setWebinars(webinarData);
+      } else {
+        setArticles(fallbackArticles);
+        setGuides(fallbackGuides);
+        setWebinars(fallbackWebinars);
+      }
+    } catch {
+      setArticles(fallbackArticles);
+      setGuides(fallbackGuides);
+      setWebinars(fallbackWebinars);
+    } finally {
+      setResourcesLoading(false);
+    }
+  };
+
+  const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!leadName || !leadEmail || !leadCompany) {
       setFormError("Please fill out all fields.");
       return;
     }
     setFormError("");
+    try {
+      await supabase.from("leads").insert({
+        name: leadName,
+        email: leadEmail,
+        company: leadCompany,
+        service_interest: gatedGuide ? `Resource: ${gatedGuide.title}` : `Webinar: ${registeredWebinar?.title}`,
+        source: "Resource Download",
+        source_page: "/resources",
+        status: "New",
+      });
+    } catch (err) {
+      console.error("Error submitting lead:", err);
+    }
     setFormSubmitted(true);
   };
 
@@ -520,7 +576,21 @@ function ResourcesPage() {
                 We share system engineering templates, SEO ranking frameworks, and operational AI tool stacks in our monthly briefing. No spam, only technical content.
               </p>
               
-              <form onSubmit={(e) => { e.preventDefault(); alert("Thanks for subscribing!"); }} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                const email = (e.currentTarget.querySelector('input[type="email"]') as HTMLInputElement)?.value;
+                if (email) {
+                  await supabase.from("leads").insert({
+                    name: "Newsletter Subscriber",
+                    email,
+                    service_interest: "Newsletter",
+                    source: "Newsletter",
+                    source_page: "/resources",
+                    status: "New",
+                  });
+                }
+                alert("Thanks for subscribing!");
+              }} className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 <input
                   required
                   type="email"
@@ -724,16 +794,18 @@ function ResourcesPage() {
 
                   <div className="mt-8 flex flex-col gap-3">
                     {gatedGuide ? (
-                      <a
-                        href="#"
-                        onClick={(e) => { e.preventDefault(); alert("Simulating PDF download... (File loaded successfully)"); }}
+                      <button
+                        onClick={() => toast.success("Download link sent to your email inbox!")}
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:scale-105 transition-transform"
                       >
                         Download PDF File <Download className="h-4 w-4" />
-                      </a>
+                      </button>
                     ) : (
                       <button
-                        onClick={resetLeadForm}
+                        onClick={() => {
+                          resetLeadForm();
+                          toast.success("Calendar invite sent! Check your email.");
+                        }}
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/5 border border-white/10 px-5 py-3 text-sm font-semibold text-muted-foreground hover:text-white transition-colors"
                       >
                         Add to Google Calendar

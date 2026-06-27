@@ -1,5 +1,5 @@
-import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { createFileRoute, Link, Outlet, useLocation, useRouter } from "@tanstack/react-router";
+import { useState, useEffect, type ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
   LayoutDashboard,
@@ -15,34 +15,104 @@ import {
   Globe,
   Sparkles,
   X,
+  LogOut,
+  Loader2,
 } from "lucide-react";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
 const NAV_ITEMS = [
-  { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard },
-  { to: "/admin/cms", label: "CMS Management", icon: FileText },
-  { to: "/admin/crm", label: "Lead CRM", icon: Users },
-  { to: "/admin/roles", label: "User Roles (RBAC)", icon: Shield },
-  { to: "/admin/email", label: "Email Center", icon: Mail },
-  { to: "/admin/seo", label: "SEO & Analytics", icon: Globe },
-  { to: "/admin/settings", label: "Config Settings", icon: Settings },
-  { to: "/admin/security", label: "Security & Logs", icon: ShieldAlert },
+  { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard, permission: "" },
+  { to: "/admin/cms", label: "CMS Management", icon: FileText, permission: "readCMS" },
+  { to: "/admin/crm", label: "Lead CRM", icon: Users, permission: "readLeads" },
+  { to: "/admin/roles", label: "User Roles (RBAC)", icon: Shield, permission: "manageRBAC" },
+  { to: "/admin/email", label: "Email Center", icon: Mail, permission: "readLeads" },
+  { to: "/admin/seo", label: "SEO & Analytics", icon: Globe, permission: "readCMS" },
+  { to: "/admin/settings", label: "Config Settings", icon: Settings, permission: "manageRBAC" },
+  { to: "/admin/security", label: "Security & Logs", icon: ShieldAlert, permission: "manageRBAC" },
 ] as const;
 
+const ROUTE_PERMISSIONS: Record<string, string> = {
+  "/admin/cms": "readCMS",
+  "/admin/crm": "readLeads",
+  "/admin/roles": "manageRBAC",
+  "/admin/email": "readLeads",
+  "/admin/seo": "readCMS",
+  "/admin/settings": "manageRBAC",
+  "/admin/security": "manageRBAC",
+};
+
+export function RequirePermission({ permission, children, fallback = null }: { permission: string; children: ReactNode; fallback?: ReactNode }) {
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  useEffect(() => {
+    supabase.from('role_permissions').select('is_granted')
+      .eq('permission_key', permission).then(({ data }) => {
+        setHasPermission(data?.[0]?.is_granted ?? false);
+      });
+  }, [permission]);
+  if (hasPermission === null) return null;
+  return hasPermission ? <>{children}</> : <>{fallback}</>;
+}
+
 function AdminLayout() {
+  const router = useRouter();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [adminProfile, setAdminProfile] = useState<any>(null);
   const location = useLocation();
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [themeAccent, setThemeAccent] = useState("magenta");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<Set<string>>(new Set());
+
+  // Auth check
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        if (location.pathname !== '/admin/login' && location.pathname !== '/admin/forgot-password' && location.pathname !== '/admin/create-admin') {
+          router.navigate({ to: '/admin/login' });
+          return;
+        }
+      } else {
+        setUser(session.user);
+        // Fetch admin profile from admin_users table
+        const { data: profile } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('email', session.user.email)
+          .single();
+        if (profile) {
+          // Fetch role name separately (FK may not be recognized by REST API)
+          const { data: roleData } = await supabase
+            .from('admin_roles')
+            .select('role_name')
+            .eq('id', profile.role_id)
+            .single();
+          setAdminProfile({ ...profile, admin_roles: roleData || { role_name: 'Administrator' } });
+          // Fetch permissions for the user's role
+          const { data: perms } = await supabase
+            .from('role_permissions')
+            .select('permission_key, is_granted')
+            .eq('role_id', profile.role_id);
+          if (perms) {
+            setPermissions(new Set(perms.filter(p => p.is_granted).map(p => p.permission_key)));
+          }
+        }
+      }
+      setIsLoading(false);
+    };
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -81,6 +151,49 @@ function AdminLayout() {
 
     return () => { supabase.removeChannel(notifChannel); };
   }, []);
+
+  // Skip admin shell for login/forgot-password/create-admin pages
+  if (location.pathname === '/admin/login' || location.pathname === '/admin/forgot-password' || location.pathname === '/admin/create-admin') {
+    return <Outlet />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="relative min-h-screen bg-background text-foreground flex items-center justify-center">
+        <BackgroundScene />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-magenta" />
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  // Route-level RBAC check (skip if no admin profile yet)
+  const requiredPermission = adminProfile && ROUTE_PERMISSIONS[location.pathname];
+  if (requiredPermission && !permissions.has(requiredPermission) && location.pathname !== '/admin') {
+    // Redirect to dashboard if user lacks permission for this route
+    return (
+      <div className="relative min-h-screen bg-background text-foreground flex items-center justify-center">
+        <BackgroundScene />
+        <div className="text-center space-y-3">
+          <ShieldAlert className="h-12 w-12 text-red-400 mx-auto" />
+          <p className="text-sm text-muted-foreground">You do not have permission to access this page.</p>
+          <Link to="/admin" className="text-xs text-brand-magenta hover:underline">Return to Dashboard</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const userInitials = adminProfile?.full_name
+    ? adminProfile.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : user.email?.slice(0, 2).toUpperCase() || 'AD';
+  const userName = adminProfile?.full_name || user.email?.split('@')[0] || 'Administrator';
+  const userRole = adminProfile?.admin_roles?.role_name || 'Administrator';
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.navigate({ to: '/admin/login' });
+  };
 
   const markAllAsRead = async () => {
     const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
@@ -190,15 +303,22 @@ function AdminLayout() {
               </div>
             </div>
 
-            {/* Profile */}
+            {/* Profile + Logout */}
             <div className="flex items-center gap-2 border-l border-border pl-3">
               <div className={`h-8 w-8 rounded-full bg-linear-to-tr ${activeColorTheme} flex items-center justify-center text-white text-xs font-bold shadow-md`}>
-                ZP
+                {userInitials}
               </div>
               <div className="hidden lg:block text-left">
-                <div className="text-xs font-bold leading-tight">Zain Paracha</div>
-                <div className="text-[9px] text-muted-foreground font-medium">Super Administrator</div>
+                <div className="text-xs font-bold leading-tight">{userName}</div>
+                <div className="text-[9px] text-muted-foreground font-medium">{userRole}</div>
               </div>
+              <button
+                onClick={handleLogout}
+                className="ml-2 rounded-lg p-1.5 text-muted-foreground hover:text-rose-400 hover:bg-white/5 transition-colors"
+                title="Sign Out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -212,7 +332,7 @@ function AdminLayout() {
             }`}
         >
           <div className="flex flex-col gap-1 p-3">
-            {NAV_ITEMS.map((item) => {
+            {NAV_ITEMS.filter(item => !item.permission || !adminProfile || permissions.has(item.permission)).map((item) => {
               const ItemIcon = item.icon;
               const isActive =
                 item.to === "/admin"

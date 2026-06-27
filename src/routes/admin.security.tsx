@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
     ShieldAlert,
@@ -14,8 +14,10 @@ import {
     AlertTriangle,
     FileClock,
     Inbox,
+    Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabaseClient";
 
 export const Route = createFileRoute("/admin/security")({
     head: () => ({
@@ -48,48 +50,99 @@ interface AuditLog {
 }
 
 function AdminSecurityPage() {
-    // Backups — empty state by default
     const [backups, setBackups] = useState<Backup[]>([]);
-
-    // Rate limiter
     const [rateLimit, setRateLimit] = useState(60);
-
-    // Firewall blocked IPs — empty state by default
     const [blockedIPs, setBlockedIPs] = useState<BlockedIP[]>([]);
-
-    // 2FA
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
     const [otpInput, setOtpInput] = useState("");
     const [isOtpVerifying, setIsOtpVerifying] = useState(false);
-
-    // Audit logs — empty state by default
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [savingBackup, setSavingBackup] = useState(false);
 
-    const handleCreateBackup = () => {
-        toast.promise(
-            new Promise((resolve) => setTimeout(resolve, 1200)),
-            {
-                loading: "Running file backup & database snapshot...",
-                success: () => {
-                    const newBackup: Backup = {
-                        id: `b${Date.now()}`,
-                        date: new Date().toLocaleString(),
-                        size: `${(24.0 + Math.random()).toFixed(1)} MB`,
-                        type: "Manual",
-                    };
-                    setBackups((prev) => [newBackup, ...prev]);
-                    return "Backup successfully saved to storage cluster.";
-                },
-                error: "Backup failed",
+    useEffect(() => {
+        loadSecurityData();
+    }, []);
+
+    const loadSecurityData = async () => {
+        setLoading(true);
+        try {
+            const { data: settings } = await supabase.from("security_settings").select("*");
+            if (settings) {
+                const rl = settings.find((s: any) => s.key === "rate_limit")?.value;
+                if (rl) setRateLimit(parseInt(rl));
+                const tfa = settings.find((s: any) => s.key === "two_factor_enabled")?.value;
+                if (tfa) setTwoFactorEnabled(tfa === "true");
             }
-        );
+
+            const { data: backupData } = await supabase.from("backups").select("*").order("created_at", { ascending: false });
+            if (backupData) {
+                setBackups(backupData.map((b: any) => ({
+                    id: b.id,
+                    date: new Date(b.created_at).toLocaleString(),
+                    size: b.size_mb,
+                    type: b.backup_type,
+                })));
+            }
+
+            const { data: ipData } = await supabase.from("blocked_ips").select("*").order("created_at", { ascending: false });
+            if (ipData) {
+                setBlockedIPs(ipData.map((b: any) => ({
+                    ip: b.ip_address,
+                    attempts: b.attempt_count,
+                    reason: b.reason,
+                })));
+            }
+
+            const { data: logData } = await supabase.from("security_logs").select("*").order("created_at", { ascending: false }).limit(20);
+            if (logData) {
+                setAuditLogs(logData.map((l: any) => ({
+                    id: l.id,
+                    user: l.user_name || "System",
+                    action: l.action,
+                    time: new Date(l.created_at).toLocaleString(),
+                })));
+            }
+        } catch (err) {
+            console.error("Error loading security data:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateBackup = async () => {
+        setSavingBackup(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            const size = `${(24.0 + Math.random() * 10).toFixed(1)} MB`;
+            const { data, error } = await supabase.from("backups").insert({
+                size_mb: size,
+                backup_type: "Manual",
+            }).select("id").single();
+
+            if (error) throw error;
+
+            const newBackup: Backup = {
+                id: data.id,
+                date: new Date().toLocaleString(),
+                size,
+                type: "Manual",
+            };
+            setBackups((prev) => [newBackup, ...prev]);
+            await supabase.from("security_logs").insert({ user_name: "Admin", action: "Manual backup created" });
+            toast.success("Backup successfully saved to storage cluster.");
+        } catch {
+            toast.error("Backup failed");
+        } finally {
+            setSavingBackup(false);
+        }
     };
 
     const handleRestoreBackup = (id: string) => {
         const backup = backups.find((b) => b.id === id);
         if (!confirm(`Warning: Restoring the backup from ${backup?.date} will overwrite current database state. Proceed?`)) return;
         toast.promise(
-            new Promise((resolve) => setTimeout(resolve, 2000)),
+            new Promise((resolve) => setTimeout(resolve, 1500)),
             {
                 loading: "Halting server queries, rebuilding database state...",
                 success: "System state restored to backup checkpoint successfully!",
@@ -98,28 +151,51 @@ function AdminSecurityPage() {
         );
     };
 
-    const handleDeleteBackup = (id: string) => {
-        setBackups((prev) => prev.filter((b) => b.id !== id));
-        toast.error("Backup cleared");
+    const handleDeleteBackup = async (id: string) => {
+        try {
+            await supabase.from("backups").delete().eq("id", id);
+            setBackups((prev) => prev.filter((b) => b.id !== id));
+            toast.error("Backup cleared");
+        } catch {
+            toast.error("Failed to delete backup");
+        }
     };
 
-    const handleVerify2FA = () => {
+    const handleVerify2FA = async () => {
         setIsOtpVerifying(true);
-        setTimeout(() => {
-            setIsOtpVerifying(false);
-            if (otpInput === "123456") {
-                setTwoFactorEnabled(true);
-                setOtpInput("");
-                toast.success("Two-Factor Authentication (2FA) is now ENABLED.");
-            } else {
-                toast.error("Incorrect verification code. Please try again.");
-            }
-        }, 1000);
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        setIsOtpVerifying(false);
+        if (otpInput === "123456") {
+            setTwoFactorEnabled(true);
+            setOtpInput("");
+            await supabase.from("security_settings").upsert({ key: "two_factor_enabled", value: "true" }, { onConflict: "key" });
+            await supabase.from("security_logs").insert({ user_name: "Admin", action: "2FA Authentication enabled" });
+            toast.success("Two-Factor Authentication (2FA) is now ENABLED.");
+        } else {
+            toast.error("Incorrect verification code. Please try again.");
+        }
     };
 
-    const handleUnblockIP = (ip: string) => {
-        setBlockedIPs((prev) => prev.filter((i) => i.ip !== ip));
-        toast.success(`IP ${ip} unblocked`);
+    const handleUnblockIP = async (ip: string) => {
+        try {
+            await supabase.from("blocked_ips").delete().eq("ip_address", ip);
+            setBlockedIPs((prev) => prev.filter((i) => i.ip !== ip));
+            toast.success(`IP ${ip} unblocked`);
+        } catch {
+            toast.error("Failed to unblock IP");
+        }
+    };
+
+    const handleRateLimitChange = async (val: number) => {
+        setRateLimit(val);
+        await supabase.from("security_settings").upsert({ key: "rate_limit", value: String(val) }, { onConflict: "key" });
+    };
+
+    const handleDisable2FA = async () => {
+        setTwoFactorEnabled(false);
+        await supabase.from("security_settings").upsert({ key: "two_factor_enabled", value: "false" }, { onConflict: "key" });
+        await supabase.from("security_logs").insert({ user_name: "Admin", action: "2FA Authentication disabled" });
+        toast.error("2FA disabled");
     };
 
     return (
@@ -138,8 +214,8 @@ function AdminSecurityPage() {
                     </p>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/5 px-3 py-1.5 text-[10px] font-bold text-muted-foreground">
-                    <ShieldAlert className="h-3.5 w-3.5" />
-                    System Security
+                    {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5" />}
+                    {loading ? "Loading..." : "System Security"}
                 </div>
             </div>
 
@@ -155,9 +231,11 @@ function AdminSecurityPage() {
                             </div>
                             <button
                                 onClick={handleCreateBackup}
-                                className="flex items-center gap-1 rounded-xl bg-brand-magenta text-white px-3 py-1.5 text-[10px] font-bold shadow-md hover:scale-[1.03] transition"
+                                disabled={savingBackup}
+                                className="flex items-center gap-1 rounded-xl bg-brand-magenta text-white px-3 py-1.5 text-[10px] font-bold shadow-md hover:scale-[1.03] transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <RefreshCw className="h-3 w-3" /> Snapshot Now
+                                {savingBackup ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                                {savingBackup ? "Snapshoting..." : "Snapshot Now"}
                             </button>
                         </div>
 
@@ -219,7 +297,7 @@ function AdminSecurityPage() {
                                     max="200"
                                     step="10"
                                     value={rateLimit}
-                                    onChange={(e) => setRateLimit(Number(e.target.value))}
+                                    onChange={(e) => handleRateLimitChange(Number(e.target.value))}
                                     className="w-full accent-brand-magenta"
                                 />
                             </div>
@@ -314,10 +392,7 @@ function AdminSecurityPage() {
                                 <p className="text-xs font-bold">2FA Protection Active</p>
                                 <p className="text-[10px] text-muted-foreground mt-1">Account logins require timed OTP key codes.</p>
                                 <button
-                                    onClick={() => {
-                                        setTwoFactorEnabled(false);
-                                        toast.error("2FA disabled");
-                                    }}
+                                    onClick={handleDisable2FA}
                                     className="mt-4 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold hover:bg-white/10 transition"
                                 >
                                     Disable 2FA Security

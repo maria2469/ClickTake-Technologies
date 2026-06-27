@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Shield,
@@ -25,9 +25,11 @@ import {
     Eye,
     Settings,
     UserMinus,
-    CheckCircle
+    CheckCircle,
+    Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabaseClient";
 
 export const Route = createFileRoute("/admin/roles")({
     head: () => ({
@@ -74,26 +76,7 @@ interface AuditLog {
     type: "create" | "update" | "delete" | "permission" | "role";
 }
 
-/* ───────────────── INITIAL MOCK DATA ───────────────── */
-
-const initialUsers: UserItem[] = [
-    { id: "u1", name: "Zain Paracha", email: "zain@clicktake.co", role: "Super Admin", status: "Active" },
-    { id: "u2", name: "Maria Qasim", email: "maria@clicktake.co", role: "Editor", status: "Active" },
-    { id: "u3", name: "Hamza Farooq", email: "hamza@clicktake.co", role: "Sales Support", status: "Active" },
-    { id: "u4", name: "Support Temp", email: "support@clicktake.co", role: "Sales Support", status: "Inactive" },
-];
-
-const initialPermissions: RolePermissions = {
-    "Super Admin": { readCMS: true, editCMS: true, readLeads: true, editLeads: true, configureSMTP: true, manageRBAC: true },
-    Editor: { readCMS: true, editCMS: true, readLeads: false, editLeads: false, configureSMTP: false, manageRBAC: false },
-    "Sales Support": { readCMS: true, editCMS: false, readLeads: true, editLeads: true, configureSMTP: false, manageRBAC: false },
-};
-
-const initialRolesList: RoleItem[] = [
-    { role: "Super Admin", desc: "Owner level privilege access, full SMTP, database, and system overrides." },
-    { role: "Editor", desc: "Content operator privilege. Manage layout files, media library assets, sitemaps." },
-    { role: "Sales Support", desc: "Operational agent access. Review leads database, reply messages, write notes." },
-];
+/* ───────────────── PERMISSION FIELDS CONFIG ───────────────── */
 
 const permissionFields = [
     { key: "readCMS" as const, label: "View Page Layouts", desc: "Allows viewing sitemaps, pages, and templates." },
@@ -104,21 +87,16 @@ const permissionFields = [
     { key: "manageRBAC" as const, label: "System configurations", desc: "Access to security logs, user database, and role assignments." },
 ];
 
-const initialAuditLogs: AuditLog[] = [
-    { id: "log-1", timestamp: "2026-06-19 12:30:15", user: "Zain Paracha", action: "Configured permissions for role: Editor", details: "Disabled readLeads, editLeads", type: "permission" },
-    { id: "log-2", timestamp: "2026-06-18 15:45:20", user: "Zain Paracha", action: "Registered staff profile: Hamza Farooq", details: "Role set to Sales Support", type: "create" },
-    { id: "log-3", timestamp: "2026-06-17 09:12:05", user: "System", action: "Policy Enforcement Update", details: "All Super Admin actions verified under TLS 1.3", type: "update" },
-];
-
 /* ───────────────── COMPONENT ───────────────── */
 
 function AdminRoles() {
     // Core state
-    const [users, setUsers] = useState<UserItem[]>(initialUsers);
-    const [roles, setRoles] = useState<RoleItem[]>(initialRolesList);
-    const [permissions, setPermissions] = useState<RolePermissions>(initialPermissions);
+    const [users, setUsers] = useState<UserItem[]>([]);
+    const [roles, setRoles] = useState<RoleItem[]>([]);
+    const [permissions, setPermissions] = useState<RolePermissions>({});
     const [selectedRole, setSelectedRole] = useState<string>("Super Admin");
-    const [auditLogs, setAuditLogs] = useState<AuditLog[]>(initialAuditLogs);
+    const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+    const [rolesLoading, setRolesLoading] = useState(true);
 
     // Filters state
     const [searchQuery, setSearchQuery] = useState("");
@@ -145,103 +123,207 @@ function AdminRoles() {
     // View options state
     const [permissionsViewMode, setPermissionsViewMode] = useState<"detail" | "matrix">("detail");
 
+    useEffect(() => {
+        loadAllData();
+    }, []);
+
+    const loadAllData = async () => {
+        setRolesLoading(true);
+        try {
+            const { data: roleData } = await supabase.from("admin_roles").select("*").order("created_at");
+            if (roleData) {
+                setRoles(roleData.map((r: any) => ({ role: r.role_name, desc: r.description || "" })));
+                if (roleData.length > 0) setSelectedRole(roleData[0].role_name);
+            }
+
+            const { data: userData } = await supabase.from("admin_users").select("*, admin_roles(role_name)");
+            if (userData) {
+                setUsers(userData.map((u: any) => ({
+                    id: u.id,
+                    name: u.full_name,
+                    email: u.email,
+                    role: u.admin_roles?.role_name || "Sales Support",
+                    status: u.status as "Active" | "Inactive",
+                })));
+            }
+
+            const { data: permData } = await supabase.from("role_permissions").select("*, admin_roles(role_name)");
+            if (permData) {
+                const permMap: RolePermissions = {};
+                permData.forEach((p: any) => {
+                    const roleName = p.admin_roles?.role_name;
+                    if (!roleName) return;
+                    if (!permMap[roleName]) {
+                        permMap[roleName] = { readCMS: false, editCMS: false, readLeads: false, editLeads: false, configureSMTP: false, manageRBAC: false };
+                    }
+                    if (p.permission_key in permMap[roleName]) {
+                        (permMap[roleName] as any)[p.permission_key] = p.is_granted;
+                    }
+                });
+                setPermissions(permMap);
+            }
+
+            const { data: logData } = await supabase.from("security_logs").select("*").order("created_at", { ascending: false }).limit(20);
+            if (logData) {
+                setAuditLogs(logData.map((l: any) => ({
+                    id: l.id,
+                    timestamp: new Date(l.created_at).toLocaleString(),
+                    user: l.user_name || "System",
+                    action: l.action,
+                    details: "",
+                    type: "update" as AuditLog["type"],
+                })));
+            }
+        } catch (err) {
+            console.error("Error loading RBAC data:", err);
+        } finally {
+            setRolesLoading(false);
+        }
+    };
+
     // Helper: Add audit log entry
-    const addAuditLog = (action: string, details: string, type: AuditLog["type"]) => {
+    const addAuditLog = async (action: string, details: string, type: AuditLog["type"]) => {
         const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
         const newLog: AuditLog = {
             id: `log-${Date.now()}`,
             timestamp,
-            user: "Zain Paracha", // Logged-in admin session mock
+            user: "Admin",
             action,
             details,
             type,
         };
         setAuditLogs((prev) => [newLog, ...prev]);
+        try {
+            await supabase.from("security_logs").insert({
+                user_name: "Admin",
+                action: `${action}: ${details}`,
+            });
+        } catch (err) {
+            console.error("Error logging audit entry:", err);
+        }
     };
 
     // Handlers
-    const handlePermissionToggle = (role: string, permissionKey: keyof RolePermissions[string]) => {
+    const handlePermissionToggle = async (role: string, permissionKey: keyof RolePermissions[string]) => {
         const prevValue = permissions[role]?.[permissionKey];
+        const newValue = !prevValue;
         setPermissions({
             ...permissions,
             [role]: {
                 ...permissions[role],
-                [permissionKey]: !prevValue,
+                [permissionKey]: newValue,
             },
         });
-        addAuditLog(
-            `Toggled permission for ${role}`,
-            `Set ${permissionKey} to ${!prevValue ? "Enabled" : "Disabled"}`,
-            "permission"
-        );
-        toast.info(`Updated permission for ${role}: ${permissionKey} is now ${!prevValue ? "ON" : "OFF"}`);
+        try {
+            const { data: roleRow } = await supabase.from("admin_roles").select("id").eq("role_name", role).single();
+            if (roleRow) {
+                const { data: existing } = await supabase.from("role_permissions").select("id").eq("role_id", roleRow.id).eq("permission_key", permissionKey);
+                if (existing && existing.length > 0) {
+                    await supabase.from("role_permissions").update({ is_granted: newValue }).eq("id", existing[0].id);
+                } else {
+                    await supabase.from("role_permissions").insert({ role_id: roleRow.id, permission_key: permissionKey, is_granted: newValue });
+                }
+            }
+            addAuditLog(`Toggled permission for ${role}`, `Set ${permissionKey} to ${newValue ? "Enabled" : "Disabled"}`, "permission");
+            toast.info(`Updated permission for ${role}: ${permissionKey} is now ${newValue ? "ON" : "OFF"}`);
+        } catch (err) {
+            console.error("Error toggling permission:", err);
+            toast.error("Failed to update permission");
+        }
     };
 
-    const handleCreateUser = (e: React.FormEvent) => {
+    const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedName = newUserName.trim();
         const trimmedEmail = newUserEmail.trim();
 
         if (!trimmedName || !trimmedEmail) return;
 
-        const newUser: UserItem = {
-            id: `u-${Date.now()}`,
-            name: trimmedName,
-            email: trimmedEmail,
-            role: newUserRole,
-            status: "Active",
-        };
+        try {
+            const { data: roleRow } = await supabase.from("admin_roles").select("id").eq("role_name", newUserRole).single();
+            const { data: newDbUser, error } = await supabase.from("admin_users").insert({
+                full_name: trimmedName,
+                email: trimmedEmail,
+                role_id: roleRow?.id || null,
+                status: "Active",
+            }).select("id").single();
 
-        setUsers([...users, newUser]);
-        addAuditLog(`Registered new staff profile`, `${trimmedName} (${trimmedEmail}) assigned as ${newUserRole}`, "create");
-        toast.success(`User ${trimmedName} registered as ${newUserRole}`);
+            if (error) throw error;
 
-        // Reset
+            const newUser: UserItem = {
+                id: newDbUser.id,
+                name: trimmedName,
+                email: trimmedEmail,
+                role: newUserRole,
+                status: "Active",
+            };
+
+            setUsers([...users, newUser]);
+            addAuditLog(`Registered new staff profile`, `${trimmedName} (${trimmedEmail}) assigned as ${newUserRole}`, "create");
+            toast.success(`User ${trimmedName} registered as ${newUserRole}`);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to register user");
+        }
+
         setNewUserName("");
         setNewUserEmail("");
         setNewUserRole("Sales Support");
         setIsAddUserOpen(false);
     };
 
-    const handleEditUserSubmit = (e: React.FormEvent) => {
+    const handleEditUserSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingUser) return;
 
-        setUsers(users.map((u) => (u.id === editingUser.id ? editingUser : u)));
-        addAuditLog(`Updated staff profile`, `${editingUser.name} details modified`, "update");
-        toast.success(`Staff profile for ${editingUser.name} updated.`);
+        try {
+            const { data: roleRow } = await supabase.from("admin_roles").select("id").eq("role_name", editingUser.role).single();
+            await supabase.from("admin_users").update({
+                full_name: editingUser.name,
+                email: editingUser.email,
+                role_id: roleRow?.id || null,
+            }).eq("id", editingUser.id);
+
+            setUsers(users.map((u) => (u.id === editingUser.id ? editingUser : u)));
+            addAuditLog(`Updated staff profile`, `${editingUser.name} details modified`, "update");
+            toast.success(`Staff profile for ${editingUser.name} updated.`);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to update user");
+        }
         setIsEditUserOpen(false);
         setEditingUser(null);
     };
 
-    const handleDeleteUserConfirm = () => {
+    const handleDeleteUserConfirm = async () => {
         if (!deletingUser) return;
 
-        setUsers(users.filter((u) => u.id !== deletingUser.id));
-        addAuditLog(`De-registered staff profile`, `Removed ${deletingUser.name} (${deletingUser.email})`, "delete");
-        toast.error(`Removed staff profile: ${deletingUser.name}`);
+        try {
+            await supabase.from("admin_users").delete().eq("id", deletingUser.id);
+            setUsers(users.filter((u) => u.id !== deletingUser.id));
+            addAuditLog(`De-registered staff profile`, `Removed ${deletingUser.name} (${deletingUser.email})`, "delete");
+            toast.error(`Removed staff profile: ${deletingUser.name}`);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to delete user");
+        }
         setIsDeleteConfirmOpen(false);
         setDeletingUser(null);
     };
 
-    const handleToggleUserStatus = (userId: string) => {
-        const updatedUsers = users.map((u) => {
-            if (u.id === userId) {
-                const nextStatus: "Active" | "Inactive" = u.status === "Active" ? "Inactive" : "Active";
-                addAuditLog(
-                    `Toggled staff status`,
-                    `${u.name} set to ${nextStatus}`,
-                    "update"
-                );
-                toast.info(`Status of ${u.name} set to ${nextStatus}`);
-                return { ...u, status: nextStatus };
-            }
-            return u;
-        });
-        setUsers(updatedUsers);
+    const handleToggleUserStatus = async (userId: string) => {
+        const target = users.find((u) => u.id === userId);
+        if (!target) return;
+        const nextStatus: "Active" | "Inactive" = target.status === "Active" ? "Inactive" : "Active";
+
+        try {
+            await supabase.from("admin_users").update({ status: nextStatus }).eq("id", userId);
+            setUsers(users.map((u) => (u.id === userId ? { ...u, status: nextStatus } : u)));
+            addAuditLog(`Toggled staff status`, `${target.name} set to ${nextStatus}`, "update");
+            toast.info(`Status of ${target.name} set to ${nextStatus}`);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to toggle status");
+        }
     };
 
-    const handleCreateRole = (e: React.FormEvent) => {
+    const handleCreateRole = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedName = newRoleName.trim();
         const trimmedDesc = newRoleDesc.trim();
@@ -253,31 +335,36 @@ function AdminRoles() {
             return;
         }
 
-        const newRole: RoleItem = {
-            role: trimmedName,
-            desc: trimmedDesc,
-        };
+        try {
+            const { data: newRoleDb, error } = await supabase.from("admin_roles").insert({
+                role_name: trimmedName,
+                description: trimmedDesc,
+            }).select("id").single();
 
-        setRoles([...roles, newRole]);
-        setPermissions({
-            ...permissions,
-            [trimmedName]: {
-                readCMS: false,
-                editCMS: false,
-                readLeads: false,
-                editLeads: false,
-                configureSMTP: false,
-                manageRBAC: false,
-            },
-        });
+            if (error) throw error;
 
-        addAuditLog(`Created Custom Role`, `Role "${trimmedName}" registered with default empty permissions`, "role");
-        toast.success(`Custom Role "${trimmedName}" registered.`);
+            // Create default permissions for the new role
+            const defaultPerms = permissionFields.map(p => ({
+                role_id: newRoleDb.id,
+                permission_key: p.key,
+                is_granted: false,
+            }));
+            await supabase.from("role_permissions").insert(defaultPerms);
 
-        // Select the new role automatically to configure permissions
-        setSelectedRole(trimmedName);
+            const newRole: RoleItem = { role: trimmedName, desc: trimmedDesc };
+            setRoles([...roles, newRole]);
+            setPermissions({
+                ...permissions,
+                [trimmedName]: { readCMS: false, editCMS: false, readLeads: false, editLeads: false, configureSMTP: false, manageRBAC: false },
+            });
 
-        // Reset
+            addAuditLog(`Created Custom Role`, `Role "${trimmedName}" registered with default empty permissions`, "role");
+            toast.success(`Custom Role "${trimmedName}" registered.`);
+            setSelectedRole(trimmedName);
+        } catch (err: any) {
+            toast.error(err.message || "Failed to create role");
+        }
+
         setNewRoleName("");
         setNewRoleDesc("");
         setIsAddRoleOpen(false);
@@ -382,6 +469,7 @@ function AdminRoles() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {rolesLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                     <button
                         onClick={() => setIsAddRoleOpen(true)}
                         className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/30 bg-white/5 hover:bg-white/10 px-4.5 py-2.5 text-xs font-semibold text-foreground transition cursor-pointer shadow-sm"

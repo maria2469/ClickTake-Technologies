@@ -47,15 +47,15 @@ export function Testimonials() {
         const { data, error } = await supabase
           .from("testimonials")
           .select("*")
-          .eq("is_featured", true)
+          .eq("is_active", true)
           .order("created_at", { ascending: true });
 
         if (error) throw error;
 
         if (data && data.length > 0) {
           const mapped = data.map((t: any) => ({
-            quote: t.message || "",
-            author: t.client_name || "",
+            quote: t.content || t.message || "",
+            author: t.name || t.client_name || "",
             role: t.company || "",
             location: t.rating === 5 ? "Verified Client" : "Client Partner",
             rating: t.rating || 5,

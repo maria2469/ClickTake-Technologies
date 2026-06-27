@@ -7,7 +7,6 @@ import {
   HeadContent,
   Scripts,
   useRouterState,
-  ScrollRestoration,
 } from "@tanstack/react-router";
 
 import { BackgroundScene } from "@/components/BackgroundScene";
@@ -132,7 +131,6 @@ function RootShell({
       <body className="bg-background text-foreground antialiased">
         {children}
 
-        <ScrollRestoration />
         <Scripts />
       </body>
     </html>
@@ -159,6 +157,64 @@ function RootComponent() {
       });
     }
   }, [pathname]);
+
+  // Inject structured data (JSON-LD)
+  useEffect(() => {
+    if (!document.querySelector('script[type="application/ld+json"][data-org="clicktake"]')) {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-org', 'clicktake');
+      script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "ClickTake Technologies",
+        url: "https://clicktake.co",
+        logo: "https://clicktake.co/logo.png",
+        sameAs: [
+          "https://linkedin.com/company/clicktake",
+          "https://twitter.com/clicktake",
+          "https://facebook.com/clicktake",
+        ],
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "sales",
+          email: "hello@clicktake.co",
+        },
+      });
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  // Inject GA4 + GSC meta tags from DB settings
+  useEffect(() => {
+    supabase.from('site_settings').select('key, value').in('key', ['ga4_measurement_id', 'gsc_verification_code']).then(({ data }) => {
+      if (!data) return;
+      const ga4Id = data.find(s => s.key === 'ga4_measurement_id')?.value;
+      const gscCode = data.find(s => s.key === 'gsc_verification_code')?.value;
+
+      // GSC meta tag
+      if (gscCode && !document.querySelector('meta[name="google-site-verification"]')) {
+        const meta = document.createElement('meta');
+        meta.name = 'google-site-verification';
+        meta.content = gscCode;
+        document.head.appendChild(meta);
+      }
+
+      // GA4 script (avoid duplicate)
+      if (ga4Id && !document.querySelector(`script[data-ga4="${ga4Id}"]`)) {
+        const script1 = document.createElement('script');
+        script1.setAttribute('data-ga4', ga4Id);
+        script1.async = true;
+        script1.src = `https://www.googletagmanager.com/gtag/js?id=${ga4Id}`;
+        document.head.appendChild(script1);
+
+        const script2 = document.createElement('script');
+        script2.setAttribute('data-ga4', ga4Id);
+        script2.textContent = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${ga4Id}');`;
+        document.head.appendChild(script2);
+      }
+    });
+  }, []);
 
   return (
     <HelmetProvider>

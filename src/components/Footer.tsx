@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Facebook,
   Instagram,
@@ -15,28 +16,13 @@ import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 
 import logo from "@/assets/clicktake-logo.jpg";
+import { supabase } from "@/lib/supabaseClient";
 
-const socials = [
-  {
-    icon: Facebook,
-    href: "https://www.facebook.com/clicktaketechnologies/",
-    label: "Facebook",
-  },
-  {
-    icon: Instagram,
-    href: "https://www.instagram.com/clicktaketechnologiesuk/",
-    label: "Instagram",
-  },
-  {
-    icon: Linkedin,
-    href: "https://www.linkedin.com/company/click-take-technologies/",
-    label: "LinkedIn",
-  },
-  {
-    icon: Youtube,
-    href: "https://www.youtube.com/channel/UCt527M4hxeFOavWdXSRTsdw",
-    label: "YouTube",
-  },
+const defaultSocials = [
+  { icon: Facebook, key: "facebook_url", href: "https://www.facebook.com/clicktaketechnologies/", label: "Facebook" },
+  { icon: Instagram, key: "instagram_url", href: "https://www.instagram.com/clicktaketechnologiesuk/", label: "Instagram" },
+  { icon: Linkedin, key: "linkedin_url", href: "https://www.linkedin.com/company/click-take-technologies/", label: "LinkedIn" },
+  { icon: Youtube, key: "youtube_url", href: "https://www.youtube.com/channel/UCt527M4hxeFOavWdXSRTsdw", label: "YouTube" },
 ];
 
 const services = [
@@ -58,6 +44,19 @@ const companyLinks = [
 ];
 
 export function Footer() {
+  const [socialLinks, setSocialLinks] = useState(defaultSocials);
+
+  useEffect(() => {
+    supabase.from('site_settings').select('key, value').in('key', ['facebook_url', 'instagram_url', 'linkedin_url', 'youtube_url']).then(({ data }) => {
+      if (data && data.length > 0) {
+        setSocialLinks(prev => prev.map(s => {
+          const match = data.find(d => d.key === s.key);
+          return match && match.value ? { ...s, href: match.value } : s;
+        }));
+      }
+    });
+  }, []);
+
   return (
     <footer className="relative overflow-hidden border-t border-border/50 bg-background">
       {/* GRID OVERLAY */}
@@ -205,7 +204,7 @@ export function Footer() {
 
             {/* SOCIALS */}
             <div className="mt-8 flex flex-wrap gap-3">
-              {socials.map((s) => (
+              {socialLinks.map((s) => (
                 <a
                   key={s.label}
                   href={s.href}

@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 
 import logo from "@/assets/clicktake-logo.png";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { supabase } from "@/lib/supabaseClient";
 
 /* ───────────────── SERVICES MEGA MENU DATA ───────────────── */
 
@@ -67,6 +68,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("#");
   const [megaOpen, setMegaOpen] = useState(false);
+  const [navLinks, setNavLinks] = useState(links);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -76,6 +78,27 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    supabase.from('cms_nav_links').select('label, to_path').then(({ data }) => {
+      if (data && data.length > 0) {
+        const dbMap = new Map(data.map(d => [d.label, d.to_path]));
+        const merged = links.map(l => {
+          const dbPath = dbMap.get(l.label);
+          if (dbPath) return { ...l, to: dbPath, href: dbPath };
+          return l;
+        });
+        data.forEach(d => {
+          if (!links.some(l => l.label === d.label)) {
+            merged.push({ label: d.label, to: d.to_path, isPage: true as const });
+          }
+        });
+        setNavLinks(merged);
+      } else {
+        setNavLinks(links);
+      }
+    });
+  }, [location.pathname]);
 
   const handleSectionClick = async (href: string) => {
     setOpen(false);
@@ -111,7 +134,7 @@ export function Navbar() {
 
           {/* DESKTOP NAV */}
           <nav className="hidden lg:flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-2 backdrop-blur-xl whitespace-nowrap">
-            {links.map((l) => {
+            {navLinks.map((l) => {
               if (l.isPage && l.to) {
                 return (
                   <div
@@ -257,7 +280,7 @@ export function Navbar() {
               ))}
 
               <div className="border-t border-border/30 mt-3 pt-3 space-y-1">
-                {links.filter((l) => !l.isPage).map((l) => (
+                {navLinks.filter((l) => !l.isPage).map((l) => (
                   <button
                     key={l.href}
                     onClick={() => handleSectionClick(l.href!)}

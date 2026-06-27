@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Mail, ArrowLeft, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
+import { supabase } from "@/lib/supabaseClient";
 
 export const Route = createFileRoute("/admin/forgot-password")({
   head: () => ({
@@ -34,20 +35,25 @@ export function AdminForgotPassword() {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsLoading(true);
-
-    // Simulate OTP/Reset Link transmit delay
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin/reset-password`,
+      });
+      if (error) throw error;
       setIsSuccess(true);
       toast.success("Recovery instructions dispatched!", {
-        description: `Reset link was transmitted to ${email}.`,
+        description: `Reset link was sent to ${email}.`,
       });
-    }, 1500);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send recovery email");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

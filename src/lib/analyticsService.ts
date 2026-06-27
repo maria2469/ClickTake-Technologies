@@ -30,7 +30,7 @@ export const analyticsService = {
       supabase
         .from('page_views')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStart.toISOString()),
+        .gte('visited_at', todayStart.toISOString()),
 
       supabase
         .from('leads')

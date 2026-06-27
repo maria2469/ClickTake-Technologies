@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Eye, EyeOff, User, Mail, Lock, ArrowRight, Check, ShieldCheck, Cpu, Database } from "lucide-react";
+import { Shield, Eye, EyeOff, User, Mail, Lock, ArrowRight, Check, ShieldCheck, Cpu, Database, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
+import { supabase } from "@/lib/supabaseClient";
 
 export const Route = createFileRoute("/admin/create-admin")({
   head: () => ({
@@ -89,21 +90,32 @@ export function AdminSignup() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsLoading(true);
-
-    // Simulate API registration call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role,
+          },
+        },
+      });
+      if (error) throw error;
       toast.success("Administrator Account Created Successfully!", {
         description: `Your access request as a [${role}] is pending primary Super Admin approval.`,
       });
-      // Route to login
       router.navigate({ to: "/admin/login" });
-    }, 2000);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create account");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

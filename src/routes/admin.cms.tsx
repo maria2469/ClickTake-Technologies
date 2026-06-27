@@ -105,6 +105,8 @@ function AdminCMS() {
     const [newBlogTitle, setNewBlogTitle] = useState("");
     const [headerLinks, setHeaderLinks] = useState<{ id: string; label: string; to_path: string }[]>([]);
     const [newNavLink, setNewNavLink] = useState({ label: "", to_path: "" });
+    const [showLabelDropdown, setShowLabelDropdown] = useState(false);
+    const labelDropdownRef = useRef<HTMLDivElement>(null);
     const [editingBlogId, setEditingBlogId] = useState<string | null>(null);
     const [blogContent, setBlogContent] = useState("");
 
@@ -147,6 +149,17 @@ function AdminCMS() {
             .subscribe();
 
         return () => { supabase.removeChannel(channel); };
+    }, []);
+
+    // Close label dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (labelDropdownRef.current && !labelDropdownRef.current.contains(e.target as Node)) {
+                setShowLabelDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     // Selected Page Derived
@@ -592,26 +605,24 @@ function AdminCMS() {
 
     // Blog Management
     const handleAddBlogPost = async () => {
-        if (!newBlogTitle.trim()) return;
-        const newPost = {
-            id: `b-${Date.now()}`,
-            title: newBlogTitle.trim(),
-            author: "Admin",
-            date: new Date().toISOString().split("T")[0],
-            status: "Draft" as const,
-            content: "<p>Start writing your blog post...</p>"
-        };
-        const { error } = await supabase.from('cms_blogs').insert(newPost);
+        const title = newBlogTitle.trim();
+        if (!title) return;
+        const { data, error } = await supabase.from('cms_blogs').insert({
+            title,
+        }).select('*').single();
         if (error) { toast.error("Failed to create blog post"); return; }
         
         setNewBlogTitle("");
-        toast.success(`Draft "${newPost.title}" created`);
-        setEditingBlogId(newPost.id);
-        setBlogContent(newPost.content);
+        toast.success(`Draft "${title}" created`);
+        setBlogList(prev => [data, ...prev]);
+        setEditingBlogId(data.id);
+        setBlogContent(data.content);
     };
 
     const handleDeleteBlog = async (id: string) => {
-        await supabase.from('cms_blogs').delete().eq('id', id);
+        const { error } = await supabase.from('cms_blogs').delete().eq('id', id);
+        if (error) { toast.error("Failed to delete blog post"); return; }
+        setBlogList(prev => prev.filter(b => b.id !== id));
         if (editingBlogId === id) setEditingBlogId(null);
         toast.error(`Blog post deleted`);
     };
@@ -625,19 +636,24 @@ function AdminCMS() {
 
     // Nav Links Management
     const handleAddNavLink = async () => {
-        if (!newNavLink.label || !newNavLink.to_path) return;
-        const newLink = {
-            id: `n-${Date.now()}`,
-            label: newNavLink.label,
-            to_path: newNavLink.to_path,
-        };
-        await supabase.from('cms_nav_links').insert(newLink);
+        const trimmedLabel = newNavLink.label.trim();
+        let trimmedPath = newNavLink.to_path.trim();
+        if (!trimmedLabel || !trimmedPath) return;
+        if (!trimmedPath.startsWith('/')) trimmedPath = '/' + trimmedPath;
+        const { data, error } = await supabase.from('cms_nav_links').insert({
+            label: trimmedLabel,
+            to_path: trimmedPath,
+        }).select('*').single();
+        if (error) { toast.error("Failed to add nav link"); return; }
         toast.success(`Link "${newNavLink.label}" added`);
+        setHeaderLinks(prev => [...prev, data]);
         setNewNavLink({ label: "", to_path: "" });
     };
 
     const handleDeleteNavLink = async (id: string) => {
-        await supabase.from('cms_nav_links').delete().eq('id', id);
+        const { error } = await supabase.from('cms_nav_links').delete().eq('id', id);
+        if (error) { toast.error("Failed to remove nav link"); return; }
+        setHeaderLinks(prev => prev.filter(l => l.id !== id));
         toast.error(`Link removed`);
     };
 
@@ -1009,7 +1025,7 @@ function AdminCMS() {
                         <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
                             {filteredMediaList.map((file) => (
                                 <div key={file.id} className="relative group rounded-lg border border-white/5 overflow-hidden bg-background">
-                                    {file.type === "image" ? <img src={file.url} className="h-16 w-full object-cover" alt="" /> : <div className="h-16 w-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted-foreground">{file.type.toUpperCase()}</div>}
+                                    {file.type === "image" ? <img src={file.url} className="h-16 w-full object-cover" alt="" /> : <div className="h-16 w-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted-foreground">{(file.type || 'FILE').toUpperCase()}</div>}
                                     <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1 transition-all">
                                         <span className="text-[8px] text-white truncate font-semibold">{file.name}</span>
                                         {file.url && (
@@ -1040,7 +1056,35 @@ function AdminCMS() {
                         </div>
                         <div className="space-y-2 border-t border-white/5 pt-3">
                             <div className="grid grid-cols-2 gap-1.5">
-                                <input type="text" placeholder="Label" value={newNavLink.label} onChange={(e) => setNewNavLink({ ...newNavLink, label: e.target.value })} className="rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none" />
+                                <div className="relative" ref={labelDropdownRef}>
+                                    <input
+                                        type="text"
+                                        placeholder="Label"
+                                        value={newNavLink.label}
+                                        onFocus={() => setShowLabelDropdown(true)}
+                                        onChange={(e) => setNewNavLink({ ...newNavLink, label: e.target.value })}
+                                        className="w-full rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none"
+                                    />
+                                    {showLabelDropdown && (
+                                        <div className="absolute left-0 top-full mt-1 w-full rounded-lg border border-white/10 bg-card shadow-xl z-50 max-h-32 overflow-y-auto">
+                                            {[...new Set([
+                                                ...headerLinks.map(l => l.label),
+                                                'Home', 'Services', 'Work', 'Resources', 'Process', 'Testimonials', 'About', 'Contact',
+                                                'Starter Kit', 'Blog', 'SEO', 'AI Chatbots', 'LLM Solutions', 'Full Stack Web',
+                                                'Graphic Design', 'Video Production', 'Privacy Policy', 'Terms of Service', 'Cookie Policy'
+                                            ])].map(label => (
+                                                <button
+                                                    key={label}
+                                                    type="button"
+                                                    onMouseDown={() => { setNewNavLink(prev => ({ ...prev, label })); setShowLabelDropdown(false); }}
+                                                    className="w-full text-left px-2.5 py-1.5 text-[10px] hover:bg-white/10 transition cursor-pointer"
+                                                >
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                                 <input type="text" placeholder="Route" value={newNavLink.to_path} onChange={(e) => setNewNavLink({ ...newNavLink, to_path: e.target.value })} className="rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none" />
                             </div>
                             <button onClick={handleAddNavLink} className="w-full rounded-lg bg-brand-blue text-white py-1.5 text-[10px] font-bold hover:opacity-90">Add Navigation Link</button>

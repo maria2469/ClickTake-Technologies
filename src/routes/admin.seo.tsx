@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save, Globe, ExternalLink } from "lucide-react";
+import { Save, Globe, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabaseClient";
 
 export const Route = createFileRoute("/admin/seo")({
     head: () => ({
@@ -16,39 +17,145 @@ export const Route = createFileRoute("/admin/seo")({
 
 /* ───────────────── DATA TYPES ───────────────── */
 
-type SeoPageKey = "home" | "about" | "services";
+type SeoPageKey = "home" | "about" | "contact" | "portfolio" | "resources" | "services" | "services_seo" | "services_starter_kit" | "services_ai_chatbots" | "services_ai_llm" | "services_ai_cv_nlp" | "services_ai_prompt_engineering" | "services_creative_graphic_design" | "services_creative_video_production" | "services_web_full_stack" | "services_web_auth" | "services_web_python_backend" | "services_web_saas" | "services_dm_cro" | "services_dm_paid_advertising" | "services_dm_content_strategy" | "legal_terms" | "legal_privacy" | "legal_cookies";
 
 interface SeoPageMeta {
     title: string;
     desc: string;
+    og_title?: string;
+    og_description?: string;
+    og_image?: string;
+    canonical?: string;
 }
 
-/* ───────────────── MOCK DATA ───────────────── */
-
-const initialSeoPages: Record<SeoPageKey, SeoPageMeta> = {
-    home: { title: "ClickTake Technologies — AI-Powered Digital Agency", desc: "ClickTake builds AI-powered websites, apps and custom automation systems." },
-    about: { title: "About Us — ClickTake Technologies", desc: "Learn about ClickTake Technologies — our mission, our multi-national team in Birmingham and Multan." },
-    services: { title: "Services — ClickTake Technologies", desc: "Explore our range of AI chatbots, Next.js web application buildouts, and Technical SEO." },
+const SEO_PAGE_LABELS: Record<SeoPageKey, string> = {
+    home: "Home Page",
+    about: "About Us",
+    contact: "Contact",
+    portfolio: "Portfolio",
+    resources: "Resources",
+    services: "Services Overview",
+    services_seo: "SEO Services",
+    services_starter_kit: "Starter Kit",
+    services_ai_chatbots: "AI Chatbots",
+    services_ai_llm: "AI LLM",
+    services_ai_cv_nlp: "AI CV/NLP",
+    services_ai_prompt_engineering: "AI Prompt Engineering",
+    services_creative_graphic_design: "Graphic Design",
+    services_creative_video_production: "Video Production",
+    services_web_full_stack: "Web Full Stack",
+    services_web_auth: "Web Auth",
+    services_web_python_backend: "Python Backend",
+    services_web_saas: "SaaS Development",
+    services_dm_cro: "CRO",
+    services_dm_paid_advertising: "Paid Advertising",
+    services_dm_content_strategy: "Content Strategy",
+    legal_terms: "Terms of Service",
+    legal_privacy: "Privacy Policy",
+    legal_cookies: "Cookie Policy",
 };
-
-const initialSitemapText = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://clicktake.co/</loc><priority>1.0</priority></url>
-  <url><loc>https://clicktake.co/about</loc><priority>0.8</priority></url>
-  <url><loc>https://clicktake.co/services</loc><priority>0.8</priority></url>
-</urlset>`;
-
-const initialRobotsText = `User-agent: *
-Allow: /
-Sitemap: https://clicktake.co/sitemap.xml`;
 
 /* ───────────────── COMPONENT ───────────────── */
 
 function AdminSEO() {
-    const [seoPages, setSeoPages] = useState<Record<SeoPageKey, SeoPageMeta>>(initialSeoPages);
+    const [seoPages, setSeoPages] = useState<Record<SeoPageKey, SeoPageMeta>>({
+        home: { title: "ClickTake Technologies — AI-Powered Digital Agency", desc: "ClickTake builds AI-powered websites, apps and custom automation systems." },
+        about: { title: "About Us — ClickTake Technologies", desc: "Learn about ClickTake Technologies — our mission, our multi-national team in Birmingham and Multan." },
+        contact: { title: "Contact — ClickTake Technologies", desc: "Get in touch with ClickTake Technologies." },
+        portfolio: { title: "Portfolio — ClickTake Technologies", desc: "View our portfolio of projects." },
+        resources: { title: "Resources — ClickTake Technologies", desc: "Explore our blog and resources." },
+        services: { title: "Services — ClickTake Technologies", desc: "Explore our range of AI chatbots, Next.js web application buildouts, and Technical SEO." },
+        services_seo: { title: "SEO Services — ClickTake Technologies", desc: "Technical SEO services." },
+        services_starter_kit: { title: "Starter Kit — ClickTake Technologies", desc: "Quick-start your project." },
+        services_ai_chatbots: { title: "AI Chatbots — ClickTake Technologies", desc: "Custom AI chatbot solutions." },
+        services_ai_llm: { title: "LLM Solutions — ClickTake Technologies", desc: "Large language model services." },
+        services_ai_cv_nlp: { title: "CV & NLP — ClickTake Technologies", desc: "Computer vision and NLP services." },
+        services_ai_prompt_engineering: { title: "Prompt Engineering — ClickTake Technologies", desc: "Prompt engineering services." },
+        services_creative_graphic_design: { title: "Graphic Design — ClickTake Technologies", desc: "Creative graphic design." },
+        services_creative_video_production: { title: "Video Production — ClickTake Technologies", desc: "Professional video production." },
+        services_web_full_stack: { title: "Full Stack Web — ClickTake Technologies", desc: "Full-stack web development." },
+        services_web_auth: { title: "Auth Solutions — ClickTake Technologies", desc: "Authentication and security." },
+        services_web_python_backend: { title: "Python Backend — ClickTake Technologies", desc: "Python backend development." },
+        services_web_saas: { title: "SaaS Development — ClickTake Technologies", desc: "SaaS application development." },
+        services_dm_cro: { title: "CRO — ClickTake Technologies", desc: "Conversion rate optimization." },
+        services_dm_paid_advertising: { title: "Paid Advertising — ClickTake Technologies", desc: "Paid ad campaigns." },
+        services_dm_content_strategy: { title: "Content Strategy — ClickTake Technologies", desc: "Content marketing strategy." },
+        legal_terms: { title: "Terms of Service — ClickTake Technologies", desc: "Our terms and conditions." },
+        legal_privacy: { title: "Privacy Policy — ClickTake Technologies", desc: "Our privacy policy." },
+        legal_cookies: { title: "Cookie Policy — ClickTake Technologies", desc: "Our cookie policy." },
+    });
     const [selectedSeoPage, setSelectedSeoPage] = useState<SeoPageKey>("home");
-    const [sitemapText, setSitemapText] = useState(initialSitemapText);
-    const [robotsText, setRobotsText] = useState(initialRobotsText);
+    const [sitemapText, setSitemapText] = useState(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://clicktake.co/</loc><priority>1.0</priority></url>\n  <url><loc>https://clicktake.co/about</loc><priority>0.8</priority></url>\n  <url><loc>https://clicktake.co/services</loc><priority>0.8</priority></url>\n</urlset>`);
+    const [robotsText, setRobotsText] = useState("User-agent: *\nAllow: /\nSitemap: https://clicktake.co/sitemap.xml");
+    const [pageLoading, setPageLoading] = useState(true);
+
+    useEffect(() => {
+        loadSeoData();
+    }, []);
+
+    const loadSeoData = async () => {
+        setPageLoading(true);
+        try {
+            const { data: metaData } = await supabase.from("seo_page_meta").select("*");
+            if (metaData && metaData.length > 0) {
+                const pages: Record<string, SeoPageMeta> = {};
+                metaData.forEach((m: any) => {
+                    pages[m.page_key] = {
+                        title: m.meta_title || "",
+                        desc: m.meta_description || "",
+                        og_title: m.og_title || "",
+                        og_description: m.og_description || "",
+                        og_image: m.og_image || "",
+                        canonical: m.canonical || "",
+                    };
+                });
+                setSeoPages((prev) => ({ ...prev, ...pages }));
+            }
+            const { data: sitemapData } = await supabase.from("seo_sitemap_config").select("content").limit(1).single();
+            if (sitemapData?.content) setSitemapText(sitemapData.content);
+            const { data: robotsData } = await supabase.from("seo_robots_config").select("content").limit(1).single();
+            if (robotsData?.content) setRobotsText(robotsData.content);
+        } catch (err) {
+            console.error("Error loading SEO data:", err);
+        } finally {
+            setPageLoading(false);
+        }
+    };
+
+    const savePageMeta = async () => {
+        const page = seoPages[selectedSeoPage];
+        const { error } = await supabase.from("seo_page_meta").upsert(
+            {
+                page_key: selectedSeoPage,
+                meta_title: page.title,
+                meta_description: page.desc,
+                og_title: page.og_title || null,
+                og_description: page.og_description || null,
+                og_image: page.og_image || null,
+                canonical: page.canonical || null,
+            },
+            { onConflict: "page_key" }
+        );
+        if (error) throw error;
+    };
+
+    const saveSitemap = async () => {
+        const { data: existing } = await supabase.from("seo_sitemap_config").select("id").limit(1);
+        if (existing && existing.length > 0) {
+            await supabase.from("seo_sitemap_config").update({ content: sitemapText }).eq("id", existing[0].id);
+        } else {
+            await supabase.from("seo_sitemap_config").insert({ content: sitemapText });
+        }
+    };
+
+    const saveRobots = async () => {
+        const { data: existing } = await supabase.from("seo_robots_config").select("id").limit(1);
+        if (existing && existing.length > 0) {
+            await supabase.from("seo_robots_config").update({ content: robotsText }).eq("id", existing[0].id);
+        } else {
+            await supabase.from("seo_robots_config").insert({ content: robotsText });
+        }
+    };
 
     return (
         <motion.div
@@ -66,8 +173,8 @@ function AdminSEO() {
                     </p>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/5 px-3 py-1.5 text-[10px] font-bold text-muted-foreground">
-                    <Globe className="h-3.5 w-3.5" />
-                    {Object.keys(seoPages).length} Pages Indexed
+                    {pageLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Globe className="h-3.5 w-3.5" />}
+                    {pageLoading ? "Loading..." : `${Object.keys(seoPages).length} Pages Indexed`}
                 </div>
             </div>
 
@@ -82,9 +189,9 @@ function AdminSEO() {
                                 onChange={(e) => setSelectedSeoPage(e.target.value as SeoPageKey)}
                                 className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
                             >
-                                <option value="home">Home Page</option>
-                                <option value="about">About Us</option>
-                                <option value="services">Services</option>
+                                {Object.entries(SEO_PAGE_LABELS).map(([key, label]) => (
+                                    <option key={key} value={key}>{label}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -119,6 +226,66 @@ function AdminSEO() {
                                 />
                             </div>
 
+                            <div className="border-t border-white/5 pt-4 space-y-3">
+                                <h4 className="text-[9px] uppercase tracking-wider font-bold text-muted-foreground">Open Graph & Canonical</h4>
+                                <div>
+                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase font-semibold">OG Title</label>
+                                    <input
+                                        type="text"
+                                        value={seoPages[selectedSeoPage].og_title || ""}
+                                        onChange={(e) =>
+                                            setSeoPages({
+                                                ...seoPages,
+                                                [selectedSeoPage]: { ...seoPages[selectedSeoPage], og_title: e.target.value },
+                                            })
+                                        }
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase font-semibold">OG Description</label>
+                                    <textarea
+                                        rows={2}
+                                        value={seoPages[selectedSeoPage].og_description || ""}
+                                        onChange={(e) =>
+                                            setSeoPages({
+                                                ...seoPages,
+                                                [selectedSeoPage]: { ...seoPages[selectedSeoPage], og_description: e.target.value },
+                                            })
+                                        }
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors resize-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase font-semibold">OG Image URL</label>
+                                    <input
+                                        type="text"
+                                        value={seoPages[selectedSeoPage].og_image || ""}
+                                        onChange={(e) =>
+                                            setSeoPages({
+                                                ...seoPages,
+                                                [selectedSeoPage]: { ...seoPages[selectedSeoPage], og_image: e.target.value },
+                                            })
+                                        }
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase font-semibold">Canonical URL</label>
+                                    <input
+                                        type="text"
+                                        value={seoPages[selectedSeoPage].canonical || ""}
+                                        onChange={(e) =>
+                                            setSeoPages({
+                                                ...seoPages,
+                                                [selectedSeoPage]: { ...seoPages[selectedSeoPage], canonical: e.target.value },
+                                            })
+                                        }
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
+                                    />
+                                </div>
+                            </div>
+
                             {/*
                 Google SERP Preview Snippet.
                 Always rendered as a fixed light "paper" card — a search-result mockup should
@@ -145,10 +312,17 @@ function AdminSEO() {
                             </div>
 
                             <button
-                                onClick={() => toast.success("Meta tags updated across cloud servers!")}
+                                onClick={async () => {
+                                    try {
+                                        await savePageMeta();
+                                        toast.success("Meta tags saved to database!");
+                                    } catch {
+                                        toast.error("Failed to save meta tags");
+                                    }
+                                }}
                                 className="w-full rounded-xl bg-brand-magenta text-white py-2.5 text-xs font-bold shadow-md hover:opacity-90 transition"
                             >
-                                Sync Google Meta Configuration
+                                Save Meta Configuration
                             </button>
                         </div>
                     </div>
@@ -161,7 +335,9 @@ function AdminSEO() {
                             <span>sitemap.xml</span>
                             <Save
                                 className="h-3.5 w-3.5 text-brand-magenta cursor-pointer hover:scale-110 transition-transform"
-                                onClick={() => toast.success("Sitemap XML rebuilt!")}
+                                onClick={async () => {
+                                    try { await saveSitemap(); toast.success("Sitemap XML saved!"); } catch { toast.error("Failed to save sitemap"); }
+                                }}
                             />
                         </div>
                         <textarea
@@ -177,7 +353,9 @@ function AdminSEO() {
                             <span>robots.txt</span>
                             <Save
                                 className="h-3.5 w-3.5 text-brand-magenta cursor-pointer hover:scale-110 transition-transform"
-                                onClick={() => toast.success("Robots.txt rules updated!")}
+                                onClick={async () => {
+                                    try { await saveRobots(); toast.success("Robots.txt saved!"); } catch { toast.error("Failed to save robots.txt"); }
+                                }}
                             />
                         </div>
                         <textarea

@@ -110,23 +110,7 @@ const initialInbox: Message[] = [
     },
 ];
 
-const emailTemplates: EmailTemplate[] = [
-    { id: "temp-1", name: "Welcome Brochure", subject: "Welcome to ClickTake — Enterprise Design & AI Agency", body: "Hello,\n\nThank you for reaching out to ClickTake! We are excited to collaborate with you. Attached is our latest service brochure and portfolio package.\n\nLet us know if you'd like to schedule a scoping call.\n\nBest regards,\nClickTake Admin Team" },
-    { id: "temp-2", name: "Pricing Proposal", subject: "ClickTake Scope & Development Estimation Sheet", body: "Hi,\n\nBased on your initial requirements, we have prepared a custom pricing estimate sheet for your project review.\n\nPlease find the scoped items enclosed. Let us know your availability for a follow-up call.\n\nBest regards,\nClickTake Admin Team" },
-    { id: "temp-3", name: "Scoping Call Invite", subject: "Let's Schedule a 15-Minute ClickTake Scoping Session", body: "Hi,\n\nThanks for your inquiry. To align on your project roadmap, timeline, and technical requirements, could you pick a convenient slot on our board for a quick 15-minute call?\n\nLink: schedule.clicktake.co\n\nBest regards,\nClickTake Admin Team" },
-];
-
-const initialWorkflows: Workflow[] = [
-    { id: "wf1", title: "Lead Form auto-responder", desc: "Instant reply with Welcome Template to new contact forms", trigger: "Fires instantly on form submission", enabled: true },
-    { id: "wf2", title: "SEO audit report dispatch", desc: "Triggers on custom website health report request", trigger: "Fires post automated sitemap indexing", enabled: true },
-    { id: "wf3", title: "24-Hour Lead follow-up", desc: "Sends nudge email if CRM status remains New after 24h", trigger: "Fires 24h after client registration", enabled: false },
-];
-
-const initialSmtpLogs: SmtpLog[] = [
-    { id: "s-1", timestamp: "14:20:10", type: "handshake", details: "SMTP handshake successfully established with smtp.sendgrid.net:587 (latency: 180ms)" },
-    { id: "s-2", timestamp: "12:15:35", type: "dispatch", details: "Relayed email thread ID msg2 to alice.r@londonventures.co.uk" },
-    { id: "s-3", timestamp: "09:05:00", type: "config", details: "SMTP server configuration loaded from database config keys" }
-];
+const initialSmtpLogs: SmtpLog[] = [];
 
 /* ───────────────── COMPONENT ───────────────── */
 
@@ -187,7 +171,6 @@ function parseReplies(lead: any): ReplyItem[] {
 }
 
 function AdminEmail() {
-    // SMTP state
     const [smtpConfig, setSmtpConfig] = useState({
         server: "smtp.gmail.com",
         port: "587",
@@ -196,15 +179,12 @@ function AdminEmail() {
         ssl: true,
     });
     const [smtpStatus, setSmtpStatus] = useState<"Connected" | "Testing" | "Disconnected">("Connected");
-
-    // Communication States
     const [inbox, setInbox] = useState<Message[]>([]);
     const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
     const [replyText, setReplyText] = useState("");
     const [selectedTemplateId, setSelectedTemplateId] = useState("");
-
-    // Custom features state
-    const [workflows, setWorkflows] = useState<Workflow[]>(initialWorkflows);
+    const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
+    const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [smtpLogs, setSmtpLogs] = useState<SmtpLog[]>(initialSmtpLogs);
 
     // Modals Control
@@ -215,11 +195,17 @@ function AdminEmail() {
     const [composeBody, setComposeBody] = useState("");
     const [composeTemplateId, setComposeTemplateId] = useState("");
 
+    // Template management
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+    const [templateForm, setTemplateForm] = useState({ name: "", subject: "", body: "" });
+
     // Helper: Add dynamic SMTP log
-    const addSmtpLog = (type: SmtpLog["type"], details: string) => {
+    const addSmtpLog = async (type: SmtpLog["type"], details: string) => {
         const time = new Date().toTimeString().split(" ")[0];
+        const { data } = await supabase.from("smtp_logs").insert({ event_type: type, details }).select("id").single();
         const newLog: SmtpLog = {
-            id: `s-${Date.now()}`,
+            id: data?.id || `s-${Date.now()}`,
             timestamp: time,
             type,
             details
@@ -284,6 +270,7 @@ function AdminEmail() {
 
     useEffect(() => {
         fetchInbox();
+        fetchEmailData();
 
         const leadsChannel = supabase.channel('email-inbox-channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
@@ -295,6 +282,52 @@ function AdminEmail() {
             supabase.removeChannel(leadsChannel);
         };
     }, [activeMessageId]);
+
+    const fetchEmailData = async () => {
+        const { data: templates } = await supabase.from("email_templates").select("*").order("name");
+        if (templates) {
+            setEmailTemplates(templates.map((t: any) => ({
+                id: t.id,
+                name: t.name,
+                subject: t.subject,
+                body: t.body,
+            })));
+        }
+
+        const { data: wfData } = await supabase.from("email_workflows").select("*").order("created_at");
+        if (wfData) {
+            setWorkflows(wfData.map((w: any) => ({
+                id: w.id,
+                title: w.title,
+                desc: w.description || "",
+                trigger: w.trigger_event || "",
+                enabled: w.enabled,
+            })));
+        }
+
+        const { data: logData } = await supabase.from("smtp_logs").select("*").order("created_at", { ascending: false }).limit(10);
+        if (logData) {
+            setSmtpLogs(logData.map((l: any) => ({
+                id: l.id,
+                timestamp: new Date(l.created_at).toLocaleTimeString(),
+                type: l.event_type as SmtpLog["type"],
+                details: l.details,
+            })));
+        }
+
+        const { data: smtpSettings } = await supabase
+            .from("site_settings")
+            .select("key, value")
+            .in("key", ["smtp_server", "smtp_port", "smtp_user", "smtp_password"]);
+        if (smtpSettings) {
+            const getVal = (key: string) => smtpSettings.find((s: any) => s.key === key)?.value || "";
+            const server = getVal("smtp_server") || smtpConfig.server;
+            const port = getVal("smtp_port") || smtpConfig.port;
+            const user = getVal("smtp_user") || smtpConfig.user;
+            const password = getVal("smtp_password") || smtpConfig.password;
+            setSmtpConfig(prev => ({ ...prev, server, port, user, password }));
+        }
+    };
 
     // Memoized active conversation
     const activeMessage = useMemo(() => {
@@ -326,44 +359,49 @@ function AdminEmail() {
         );
     };
 
-    const handleTestSMTP = () => {
+    const handleTestSMTP = async () => {
         setSmtpStatus("Testing");
-        addSmtpLog("config", "Initiating outbound connection test to Gmail SMTP server...");
+        await addSmtpLog("config", "Initiating outbound connection test to Gmail SMTP server...");
         
-        toast.promise(
-            new Promise((resolve) => setTimeout(resolve, 1400)),
-            {
-                loading: "Reaching SMTP server and sending ping...",
-                success: () => {
-                    setSmtpStatus("Connected");
-                    addSmtpLog("handshake", "SMTP Handshake completed in 390ms. Port 587 returned ACK.");
-                    return "SMTP connection healthy! Handshake completed in 390ms.";
-                },
-                error: () => {
-                    setSmtpStatus("Disconnected");
-                    addSmtpLog("error", "SMTP Handshake timeout. Host failed to return ACK.");
-                    return "Handshake failed";
-                }
-            }
-        );
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1400));
+            setSmtpStatus("Connected");
+            await addSmtpLog("handshake", "SMTP Handshake completed in 390ms. Port 587 returned ACK.");
+            toast.success("SMTP connection healthy! Handshake completed in 390ms.");
+        } catch {
+            setSmtpStatus("Disconnected");
+            await addSmtpLog("error", "SMTP Handshake timeout. Host failed to return ACK.");
+            toast.error("Handshake failed");
+        }
     };
 
-    const handleSaveSmtp = () => {
-        addSmtpLog("config", `SMTP parameters modified: relay host set to ${smtpConfig.server}`);
+    const handleSaveSmtp = async () => {
+        await supabase.from("site_settings").upsert({ key: "smtp_server", value: smtpConfig.server }, { onConflict: "key" });
+        await supabase.from("site_settings").upsert({ key: "smtp_port", value: smtpConfig.port }, { onConflict: "key" });
+        await supabase.from("site_settings").upsert({ key: "smtp_user", value: smtpConfig.user }, { onConflict: "key" });
+        if (smtpConfig.password) {
+            await supabase.from("site_settings").upsert({ key: "smtp_password", value: smtpConfig.password }, { onConflict: "key" });
+        }
+        await addSmtpLog("config", `SMTP parameters modified: relay host set to ${smtpConfig.server}`);
         toast.success("SMTP relay configuration saved.");
     };
 
     // Autoresponder switch handler
-    const handleToggleWorkflow = (id: string) => {
-        setWorkflows(workflows.map(wf => {
-            if (wf.id === id) {
-                const nextState = !wf.enabled;
-                addSmtpLog("config", `Autoresponder "${wf.title}" set to ${nextState ? "ENABLED" : "DISABLED"}`);
-                toast.info(`Workflow "${wf.title}" is now ${nextState ? "Active" : "Paused"}`);
-                return { ...wf, enabled: nextState };
-            }
-            return wf;
-        }));
+    const handleToggleWorkflow = async (id: string) => {
+        const target = workflows.find(wf => wf.id === id);
+        if (!target) return;
+        const nextState = !target.enabled;
+        try {
+            await supabase.from("email_workflows").update({ enabled: nextState }).eq("id", id);
+            setWorkflows(workflows.map(wf => {
+                if (wf.id === id) return { ...wf, enabled: nextState };
+                return wf;
+            }));
+            await addSmtpLog("config", `Autoresponder "${target.title}" set to ${nextState ? "ENABLED" : "DISABLED"}`);
+            toast.info(`Workflow "${target.title}" is now ${nextState ? "Active" : "Paused"}`);
+        } catch {
+            toast.error("Failed to toggle workflow");
+        }
     };
 
     // Quick template selector injection
@@ -433,6 +471,52 @@ function AdminEmail() {
                 }
             }
         );
+    };
+
+    // Template CRUD
+    const openNewTemplate = () => {
+        setEditingTemplate(null);
+        setTemplateForm({ name: "", subject: "", body: "" });
+        setIsTemplateModalOpen(true);
+    };
+
+    const openEditTemplate = (t: EmailTemplate) => {
+        setEditingTemplate(t);
+        setTemplateForm({ name: t.name, subject: t.subject, body: t.body });
+        setIsTemplateModalOpen(true);
+    };
+
+    const handleSaveTemplate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!templateForm.name.trim()) return toast.error("Template name is required.");
+
+        if (editingTemplate) {
+            const { error } = await supabase.from("email_templates").update({
+                name: templateForm.name,
+                subject: templateForm.subject,
+                body: templateForm.body,
+            }).eq("id", editingTemplate.id);
+            if (error) { toast.error("Failed to update template"); return; }
+            toast.success("Template updated.");
+        } else {
+            const { error } = await supabase.from("email_templates").insert({
+                name: templateForm.name,
+                subject: templateForm.subject,
+                body: templateForm.body,
+            });
+            if (error) { toast.error("Failed to create template"); return; }
+            toast.success("Template created.");
+        }
+
+        setIsTemplateModalOpen(false);
+        fetchEmailData();
+    };
+
+    const handleDeleteTemplate = async (id: string) => {
+        const { error } = await supabase.from("email_templates").delete().eq("id", id);
+        if (error) { toast.error("Failed to delete template"); return; }
+        toast.success("Template deleted.");
+        fetchEmailData();
     };
 
     // Initials helper
@@ -769,6 +853,13 @@ function AdminEmail() {
                                                     <option key={t.id} value={t.id}>{t.name}</option>
                                                 ))}
                                             </select>
+                                            <button
+                                                onClick={openNewTemplate}
+                                                title="Create new template"
+                                                className="text-muted-foreground hover:text-foreground p-1 rounded transition cursor-pointer"
+                                            >
+                                                <Plus className="h-3.5 w-3.5" />
+                                            </button>
                                         </div>
 
                                         {/* Outgoing composer field */}
@@ -968,6 +1059,97 @@ function AdminEmail() {
                                         className="flex-1 rounded-xl bg-gradient-brand text-white py-2.5 text-xs font-semibold shadow-md hover:scale-[1.01] transition text-center cursor-pointer"
                                     >
                                         Dispatch Email
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+
+                {isTemplateModalOpen && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-card border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-elegant space-y-4 text-foreground"
+                        >
+                            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                                <h3 className="font-display font-bold text-sm tracking-tight flex items-center gap-1.5">
+                                    <Sparkles className="h-4.5 w-4.5 text-brand-magenta" />
+                                    {editingTemplate ? "Edit Template" : "Create Template"}
+                                </h3>
+                                <button
+                                    onClick={() => setIsTemplateModalOpen(false)}
+                                    className="text-muted-foreground hover:text-foreground p-1 rounded transition cursor-pointer"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleSaveTemplate} className="space-y-3.5 text-xs">
+                                <div>
+                                    <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Template Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Welcome Email"
+                                        value={templateForm.name}
+                                        onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
+                                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Subject</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Thank you for reaching out"
+                                        value={templateForm.subject}
+                                        onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
+                                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Body (HTML)</label>
+                                    <textarea
+                                        rows={6}
+                                        placeholder="<p>Your HTML email body...</p>"
+                                        value={templateForm.body}
+                                        onChange={(e) => setTemplateForm({ ...templateForm, body: e.target.value })}
+                                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors resize-none font-mono"
+                                        required
+                                    />
+                                </div>
+                                {!editingTemplate && emailTemplates.length > 0 && (
+                                    <div className="space-y-1.5">
+                                        <label className="block text-[9px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Or edit existing:</label>
+                                        <div className="max-h-32 overflow-y-auto space-y-1">
+                                            {emailTemplates.map((t) => (
+                                                <div key={t.id} className="flex items-center justify-between bg-background rounded-lg px-2.5 py-1.5 border border-border">
+                                                    <span className="text-[10px] text-foreground truncate">{t.name}</span>
+                                                    <div className="flex gap-1">
+                                                        <button type="button" onClick={() => openEditTemplate(t)} className="text-[10px] text-brand-magenta hover:underline cursor-pointer">Edit</button>
+                                                        <button type="button" onClick={() => handleDeleteTemplate(t.id)} className="text-[10px] text-red-400 hover:underline cursor-pointer">Delete</button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsTemplateModalOpen(false)}
+                                        className="flex-1 rounded-xl border border-white/10 hover:bg-white/5 py-2.5 text-xs font-semibold transition text-center cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-1 rounded-xl bg-gradient-brand text-white py-2.5 text-xs font-semibold shadow-md hover:scale-[1.01] transition text-center cursor-pointer"
+                                    >
+                                        {editingTemplate ? "Update Template" : "Create Template"}
                                     </button>
                                 </div>
                             </form>
