@@ -116,7 +116,6 @@ function AdminSEO() {
             const { data: robotsData } = await supabase.from("seo_robots_config").select("content").limit(1).single();
             if (robotsData?.content) setRobotsText(robotsData.content);
         } catch (err) {
-            console.error("Error loading SEO data:", err);
         } finally {
             setPageLoading(false);
         }

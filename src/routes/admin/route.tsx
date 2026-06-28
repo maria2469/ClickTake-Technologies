@@ -28,7 +28,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 const NAV_ITEMS = [
-  { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard, permission: "" },
+  { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard, permission: "manageRBAC" },
   { to: "/admin/cms", label: "CMS Management", icon: FileText, permission: "readCMS" },
   { to: "/admin/crm", label: "Lead CRM", icon: Users, permission: "readLeads" },
   { to: "/admin/roles", label: "User Roles (RBAC)", icon: Shield, permission: "manageRBAC" },
@@ -39,6 +39,8 @@ const NAV_ITEMS = [
 ] as const;
 
 const ROUTE_PERMISSIONS: Record<string, string> = {
+  "/admin": "manageRBAC",
+  "/admin/": "manageRBAC",
   "/admin/cms": "readCMS",
   "/admin/crm": "readLeads",
   "/admin/roles": "manageRBAC",
@@ -46,6 +48,13 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin/seo": "readCMS",
   "/admin/settings": "manageRBAC",
   "/admin/security": "manageRBAC",
+};
+
+export const getAllowedHomePath = (perms: Set<string>) => {
+  if (perms.has('manageRBAC')) return '/admin';
+  if (perms.has('readCMS')) return '/admin/cms';
+  if (perms.has('readLeads')) return '/admin/crm';
+  return null;
 };
 
 export function RequirePermission({ permission, children, fallback = null }: { permission: string; children: ReactNode; fallback?: ReactNode }) {
@@ -104,15 +113,29 @@ function AdminLayout() {
             .from('role_permissions')
             .select('permission_key, is_granted')
             .eq('role_id', profile.role_id);
+          const loadedPerms = new Set<string>();
           if (perms) {
-            setPermissions(new Set(perms.filter(p => p.is_granted).map(p => p.permission_key)));
+            perms.filter(p => p.is_granted).forEach(p => loadedPerms.add(p.permission_key));
+            setPermissions(loadedPerms);
+          }
+
+          // Redirect to appropriate section if trying to access root admin overview without permission
+          const path = location.pathname.replace(/\/$/, "");
+          if (path === '/admin') {
+            if (!loadedPerms.has('manageRBAC')) {
+              if (loadedPerms.has('readCMS')) {
+                router.navigate({ to: '/admin/cms' });
+              } else if (loadedPerms.has('readLeads')) {
+                router.navigate({ to: '/admin/crm' });
+              }
+            }
           }
         }
       }
       setIsLoading(false);
     };
     checkAuth();
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -169,16 +192,29 @@ function AdminLayout() {
   if (!user) return null;
 
   // Route-level RBAC check (skip if no admin profile yet)
-  const requiredPermission = adminProfile && ROUTE_PERMISSIONS[location.pathname];
-  if (requiredPermission && !permissions.has(requiredPermission) && location.pathname !== '/admin') {
-    // Redirect to dashboard if user lacks permission for this route
+  const cleanPath = location.pathname.replace(/\/$/, "");
+  const requiredPermission = adminProfile && ROUTE_PERMISSIONS[cleanPath || "/admin"];
+  if (requiredPermission && !permissions.has(requiredPermission)) {
+    const allowedHome = getAllowedHomePath(permissions);
     return (
       <div className="relative min-h-screen bg-background text-foreground flex items-center justify-center">
         <BackgroundScene />
         <div className="text-center space-y-3">
           <ShieldAlert className="h-12 w-12 text-red-400 mx-auto" />
           <p className="text-sm text-muted-foreground">You do not have permission to access this page.</p>
-          <Link to="/admin" className="text-xs text-brand-magenta hover:underline">Return to Dashboard</Link>
+          {allowedHome ? (
+            <Link to={allowedHome} className="text-xs text-brand-magenta hover:underline">Go to your section</Link>
+          ) : (
+            <button 
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.navigate({ to: '/admin/login' });
+              }} 
+              className="text-xs text-brand-magenta hover:underline cursor-pointer"
+            >
+              Sign Out
+            </button>
+          )}
         </div>
       </div>
     );
@@ -188,7 +224,7 @@ function AdminLayout() {
     ? adminProfile.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
     : user.email?.slice(0, 2).toUpperCase() || 'AD';
   const userName = adminProfile?.full_name || user.email?.split('@')[0] || 'Administrator';
-  const userRole = adminProfile?.admin_roles?.role_name || 'Administrator';
+  const userRole = adminProfile?.role || adminProfile?.admin_roles?.role_name || 'Administrator';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

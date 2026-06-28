@@ -113,7 +113,6 @@ export function Work() {
           setProjects(mapped);
         }
       } catch (err) {
-        console.error("Error loading portfolio items:", err);
       }
     }
 

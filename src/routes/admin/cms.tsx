@@ -496,7 +496,6 @@ function AdminCMS() {
             const rawFile = filesArray[i];
             let file = rawFile;
             
-            console.log("Uploading file:", file.name);
 
             // WebP Conversion for images (Client-side savings)
             if (file.type.startsWith('image/')) {
@@ -524,7 +523,6 @@ function AdminCMS() {
                 }
 
                 const data = await res.json();
-                console.log("Cloud response:", data);
                 let publicUrl = data.secure_url;
 
                 // Enforce WebP and auto quality via Cloudinary transformations if it's an image
@@ -555,7 +553,6 @@ function AdminCMS() {
                     .select()
                     .single();
 
-                console.log("Supabase insert response:", { data: insertedData, dbError });
 
                 if (dbError) {
                     throw new Error(`DB Insert failed: ${dbError.message}`);

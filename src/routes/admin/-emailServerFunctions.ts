@@ -6,7 +6,7 @@ const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL || "",
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
-import { sendMail } from "./Mailer";
+import { sendMail } from "@/lib/Mailer";
 import { logAudit } from "@/lib/logAudit";
 
 export const sendAdminReply = createServerFn({ method: "POST" })

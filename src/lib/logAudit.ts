@@ -11,9 +11,7 @@ export async function logAudit(action: string, targetType: string, targetId: str
     });
     
     if (error) {
-      console.error("Supabase Audit Log Error:", error);
     }
   } catch (err) {
-    console.error("Failed to log audit:", err);
   }
 }

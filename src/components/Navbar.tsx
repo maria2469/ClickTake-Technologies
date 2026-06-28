@@ -121,17 +121,20 @@ export function Navbar() {
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "py-2" : "py-4"}`}
     >
       <div className="mx-auto max-w-7xl px-4">
-        <div
-          className={`flex items-center justify-between rounded-2xl px-5 py-3 transition-all duration-500 ${scrolled
-              ? "bg-background/20 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.25)]"
-              : "bg-background/10 backdrop-blur-md border border-white/10"
-            }`}
-        >
-          {/* LOGO */}
-          <Link to="/" className="flex items-center">
-            <img src={logo} className="h-10 w-auto object-contain scale-[1.5] origin-left ml-2" alt="ClickTake Logo" />
+      <div className="flex items-center gap-4">
+
+          {/* LOGO — outside pill, standalone */}
+          <Link to="/" className="shrink-0 flex items-center">
+            <img src={logo} className="h-24 w-auto object-contain drop-shadow-lg" alt="ClickTake Logo" />
           </Link>
 
+          {/* NAV PILL — starts after logo */}
+          <div
+            className={`flex flex-1 items-center justify-between rounded-2xl px-5 py-3 transition-all duration-500 ${scrolled
+                ? "bg-background/20 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.25)]"
+                : "bg-background/10 backdrop-blur-md border border-white/10"
+              }`}
+          >
           {/* DESKTOP NAV */}
           <nav className="hidden lg:flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-2 backdrop-blur-xl whitespace-nowrap">
             {navLinks.map((l) => {
@@ -246,6 +249,7 @@ export function Navbar() {
             </button>
           </div>
         </div>
+      </div>
 
         {/* MOBILE MENU */}
         <AnimatePresence>

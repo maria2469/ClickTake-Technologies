@@ -1,25 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
-    ArrowUpRight, CheckCircle2, Wand2, FileText, TestTube,
-    BarChart3, Shield, Zap, Clock, RefreshCw,
-    Package, GitBranch, Layers, Award, ArrowLeft,
+    ArrowUpRight, CheckCircle2, Cloud, CreditCard, Users,
+    BarChart3, Puzzle, Rocket, Globe, Zap, Clock, Award,
+    ArrowLeft, Database, Layers, Shield, Settings, Bell,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { CustomCursor } from "@/components/CustomCursor";
 import { BackgroundScene } from "@/components/BackgroundScene";
 
-export const Route = createFileRoute("/services/ai/prompt-engineering")({
+export const Route = createFileRoute("/services/web/saas")({
     head: () => ({
         meta: [
-            { title: "AI Prompt Engineering — ClickTake Technologies" },
-            {
-                name: "description",
-                content: "Structured prompt systems that make foundation models reliably useful for your workflows — consistent, testable, and production-ready.",
-            },
+            { title: "SaaS Platform Development — ClickTake Technologies" },
+            { name: "description", content: "Multi-tenant SaaS products built with subscriptions, onboarding, and growth built in from the start." },
         ],
     }),
-    component: PromptEngineeringPage,
+    component: SaaSPage,
 });
 
 const fadeUp = {
@@ -32,92 +29,92 @@ const fadeUp = {
 
 const services = [
     {
-        icon: FileText,
-        title: "Prompt System Design",
+        icon: Cloud,
+        title: "Multi-Tenant Architecture",
         color: "from-amber-500 to-orange-600",
         glow: "rgba(245,158,11,0.15)",
-        desc: "Turn ad-hoc prompts into engineered systems. We design prompt architectures that produce consistent, reliable outputs at production scale — not just in demos.",
+        desc: "Database-per-tenant or shared schema with row-level security — designed for complete data isolation, per-tenant config, and the scale you'll need in year three, not just today.",
         items: [
-            "System prompt architecture for your specific use case",
-            "Few-shot example selection and formatting strategies",
-            "Chain-of-thought and reasoning scaffolds",
-            "Output format specification (JSON, structured text, code)",
-            "Context window management and compression techniques",
-            "Role and persona design for consistent behaviour",
-            "Multi-turn conversation state management",
+            "Database-per-tenant or shared schema with RLS",
+            "Subdomain and custom domain routing per tenant",
+            "Per-tenant feature flags and configuration overrides",
+            "Tenant onboarding and provisioning automation",
+            "Cross-tenant admin and super-admin panels",
+            "Data residency controls for GDPR compliance",
+            "Tenant offboarding with data export and deletion",
         ],
     },
     {
-        icon: TestTube,
-        title: "Evaluation & Benchmarking",
-        color: "from-violet-500 to-purple-700",
+        icon: CreditCard,
+        title: "Billing & Subscription Engine",
+        color: "from-violet-500 to-indigo-600",
         glow: "rgba(139,92,246,0.15)",
-        desc: "You can't improve what you don't measure. We build eval frameworks that quantify prompt performance and make optimisation systematic, not guesswork.",
+        desc: "Stripe-powered billing that maximises revenue and minimises churn — from free trials to enterprise invoicing, usage-based pricing to annual contracts.",
         items: [
-            "Custom eval datasets reflecting your real workload",
-            "Automated scoring with LLM-as-judge frameworks",
-            "Hallucination detection and factuality metrics",
-            "Regression testing for prompt changes",
-            "A/B testing infrastructure for prompt variants",
-            "Cost and latency benchmarking across models",
-            "Human eval pipelines with inter-rater reliability",
+            "Tiered plans with feature gates and seat limits",
+            "Usage-based billing with metered API and resource tracking",
+            "Free trial management with conversion flows",
+            "Annual billing with proration and mid-cycle upgrades",
+            "Dunning automation — failed payment recovery sequences",
+            "Enterprise invoicing with Net 30/60 terms",
+            "Revenue recognition and MRR/ARR reporting dashboard",
         ],
     },
     {
-        icon: Package,
-        title: "Prompt Ops & Versioning",
-        color: "from-emerald-500 to-teal-600",
-        glow: "rgba(16,185,129,0.15)",
-        desc: "Manage prompts like code. Version control, deployment pipelines, and monitoring infrastructure that makes your prompt layer a first-class engineering concern.",
+        icon: Rocket,
+        title: "Growth Infrastructure",
+        color: "from-pink-500 to-rose-600",
+        glow: "rgba(236,72,153,0.15)",
+        desc: "Onboarding, analytics, integrations, and automation built in from the start — the features that turn signups into activated, retained, expanding customers.",
         items: [
-            "Prompt registry and version control system",
-            "CI/CD pipeline for prompt testing and deployment",
-            "Production monitoring for output quality drift",
-            "Rollback mechanisms for degraded performance",
-            "Prompt template library for team reuse",
-            "Cost optimisation through prompt compression",
-            "Multi-model routing based on task complexity",
+            "Activation-focused onboarding with progress tracking",
+            "In-app tooltips, checklists, and product tours",
+            "Product analytics — funnels, retention, and feature adoption",
+            "Webhook system for real-time event delivery to customers",
+            "REST API with OpenAPI docs and sandbox environment",
+            "Referral and affiliate tracking infrastructure",
+            "In-app upgrade prompts and expansion revenue triggers",
         ],
     },
 ];
 
 const results = [
-    { metric: "3–10×", label: "Output consistency improvement over ad-hoc prompts" },
-    { metric: "40–60%", label: "Cost reduction through prompt compression and routing" },
-    { metric: "< 2 wks", label: "Time to first production-grade prompt system" },
-    { metric: "100%", label: "Prompts covered by automated regression tests" },
+    { metric: "90 days", label: "Average time from kick-off to first paying customer" },
+    { metric: "99.9%", label: "Uptime SLA with auto-scaling infrastructure" },
+    { metric: "3×", label: "Faster time to market vs. building in-house" },
+    { metric: "Stripe", label: "Certified integration partner for billing" },
 ];
 
 const process = [
-    { step: "01", title: "Use-Case Analysis", desc: "We audit your current prompt usage, identify failure modes, and map the tasks that need the highest reliability." },
-    { step: "02", title: "Eval Dataset Creation", desc: "We build a golden dataset of inputs and expected outputs — the benchmark everything is measured against." },
-    { step: "03", title: "Prompt Architecture", desc: "System design, few-shot selection, and output formatting — all engineered against your eval dataset." },
-    { step: "04", title: "Iterative Optimisation", desc: "We run scoring loops against the eval, identify weakest performing cases, and iterate until targets are hit." },
-    { step: "05", title: "Prompt Ops Setup", desc: "Version control, CI/CD pipeline, and monitoring infrastructure deployed so your team can manage prompts confidently." },
-    { step: "06", title: "Team Handoff", desc: "Documentation, internal training, and a prompt engineering playbook your team can use to extend the system themselves." },
+    { step: "01", title: "Business Model Architecture", desc: "We map your pricing model, tenant types, permission structure, and growth loops before a schema is designed or a component is built." },
+    { step: "02", title: "Technical Architecture", desc: "Database design, multi-tenancy strategy, auth layer, API contracts, and infrastructure plan — documented and signed off before build begins." },
+    { step: "03", title: "Core Platform Build", desc: "Auth, multi-tenancy, billing, and admin — the four foundations every SaaS needs. Built in parallel by dedicated squads." },
+    { step: "04", title: "Product Feature Build", desc: "Your differentiating features built on top of the core. API-first with a React frontend, tested and staged for review." },
+    { step: "05", title: "Launch Readiness", desc: "Load testing, security audit, Stripe billing validation, onboarding QA, and infrastructure provisioning for go-live." },
+    { step: "06", title: "Post-Launch Iteration", desc: "We monitor activation metrics, identify drop-off points, and ship growth-focused improvements on a retainer or sprint basis." },
 ];
 
 const differentiators = [
-    { icon: Award, title: "Eval-first methodology", desc: "Every prompt is developed against a test suite. We ship prompts when they pass benchmarks — not when they look good in a demo." },
-    { icon: BarChart3, title: "Quantified improvement", desc: "We baseline your current outputs before starting. Every engagement ends with a measured improvement report." },
-    { icon: GitBranch, title: "Model-agnostic", desc: "We optimise for GPT-4o, Claude, Gemini, and open models. We recommend the best model per task based on cost-performance data." },
-    { icon: Clock, title: "Fast results", desc: "First production-grade prompt system in under two weeks. Immediate improvement in output consistency and reliability." },
-    { icon: RefreshCw, title: "Maintained systems", desc: "Retainer options for ongoing prompt optimisation as your models, use cases, and evaluation data evolve." },
-    { icon: Zap, title: "Cost engineering included", desc: "Prompt compression, model routing, and caching strategies reduce your inference spend alongside accuracy improvements." },
+    { icon: Award, title: "Billing-first approach", desc: "Subscription logic is the hardest part of SaaS. We design the billing model in week one — everything else is built around it." },
+    { icon: Shield, title: "Multi-tenancy done right", desc: "Tenant data isolation is non-negotiable. We build it correctly from the schema up — not as a retrofit when your first enterprise client asks." },
+    { icon: BarChart3, title: "Growth metrics wired in", desc: "Activation rate, feature adoption, MRR expansion — instrumented from launch so you know what to fix before investors ask." },
+    { icon: Clock, title: "Core platform in 6 weeks", desc: "Auth, tenancy, billing, and admin panel live in six weeks. Your first customer can sign up and pay from day one." },
+    { icon: Globe, title: "API-first, always", desc: "Every feature ships with a REST API. Your customers can integrate — and your team can build a mobile app — from day one." },
+    { icon: Zap, title: "Scales with you", desc: "Infrastructure designed for 10 customers and 10,000. Auto-scaling, database read replicas, and CDN configuration included." },
 ];
 
-const deliverables = [
-    { icon: FileText, label: "Prompt Library" },
-    { icon: TestTube, label: "Eval Dataset" },
-    { icon: BarChart3, label: "Benchmark Report" },
-    { icon: GitBranch, label: "Version Control Setup" },
-    { icon: Package, label: "CI/CD Pipeline" },
-    { icon: Shield, label: "Regression Tests" },
-    { icon: Layers, label: "Prompt Playbook" },
-    { icon: RefreshCw, label: "Monitoring Alerts" },
+const techStack = [
+    { icon: Layers, label: "React / Next.js" },
+    { icon: Database, label: "PostgreSQL" },
+    { icon: Shield, label: "Supabase / Prisma" },
+    { icon: CreditCard, label: "Stripe" },
+    { icon: Cloud, label: "AWS / Vercel" },
+    { icon: Bell, label: "Redis / BullMQ" },
+    { icon: Settings, label: "Terraform" },
+    { icon: Puzzle, label: "GitHub Actions" },
 ];
 
-function PromptEngineeringPage() {
+function SaaSPage() {
     return (
         <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
             <BackgroundScene />
@@ -125,29 +122,29 @@ function PromptEngineeringPage() {
             <Navbar />
 
             {/* ── HERO ── */}
-            <section className="relative pt-36 pb-24 px-4">
+            <section className="relative pt-44 pb-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.1 } } }}>
                         <motion.div variants={fadeUp} className="mb-5">
-                            <Link to="/services" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+                            <Link to="/services" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5">
                                 <ArrowLeft className="h-4 w-4" /> Back to Services
                             </Link>
                             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-amber-400">
-                                AI & Machine Learning
+                                Web Development
                             </div>
                         </motion.div>
                         <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
-                            Prompts engineered for{" "}
-                            <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">
-                                production, not demos.
+                            SaaS platforms built to{" "}
+                            <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 bg-clip-text text-transparent">
+                                grow from day one.
                             </span>
                         </motion.h1>
                         <motion.p variants={fadeUp} custom={1} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                            A clever prompt in a notebook proves nothing. We build prompt systems that are tested, versioned, and monitored — producing consistent, reliable outputs at production scale.
+                            We build multi-tenant SaaS products with billing, onboarding, and growth infrastructure built in from the start — so you can focus on the product, not the plumbing.
                         </motion.p>
                         <motion.div variants={fadeUp} custom={2} className="mt-8 flex flex-wrap gap-3">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
-                                Engineer your prompts <ArrowUpRight className="h-4 w-4" />
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
+                                Start your SaaS build <ArrowUpRight className="h-4 w-4" />
                             </a>
                             <a href="#services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-7 py-3.5 font-semibold backdrop-blur hover:bg-secondary transition-colors">
                                 See what's included
@@ -175,24 +172,24 @@ function PromptEngineeringPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Problem</div>
-                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Ad-hoc prompts break in production.</h2>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Reality</div>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Most SaaS products die in the plumbing, not the product.</h2>
                         <div className="space-y-4 text-muted-foreground leading-relaxed">
-                            <p>Teams spend weeks crafting prompts that work in demos, then watch them degrade under real workloads — inconsistent outputs, hallucinations on edge cases, and no way to tell when things get worse.</p>
-                            <p>The problem is treating prompts as creative writing instead of engineering. There's no eval framework, no version control, and no monitoring.</p>
-                            <p>Prompt engineering done right is a disciplined, measurement-driven process. The outputs are prompt systems that behave predictably across thousands of real inputs.</p>
+                            <p>Teams spend months building auth, billing, and multi-tenancy before they write a single line of differentiated product code. By the time they launch, they've run out of runway.</p>
+                            <p>Or they skip the foundations — and hit a wall the moment a paying customer asks for SSO, a custom subdomain, or an annual invoice.</p>
+                            <p>We build the foundations correctly the first time, so your team ships what actually wins customers — not infrastructure every SaaS needs.</p>
                         </div>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-8 backdrop-blur">
                         <div className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">Our Approach</div>
-                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Eval-first. Measured. Maintained.</h2>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Foundations in six weeks. Product shipped in ninety days.</h2>
                         <div className="space-y-3">
                             {[
-                                "Every prompt developed against a custom benchmark dataset",
-                                "Automated scoring that quantifies improvement at every iteration",
-                                "Version control and CI/CD pipeline for safe prompt deployment",
-                                "Production monitoring to catch quality drift before users do",
-                                "Full documentation and team training included in every engagement",
+                                "Billing model designed in week one — architecture built around it",
+                                "Multi-tenancy done correctly from the schema, not retrofitted",
+                                "Onboarding instrumented from launch — activation metrics wired in",
+                                "API-first: every feature ships with REST endpoints and docs",
+                                "Infrastructure scales from 10 to 10,000 customers without re-work",
                             ].map((item) => (
                                 <div key={item} className="flex items-start gap-3">
                                     <CheckCircle2 className="h-5 w-5 text-amber-400 mt-0.5 shrink-0" />
@@ -208,9 +205,9 @@ function PromptEngineeringPage() {
             <section id="services" className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-3">What We Deliver</div>
-                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Design. Evaluate. Operate.</h2>
-                        <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">Three layers of prompt engineering — each one making your AI outputs more reliable and more cost-effective.</p>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-3">What We Build</div>
+                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Three pillars. Every SaaS needs all three.</h2>
+                        <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">Multi-tenancy, billing, and growth infrastructure — the foundations that let you focus entirely on your differentiated product.</p>
                     </motion.div>
                     <div className="grid md:grid-cols-3 gap-6">
                         {services.map((s, i) => {
@@ -239,15 +236,15 @@ function PromptEngineeringPage() {
                 </div>
             </section>
 
-            {/* ── DELIVERABLES ── */}
+            {/* ── TECH STACK ── */}
             <section className="relative z-10 py-20 px-4 border-y border-border/50">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-3">Every Engagement Includes</div>
-                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Systems your team can own and extend.</h2>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-3">Every Build Includes</div>
+                        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">A proven stack. No experiments on your product.</h2>
                     </motion.div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {deliverables.map((d, i) => {
+                        {techStack.map((d, i) => {
                             const Icon = d.icon;
                             return (
                                 <motion.div key={d.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
@@ -268,7 +265,7 @@ function PromptEngineeringPage() {
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
                         <div className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-3">How It Works</div>
-                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">From scattered prompts to a production system.</h2>
+                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Kick-off to first paying customer in 90 days.</h2>
                     </motion.div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {process.map((p, i) => (
@@ -288,7 +285,7 @@ function PromptEngineeringPage() {
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
                         <div className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-3">Why ClickTake</div>
-                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Engineering rigour. Measurable results.</h2>
+                        <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">We've built the plumbing. You build the product.</h2>
                     </motion.div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                         {differentiators.map((d, i) => {
@@ -314,17 +311,17 @@ function PromptEngineeringPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-3xl mx-auto text-center">
                     <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">Ready to get reliable?</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-4">Ready to build?</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
-                            Stop hoping your prompts work.<br />
-                            <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Start knowing they do.</span>
+                            Your SaaS idea deserves<br />
+                            <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">foundations that won't crack.</span>
                         </h2>
                         <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-                            Book a free 30-minute prompt audit. We'll review your current AI outputs, identify the biggest reliability gaps, and show you what a proper eval framework would catch.
+                            Book a free 30-minute product architecture call. We'll review your idea, recommend the right stack and tenancy model, and give you a clear 90-day build plan.
                         </p>
                         <div className="flex flex-wrap gap-3 justify-center">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
-                                Book a free prompt audit <ArrowUpRight className="h-5 w-5" />
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
+                                Book a free architecture call <ArrowUpRight className="h-5 w-5" />
                             </a>
                             <Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-8 py-4 font-semibold backdrop-blur hover:bg-secondary transition-colors text-base">
                                 Explore all services

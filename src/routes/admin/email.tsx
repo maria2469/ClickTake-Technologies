@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabaseClient";
-import { sendAdminReply, sendAdminCompose } from "./emailServerFunctions";
+import { sendAdminReply, sendAdminCompose } from "./-emailServerFunctions";
 
 
 export const Route = createFileRoute("/admin/email")({
@@ -220,7 +220,6 @@ function AdminEmail() {
             .order("created_at", { ascending: false });
 
         if (error) {
-            console.error("Failed to load inbox:", error);
             toast.error("Failed to load email conversations from database.");
             return;
         }

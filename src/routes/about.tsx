@@ -164,7 +164,6 @@ function AboutPage() {
           setTeamMembers(mapped);
         }
       } catch (err) {
-        console.error("Error loading team members:", err);
       }
 
       try {
@@ -217,7 +216,6 @@ function AboutPage() {
         if (error) throw error;
         setAppSuccess(true);
       } catch (err: any) {
-        console.error("Error submitting job application:", err);
         setAppError(err.message || "Failed to submit application. Please try again.");
       } finally {
         setSubmittingApp(false);

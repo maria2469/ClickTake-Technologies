@@ -6,9 +6,9 @@ const supabaseAdmin = createClient(
   process.env.VITE_SUPABASE_URL || "",
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 );
-import type { InquiryFormValues, BookingFormValues } from "./ContactSchema";
-import { sendMail, inquiryThankYouEmail, bookingThankYouEmail } from "./Mailer";
-import { verifyTurnstileToken } from "./Turnstile";
+import type { InquiryFormValues, BookingFormValues } from "./-ContactSchema";
+import { sendMail, inquiryThankYouEmail, bookingThankYouEmail } from "@/lib/Mailer";
+import { verifyTurnstileToken } from "./-Turnstile";
 
 export const submitInquiry = createServerFn({ method: "POST" })
   .inputValidator((values: InquiryFormValues) => values)
@@ -81,7 +81,6 @@ export const submitInquiry = createServerFn({ method: "POST" })
         await sendMail({ to: values.email, subject: ec.subject, html: ec.html });
       }
     } catch (emailErr: any) {
-      console.error("Auto-responder email dispatch failed:", emailErr.message);
     }
 
     return { success: true, leadId: inserted[0].id };
@@ -163,7 +162,6 @@ export const submitBooking = createServerFn({ method: "POST" })
         await sendDefaultBookingEmail(values);
       }
     } catch (emailErr: any) {
-      console.error("Auto-responder email dispatch failed:", emailErr.message);
     }
 
     return { success: true, leadId: inserted.id };

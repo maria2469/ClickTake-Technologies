@@ -228,7 +228,6 @@ function ResourcesPage() {
         status: "New",
       });
     } catch (err) {
-      console.error("Error submitting lead:", err);
     }
     setFormSubmitted(true);
   };

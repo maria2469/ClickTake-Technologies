@@ -9,52 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as SplatRouteImport } from './routes/$'
+import { Route as ServicesRouteRouteImport } from './routes/services/route'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ServicesIndexRouteImport } from './routes/services.index'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ServicesIndexRouteImport } from './routes/services/index'
+import { Route as ContactIndexRouteImport } from './routes/contact/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
-import { Route as ServicesStarterKitRouteImport } from './routes/services.starter-kit'
-import { Route as ServicesSeoRouteImport } from './routes/services.seo'
+import { Route as ServicesStarterKitRouteImport } from './routes/services/starter-kit'
+import { Route as ServicesSeoRouteImport } from './routes/services/seo'
 import { Route as RobotsTxtRouteImport } from './routes/robots.txt'
-import { Route as LegalTermsRouteImport } from './routes/legal.terms'
-import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
-import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminSeoRouteImport } from './routes/admin.seo'
-import { Route as AdminSecurityRouteImport } from './routes/admin.security'
-import { Route as AdminRolesRouteImport } from './routes/admin.roles'
-import { Route as AdminLoginRouteImport } from './routes/admin.login'
-import { Route as AdminForgotPasswordRouteImport } from './routes/admin.forgot-password'
-import { Route as AdminEmailRouteImport } from './routes/admin.email'
-import { Route as AdminCrmRouteImport } from './routes/admin.crm'
-import { Route as AdminCreateAdminRouteImport } from './routes/admin.create-admin'
-import { Route as AdminCmsRouteImport } from './routes/admin.cms'
-import { Route as ServicesWebSaasRouteImport } from './routes/services.web.saas'
-import { Route as ServicesWebPythonBackendRouteImport } from './routes/services.web.python-backend'
-import { Route as ServicesWebFullStackRouteImport } from './routes/services.web.full-stack'
-import { Route as ServicesWebAuthRouteImport } from './routes/services.web.auth'
-import { Route as ServicesDigitalMarketingPaidAdvertisingRouteImport } from './routes/services.digital-marketing.paid-advertising'
-import { Route as ServicesDigitalMarketingCroRouteImport } from './routes/services.digital-marketing.cro'
-import { Route as ServicesDigitalMarketingContentStrategyRouteImport } from './routes/services.digital-marketing.content-strategy'
-import { Route as ServicesCreativeVideoProductionRouteImport } from './routes/services.creative.video-production'
-import { Route as ServicesCreativeGraphicDesignRouteImport } from './routes/services.creative.graphic-design'
-import { Route as ServicesAiPromptEngineeringRouteImport } from './routes/services.ai.prompt-engineering'
-import { Route as ServicesAiLlmRouteImport } from './routes/services.ai.llm'
-import { Route as ServicesAiCvNlpRouteImport } from './routes/services.ai.cv-nlp'
-import { Route as ServicesAiChatbotsRouteImport } from './routes/services.ai.chatbots'
+import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
+import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminSeoRouteImport } from './routes/admin/seo'
+import { Route as AdminSecurityRouteImport } from './routes/admin/security'
+import { Route as AdminRolesRouteImport } from './routes/admin/roles'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminForgotPasswordRouteImport } from './routes/admin/forgot-password'
+import { Route as AdminEmailRouteImport } from './routes/admin/email'
+import { Route as AdminCrmRouteImport } from './routes/admin/crm'
+import { Route as AdminCreateAdminRouteImport } from './routes/admin/create-admin'
+import { Route as AdminCmsRouteImport } from './routes/admin/cms'
+import { Route as ServicesWebSaasRouteImport } from './routes/services/web/saas'
+import { Route as ServicesWebPythonBackendRouteImport } from './routes/services/web/python-backend'
+import { Route as ServicesWebFullStackRouteImport } from './routes/services/web/full-stack'
+import { Route as ServicesWebAuthRouteImport } from './routes/services/web/auth'
+import { Route as ServicesDigitalMarketingPaidAdvertisingRouteImport } from './routes/services/digital-marketing/paid-advertising'
+import { Route as ServicesDigitalMarketingCroRouteImport } from './routes/services/digital-marketing/cro'
+import { Route as ServicesDigitalMarketingContentStrategyRouteImport } from './routes/services/digital-marketing/content-strategy'
+import { Route as ServicesCreativeVideoProductionRouteImport } from './routes/services/creative/video-production'
+import { Route as ServicesCreativeGraphicDesignRouteImport } from './routes/services/creative/graphic-design'
+import { Route as ServicesAiPromptEngineeringRouteImport } from './routes/services/ai/prompt-engineering'
+import { Route as ServicesAiLlmRouteImport } from './routes/services/ai/llm'
+import { Route as ServicesAiCvNlpRouteImport } from './routes/services/ai/cv-nlp'
+import { Route as ServicesAiChatbotsRouteImport } from './routes/services/ai/chatbots'
 
-const ServicesRoute = ServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
@@ -63,16 +58,6 @@ const ResourcesRoute = ResourcesRouteImport.update({
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -85,6 +70,16 @@ const SplatRoute = SplatRouteImport.update({
   path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesRouteRoute = ServicesRouteRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -93,12 +88,17 @@ const IndexRoute = IndexRouteImport.update({
 const ServicesIndexRoute = ServicesIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
+} as any)
+const ContactIndexRoute = ContactIndexRouteImport.update({
+  id: '/contact/',
+  path: '/contact/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const SitemapXmlRoute = SitemapXmlRouteImport.update({
   id: '/sitemap/xml',
@@ -108,12 +108,12 @@ const SitemapXmlRoute = SitemapXmlRouteImport.update({
 const ServicesStarterKitRoute = ServicesStarterKitRouteImport.update({
   id: '/starter-kit',
   path: '/starter-kit',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 const ServicesSeoRoute = ServicesSeoRouteImport.update({
   id: '/seo',
   path: '/seo',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 const RobotsTxtRoute = RobotsTxtRouteImport.update({
   id: '/robots/txt',
@@ -138,135 +138,134 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSeoRoute = AdminSeoRouteImport.update({
   id: '/seo',
   path: '/seo',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSecurityRoute = AdminSecurityRouteImport.update({
   id: '/security',
   path: '/security',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminRolesRoute = AdminRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminForgotPasswordRoute = AdminForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminEmailRoute = AdminEmailRouteImport.update({
   id: '/email',
   path: '/email',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCrmRoute = AdminCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCreateAdminRoute = AdminCreateAdminRouteImport.update({
   id: '/create-admin',
   path: '/create-admin',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCmsRoute = AdminCmsRouteImport.update({
   id: '/cms',
   path: '/cms',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const ServicesWebSaasRoute = ServicesWebSaasRouteImport.update({
   id: '/web/saas',
   path: '/web/saas',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 const ServicesWebPythonBackendRoute =
   ServicesWebPythonBackendRouteImport.update({
     id: '/web/python-backend',
     path: '/web/python-backend',
-    getParentRoute: () => ServicesRoute,
+    getParentRoute: () => ServicesRouteRoute,
   } as any)
 const ServicesWebFullStackRoute = ServicesWebFullStackRouteImport.update({
   id: '/web/full-stack',
   path: '/web/full-stack',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 const ServicesWebAuthRoute = ServicesWebAuthRouteImport.update({
   id: '/web/auth',
   path: '/web/auth',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 const ServicesDigitalMarketingPaidAdvertisingRoute =
   ServicesDigitalMarketingPaidAdvertisingRouteImport.update({
     id: '/digital-marketing/paid-advertising',
     path: '/digital-marketing/paid-advertising',
-    getParentRoute: () => ServicesRoute,
+    getParentRoute: () => ServicesRouteRoute,
   } as any)
 const ServicesDigitalMarketingCroRoute =
   ServicesDigitalMarketingCroRouteImport.update({
     id: '/digital-marketing/cro',
     path: '/digital-marketing/cro',
-    getParentRoute: () => ServicesRoute,
+    getParentRoute: () => ServicesRouteRoute,
   } as any)
 const ServicesDigitalMarketingContentStrategyRoute =
   ServicesDigitalMarketingContentStrategyRouteImport.update({
     id: '/digital-marketing/content-strategy',
     path: '/digital-marketing/content-strategy',
-    getParentRoute: () => ServicesRoute,
+    getParentRoute: () => ServicesRouteRoute,
   } as any)
 const ServicesCreativeVideoProductionRoute =
   ServicesCreativeVideoProductionRouteImport.update({
     id: '/creative/video-production',
     path: '/creative/video-production',
-    getParentRoute: () => ServicesRoute,
+    getParentRoute: () => ServicesRouteRoute,
   } as any)
 const ServicesCreativeGraphicDesignRoute =
   ServicesCreativeGraphicDesignRouteImport.update({
     id: '/creative/graphic-design',
     path: '/creative/graphic-design',
-    getParentRoute: () => ServicesRoute,
+    getParentRoute: () => ServicesRouteRoute,
   } as any)
 const ServicesAiPromptEngineeringRoute =
   ServicesAiPromptEngineeringRouteImport.update({
     id: '/ai/prompt-engineering',
     path: '/ai/prompt-engineering',
-    getParentRoute: () => ServicesRoute,
+    getParentRoute: () => ServicesRouteRoute,
   } as any)
 const ServicesAiLlmRoute = ServicesAiLlmRouteImport.update({
   id: '/ai/llm',
   path: '/ai/llm',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 const ServicesAiCvNlpRoute = ServicesAiCvNlpRouteImport.update({
   id: '/ai/cv-nlp',
   path: '/ai/cv-nlp',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 const ServicesAiChatbotsRoute = ServicesAiChatbotsRouteImport.update({
   id: '/ai/chatbots',
   path: '/ai/chatbots',
-  getParentRoute: () => ServicesRoute,
+  getParentRoute: () => ServicesRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/services': typeof ServicesRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
-  '/services': typeof ServicesRouteWithChildren
   '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
   '/admin/crm': typeof AdminCrmRoute
@@ -285,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/services/starter-kit': typeof ServicesStarterKitRoute
   '/sitemap/xml': typeof SitemapXmlRoute
   '/admin/': typeof AdminIndexRoute
+  '/contact/': typeof ContactIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
   '/services/ai/cv-nlp': typeof ServicesAiCvNlpRoute
@@ -304,7 +304,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
-  '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
   '/admin/cms': typeof AdminCmsRoute
@@ -325,6 +324,7 @@ export interface FileRoutesByTo {
   '/services/starter-kit': typeof ServicesStarterKitRoute
   '/sitemap/xml': typeof SitemapXmlRoute
   '/admin': typeof AdminIndexRoute
+  '/contact': typeof ContactIndexRoute
   '/services': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
   '/services/ai/cv-nlp': typeof ServicesAiCvNlpRoute
@@ -343,13 +343,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/services': typeof ServicesRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
-  '/services': typeof ServicesRouteWithChildren
   '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
   '/admin/crm': typeof AdminCrmRoute
@@ -368,6 +367,7 @@ export interface FileRoutesById {
   '/services/starter-kit': typeof ServicesStarterKitRoute
   '/sitemap/xml': typeof SitemapXmlRoute
   '/admin/': typeof AdminIndexRoute
+  '/contact/': typeof ContactIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/services/ai/chatbots': typeof ServicesAiChatbotsRoute
   '/services/ai/cv-nlp': typeof ServicesAiCvNlpRoute
@@ -387,13 +387,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/services'
     | '/$'
     | '/about'
-    | '/admin'
-    | '/contact'
     | '/portfolio'
     | '/resources'
-    | '/services'
     | '/admin/cms'
     | '/admin/create-admin'
     | '/admin/crm'
@@ -412,6 +411,7 @@ export interface FileRouteTypes {
     | '/services/starter-kit'
     | '/sitemap/xml'
     | '/admin/'
+    | '/contact/'
     | '/services/'
     | '/services/ai/chatbots'
     | '/services/ai/cv-nlp'
@@ -431,7 +431,6 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/about'
-    | '/contact'
     | '/portfolio'
     | '/resources'
     | '/admin/cms'
@@ -452,6 +451,7 @@ export interface FileRouteTypes {
     | '/services/starter-kit'
     | '/sitemap/xml'
     | '/admin'
+    | '/contact'
     | '/services'
     | '/services/ai/chatbots'
     | '/services/ai/cv-nlp'
@@ -469,13 +469,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/services'
     | '/$'
     | '/about'
-    | '/admin'
-    | '/contact'
     | '/portfolio'
     | '/resources'
-    | '/services'
     | '/admin/cms'
     | '/admin/create-admin'
     | '/admin/crm'
@@ -494,6 +493,7 @@ export interface FileRouteTypes {
     | '/services/starter-kit'
     | '/sitemap/xml'
     | '/admin/'
+    | '/contact/'
     | '/services/'
     | '/services/ai/chatbots'
     | '/services/ai/cv-nlp'
@@ -512,29 +512,22 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  ServicesRouteRoute: typeof ServicesRouteRouteWithChildren
   SplatRoute: typeof SplatRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRouteWithChildren
-  ContactRoute: typeof ContactRoute
   PortfolioRoute: typeof PortfolioRoute
   ResourcesRoute: typeof ResourcesRoute
-  ServicesRoute: typeof ServicesRouteWithChildren
   LegalCookiesRoute: typeof LegalCookiesRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   RobotsTxtRoute: typeof RobotsTxtRoute
   SitemapXmlRoute: typeof SitemapXmlRoute
+  ContactIndexRoute: typeof ContactIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/services': {
-      id: '/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof ServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/resources': {
       id: '/resources'
       path: '/resources'
@@ -547,20 +540,6 @@ declare module '@tanstack/react-router' {
       path: '/portfolio'
       fullPath: '/portfolio'
       preLoaderRoute: typeof PortfolioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -577,6 +556,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -589,14 +582,21 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/services/'
       preLoaderRoute: typeof ServicesIndexRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
+    }
+    '/contact/': {
+      id: '/contact/'
+      path: '/contact'
+      fullPath: '/contact/'
+      preLoaderRoute: typeof ContactIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/sitemap/xml': {
       id: '/sitemap/xml'
@@ -610,14 +610,14 @@ declare module '@tanstack/react-router' {
       path: '/starter-kit'
       fullPath: '/services/starter-kit'
       preLoaderRoute: typeof ServicesStarterKitRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/seo': {
       id: '/services/seo'
       path: '/seo'
       fullPath: '/services/seo'
       preLoaderRoute: typeof ServicesSeoRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/robots/txt': {
       id: '/robots/txt'
@@ -652,166 +652,166 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/seo': {
       id: '/admin/seo'
       path: '/seo'
       fullPath: '/admin/seo'
       preLoaderRoute: typeof AdminSeoRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/security': {
       id: '/admin/security'
       path: '/security'
       fullPath: '/admin/security'
       preLoaderRoute: typeof AdminSecurityRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/roles': {
       id: '/admin/roles'
       path: '/roles'
       fullPath: '/admin/roles'
       preLoaderRoute: typeof AdminRolesRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/forgot-password': {
       id: '/admin/forgot-password'
       path: '/forgot-password'
       fullPath: '/admin/forgot-password'
       preLoaderRoute: typeof AdminForgotPasswordRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/email': {
       id: '/admin/email'
       path: '/email'
       fullPath: '/admin/email'
       preLoaderRoute: typeof AdminEmailRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/crm': {
       id: '/admin/crm'
       path: '/crm'
       fullPath: '/admin/crm'
       preLoaderRoute: typeof AdminCrmRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/create-admin': {
       id: '/admin/create-admin'
       path: '/create-admin'
       fullPath: '/admin/create-admin'
       preLoaderRoute: typeof AdminCreateAdminRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/cms': {
       id: '/admin/cms'
       path: '/cms'
       fullPath: '/admin/cms'
       preLoaderRoute: typeof AdminCmsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/services/web/saas': {
       id: '/services/web/saas'
       path: '/web/saas'
       fullPath: '/services/web/saas'
       preLoaderRoute: typeof ServicesWebSaasRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/web/python-backend': {
       id: '/services/web/python-backend'
       path: '/web/python-backend'
       fullPath: '/services/web/python-backend'
       preLoaderRoute: typeof ServicesWebPythonBackendRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/web/full-stack': {
       id: '/services/web/full-stack'
       path: '/web/full-stack'
       fullPath: '/services/web/full-stack'
       preLoaderRoute: typeof ServicesWebFullStackRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/web/auth': {
       id: '/services/web/auth'
       path: '/web/auth'
       fullPath: '/services/web/auth'
       preLoaderRoute: typeof ServicesWebAuthRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/digital-marketing/paid-advertising': {
       id: '/services/digital-marketing/paid-advertising'
       path: '/digital-marketing/paid-advertising'
       fullPath: '/services/digital-marketing/paid-advertising'
       preLoaderRoute: typeof ServicesDigitalMarketingPaidAdvertisingRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/digital-marketing/cro': {
       id: '/services/digital-marketing/cro'
       path: '/digital-marketing/cro'
       fullPath: '/services/digital-marketing/cro'
       preLoaderRoute: typeof ServicesDigitalMarketingCroRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/digital-marketing/content-strategy': {
       id: '/services/digital-marketing/content-strategy'
       path: '/digital-marketing/content-strategy'
       fullPath: '/services/digital-marketing/content-strategy'
       preLoaderRoute: typeof ServicesDigitalMarketingContentStrategyRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/creative/video-production': {
       id: '/services/creative/video-production'
       path: '/creative/video-production'
       fullPath: '/services/creative/video-production'
       preLoaderRoute: typeof ServicesCreativeVideoProductionRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/creative/graphic-design': {
       id: '/services/creative/graphic-design'
       path: '/creative/graphic-design'
       fullPath: '/services/creative/graphic-design'
       preLoaderRoute: typeof ServicesCreativeGraphicDesignRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/ai/prompt-engineering': {
       id: '/services/ai/prompt-engineering'
       path: '/ai/prompt-engineering'
       fullPath: '/services/ai/prompt-engineering'
       preLoaderRoute: typeof ServicesAiPromptEngineeringRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/ai/llm': {
       id: '/services/ai/llm'
       path: '/ai/llm'
       fullPath: '/services/ai/llm'
       preLoaderRoute: typeof ServicesAiLlmRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/ai/cv-nlp': {
       id: '/services/ai/cv-nlp'
       path: '/ai/cv-nlp'
       fullPath: '/services/ai/cv-nlp'
       preLoaderRoute: typeof ServicesAiCvNlpRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
     '/services/ai/chatbots': {
       id: '/services/ai/chatbots'
       path: '/ai/chatbots'
       fullPath: '/services/ai/chatbots'
       preLoaderRoute: typeof ServicesAiChatbotsRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof ServicesRouteRoute
     }
   }
 }
 
-interface AdminRouteChildren {
+interface AdminRouteRouteChildren {
   AdminCmsRoute: typeof AdminCmsRoute
   AdminCreateAdminRoute: typeof AdminCreateAdminRoute
   AdminCrmRoute: typeof AdminCrmRoute
@@ -825,7 +825,7 @@ interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminCmsRoute: AdminCmsRoute,
   AdminCreateAdminRoute: AdminCreateAdminRoute,
   AdminCrmRoute: AdminCrmRoute,
@@ -839,9 +839,11 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
 }
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
 
-interface ServicesRouteChildren {
+interface ServicesRouteRouteChildren {
   ServicesSeoRoute: typeof ServicesSeoRoute
   ServicesStarterKitRoute: typeof ServicesStarterKitRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
@@ -860,7 +862,7 @@ interface ServicesRouteChildren {
   ServicesWebSaasRoute: typeof ServicesWebSaasRoute
 }
 
-const ServicesRouteChildren: ServicesRouteChildren = {
+const ServicesRouteRouteChildren: ServicesRouteRouteChildren = {
   ServicesSeoRoute: ServicesSeoRoute,
   ServicesStarterKitRoute: ServicesStarterKitRoute,
   ServicesIndexRoute: ServicesIndexRoute,
@@ -881,24 +883,24 @@ const ServicesRouteChildren: ServicesRouteChildren = {
   ServicesWebSaasRoute: ServicesWebSaasRoute,
 }
 
-const ServicesRouteWithChildren = ServicesRoute._addFileChildren(
-  ServicesRouteChildren,
+const ServicesRouteRouteWithChildren = ServicesRouteRoute._addFileChildren(
+  ServicesRouteRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
+  ServicesRouteRoute: ServicesRouteRouteWithChildren,
   SplatRoute: SplatRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRouteWithChildren,
-  ContactRoute: ContactRoute,
   PortfolioRoute: PortfolioRoute,
   ResourcesRoute: ResourcesRoute,
-  ServicesRoute: ServicesRouteWithChildren,
   LegalCookiesRoute: LegalCookiesRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   RobotsTxtRoute: RobotsTxtRoute,
   SitemapXmlRoute: SitemapXmlRoute,
+  ContactIndexRoute: ContactIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

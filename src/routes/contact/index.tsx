@@ -19,10 +19,10 @@ import {
   bookingSchema,
   type InquiryFormValues,
   type BookingFormValues,
-} from "./ContactSchema";
-import { submitInquiry, submitBooking } from "./contactFunction"
+} from "./-ContactSchema";
+import { submitInquiry, submitBooking } from "./-contactFunction"
 
-export const Route = createFileRoute("/contact")({
+export const Route = createFileRoute("/contact/")({
   head: () => ({
     meta: [
       { title: "Contact Us & Book discovery call — ClickTake Technologies" },
@@ -98,7 +98,6 @@ function ContactPage() {
       setInquirySuccess(true);
       resetInquiryForm();
     } catch (err) {
-      console.error(err);
       toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setInquiryResetTrigger((n) => n + 1);
       setInquiryValue("turnstileToken", "");
@@ -128,7 +127,6 @@ function ContactPage() {
   const selectedTime = watchBooking("time");
 
   const onBookingSubmit = async (values: BookingFormValues) => {
-    console.log("BOOKING SUBMIT TRIGGERED", values);
     try {
       await submitBooking({ data: values });
       setSubmittedBooking({
@@ -140,7 +138,6 @@ function ContactPage() {
       setBookingSuccess(true);
       resetBookingForm();
     } catch (err) {
-      console.error(err);
       toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setBookingResetTrigger((n) => n + 1);
       setBookingValue("turnstileToken", "");

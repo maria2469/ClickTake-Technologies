@@ -125,11 +125,11 @@ function ChatbotsPage() {
             <Navbar />
 
             {/* ── HERO ── */}
-            <section className="relative pt-36 pb-24 px-4">
+            <section className="relative pt-44 pb-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.1 } } }}>
                         <motion.div variants={fadeUp} className="mb-5">
-                            <Link to="/services" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+                            <Link to="/services" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5">
                                 <ArrowLeft className="h-4 w-4" /> Back to Services
                             </Link>
                             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-400">

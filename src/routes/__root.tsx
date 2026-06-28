@@ -54,7 +54,6 @@ function ErrorComponent({
   error: Error;
   reset: () => void;
 }) {
-  console.error("🚨 ROUTE ERROR:", error);
 
   const router = useRouter();
 
@@ -147,14 +146,12 @@ function RootComponent() {
     select: (s) => s.location.pathname,
   });
 
-  console.log("🌍 CURRENT PATH:", pathname);
 
   useEffect(() => {
     // Only track public-facing page views (ignore admin portal traffic)
     if (pathname && !pathname.startsWith('/admin')) {
       supabase.from('page_views').insert({ path: pathname }).then(({ error }) => {
-        if (error) console.error("Page view tracking skipped (SQL table missing):", error.message);
-      });
+        if (error) { /* silently ignore page view tracking errors */ }      });
     }
   }, [pathname]);
 

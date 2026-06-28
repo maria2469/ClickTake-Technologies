@@ -112,7 +112,7 @@ function AdminRoles() {
     // Form inputs state
     const [newUserName, setNewUserName] = useState("");
     const [newUserEmail, setNewUserEmail] = useState("");
-    const [newUserRole, setNewUserRole] = useState("Sales Support");
+    const [newUserRole, setNewUserRole] = useState("Sales/Support");
 
     const [editingUser, setEditingUser] = useState<UserItem | null>(null);
     const [deletingUser, setDeletingUser] = useState<UserItem | null>(null);
@@ -142,7 +142,7 @@ function AdminRoles() {
                     id: u.id,
                     name: u.full_name,
                     email: u.email,
-                    role: u.admin_roles?.role_name || "Sales Support",
+                    role: u.admin_roles?.role_name || "Sales/Support",
                     status: u.status as "Active" | "Inactive",
                 })));
             }
@@ -175,7 +175,6 @@ function AdminRoles() {
                 })));
             }
         } catch (err) {
-            console.error("Error loading RBAC data:", err);
         } finally {
             setRolesLoading(false);
         }
@@ -199,7 +198,6 @@ function AdminRoles() {
                 action: `${action}: ${details}`,
             });
         } catch (err) {
-            console.error("Error logging audit entry:", err);
         }
     };
 
@@ -227,7 +225,6 @@ function AdminRoles() {
             addAuditLog(`Toggled permission for ${role}`, `Set ${permissionKey} to ${newValue ? "Enabled" : "Disabled"}`, "permission");
             toast.info(`Updated permission for ${role}: ${permissionKey} is now ${newValue ? "ON" : "OFF"}`);
         } catch (err) {
-            console.error("Error toggling permission:", err);
             toast.error("Failed to update permission");
         }
     };
@@ -267,7 +264,7 @@ function AdminRoles() {
 
         setNewUserName("");
         setNewUserEmail("");
-        setNewUserRole("Sales Support");
+        setNewUserRole("Sales/Support");
         setIsAddUserOpen(false);
     };
 

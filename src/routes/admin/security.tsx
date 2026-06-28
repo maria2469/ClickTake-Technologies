@@ -104,7 +104,6 @@ function AdminSecurityPage() {
                 })));
             }
         } catch (err) {
-            console.error("Error loading security data:", err);
         } finally {
             setLoading(false);
         }

@@ -18,11 +18,27 @@ export function CustomCursor() {
   const haloX = useSpring(x, { damping: 22, stiffness: 130, mass: 0.7 });
   const haloY = useSpring(y, { damping: 22, stiffness: 130, mass: 0.7 });
 
-  // 6 trail particles with progressively softer springs
-  const trail = Array.from({ length: 6 }).map((_, i) => ({
-    x: useSpring(x, { damping: 30 - i * 2, stiffness: 220 - i * 26, mass: 0.4 + i * 0.12 }),
-    y: useSpring(y, { damping: 30 - i * 2, stiffness: 220 - i * 26, mass: 0.4 + i * 0.12 }),
-  }));
+  const t0x = useSpring(x, { damping: 30, stiffness: 220, mass: 0.40 });
+  const t0y = useSpring(y, { damping: 30, stiffness: 220, mass: 0.40 });
+  const t1x = useSpring(x, { damping: 28, stiffness: 194, mass: 0.52 });
+  const t1y = useSpring(y, { damping: 28, stiffness: 194, mass: 0.52 });
+  const t2x = useSpring(x, { damping: 26, stiffness: 168, mass: 0.64 });
+  const t2y = useSpring(y, { damping: 26, stiffness: 168, mass: 0.64 });
+  const t3x = useSpring(x, { damping: 24, stiffness: 142, mass: 0.76 });
+  const t3y = useSpring(y, { damping: 24, stiffness: 142, mass: 0.76 });
+  const t4x = useSpring(x, { damping: 22, stiffness: 116, mass: 0.88 });
+  const t4y = useSpring(y, { damping: 22, stiffness: 116, mass: 0.88 });
+  const t5x = useSpring(x, { damping: 20, stiffness: 90,  mass: 1.00 });
+  const t5y = useSpring(y, { damping: 20, stiffness: 90,  mass: 1.00 });
+
+  const trail = [
+    { x: t0x, y: t0y },
+    { x: t1x, y: t1y },
+    { x: t2x, y: t2y },
+    { x: t3x, y: t3y },
+    { x: t4x, y: t4y },
+    { x: t5x, y: t5y },
+  ];
 
   const colors = ["#ff3d8b", "#c026d3", "#8b5cf6", "#3b82f6", "#22d3ee", "#a3e635"];
 

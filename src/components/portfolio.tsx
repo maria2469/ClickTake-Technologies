@@ -393,7 +393,6 @@ function PortfolioPage() {
                     setCaseStudiesList(mapped);
                 }
             } catch (err) {
-                console.error("Error loading case studies:", err);
             }
         }
         loadCaseStudies();

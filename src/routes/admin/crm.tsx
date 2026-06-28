@@ -172,7 +172,6 @@ function AdminCrmPage() {
     } catch (error: any) {
       setLeads(previousLeads); 
       toast.error(`Failed to delete lead: ${error.message}`); 
-      console.error("Supabase delete error:", error);
     }
   };
 
@@ -190,7 +189,6 @@ function AdminCrmPage() {
     const { error } = await supabase.from('leads').insert(newLead);
     if (error) { 
       toast.error(`Failed to create lead: ${error.message}`); 
-      console.error("Supabase insert error:", error);
       return; 
     }
     

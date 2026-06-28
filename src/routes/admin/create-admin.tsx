@@ -25,7 +25,7 @@ export function AdminSignup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("Sales Support");
+  const [role, setRole] = useState("Sales/Support");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Error States
@@ -332,8 +332,8 @@ export function AdminSignup() {
                   className="w-full bg-[#0D0025]/50 border border-white/10 hover:border-white/20 focus:border-brand-blue focus:shadow-[0_0_15px_rgba(74,144,217,0.2)] rounded-xl px-3.5 py-2.5 text-xs text-[#F0EBF8] transition-all duration-300 focus:outline-none appearance-none"
                 >
                   <option value="Super Admin">Super Admin (Full Privileges)</option>
-                  <option value="Editor">Content Editor (CMS Manager)</option>
-                  <option value="Sales Support">Sales Support (CRM Operator)</option>
+                  <option value="Content Editor">Content Editor (CMS Manager)</option>
+                  <option value="Sales/Support">Sales/Support (CRM Operator)</option>
                 </select>
               </div>
 

@@ -63,7 +63,6 @@ export function Testimonials() {
           setItems(mapped);
         }
       } catch (err) {
-        console.error("Error loading testimonials:", err);
       }
     }
 

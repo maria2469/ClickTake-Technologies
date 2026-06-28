@@ -58,7 +58,6 @@ function Index() {
           });
         }
       } catch (err) {
-        console.error("Failed to load default SEO values from site_settings:", err);
       }
     };
     fetchSeoSettings();
