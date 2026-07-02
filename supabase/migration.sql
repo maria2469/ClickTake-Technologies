@@ -1002,3 +1002,71 @@ INSERT INTO admin_notifications (title, message, type) VALUES
   ('Welcome to ClickTake Admin', 'Your admin portal is fully operational. Configure your system settings to get started.', 'info'),
   ('New Lead Captured', 'A new contact form submission has been received from the website.', 'lead')
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- SERVICES & PACKAGES
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS services (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE NOT NULL,
+  category TEXT NOT NULL,
+  category_label TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL,
+  gradient TEXT NOT NULL DEFAULT 'from-cyan-400 via-blue-500 to-violet-600',
+  glow TEXT NOT NULL DEFAULT 'rgba(6,182,212,0.15)',
+  eyebrow TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  detailed_description TEXT NOT NULL DEFAULT '',
+  icon_name TEXT NOT NULL DEFAULT 'Sparkles',
+  items JSONB DEFAULT '[]',
+  results JSONB DEFAULT '[]',
+  differentiators JSONB DEFAULT '[]',
+  deliverables JSONB DEFAULT '[]',
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS service_processes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  service_id UUID REFERENCES services(id) ON DELETE CASCADE,
+  step_number INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS pricing_packages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  service_id UUID REFERENCES services(id) ON DELETE CASCADE,
+  package_level TEXT NOT NULL,
+  price TEXT NOT NULL,
+  delivery_days TEXT DEFAULT '',
+  description TEXT DEFAULT '',
+  features JSONB DEFAULT '[]',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE service_processes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pricing_packages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "anon_select" ON services;
+CREATE POLICY "anon_select" ON services FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "anon_select" ON service_processes;
+CREATE POLICY "anon_select" ON service_processes FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "anon_select" ON pricing_packages;
+CREATE POLICY "anon_select" ON pricing_packages FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "authenticated_all" ON services;
+CREATE POLICY "authenticated_all" ON services FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "authenticated_all" ON service_processes;
+CREATE POLICY "authenticated_all" ON service_processes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "authenticated_all" ON pricing_packages;
+CREATE POLICY "authenticated_all" ON pricing_packages FOR ALL TO authenticated USING (true) WITH CHECK (true);
+

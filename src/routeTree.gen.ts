@@ -22,11 +22,13 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as ServicesStarterKitRouteImport } from './routes/services/starter-kit'
 import { Route as ServicesSeoRouteImport } from './routes/services/seo'
+import { Route as ServicesSplatRouteImport } from './routes/services/$'
 import { Route as RobotsTxtRouteImport } from './routes/robots.txt'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminServicesRouteImport } from './routes/admin/services'
 import { Route as AdminSeoRouteImport } from './routes/admin/seo'
 import { Route as AdminSecurityRouteImport } from './routes/admin/security'
 import { Route as AdminRolesRouteImport } from './routes/admin/roles'
@@ -115,6 +117,11 @@ const ServicesSeoRoute = ServicesSeoRouteImport.update({
   path: '/seo',
   getParentRoute: () => ServicesRouteRoute,
 } as any)
+const ServicesSplatRoute = ServicesSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => ServicesRouteRoute,
+} as any)
 const RobotsTxtRoute = RobotsTxtRouteImport.update({
   id: '/robots/txt',
   path: '/robots/txt',
@@ -138,6 +145,11 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminServicesRoute = AdminServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSeoRoute = AdminSeoRouteImport.update({
@@ -275,11 +287,13 @@ export interface FileRoutesByFullPath {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/seo': typeof AdminSeoRoute
+  '/admin/services': typeof AdminServicesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/robots/txt': typeof RobotsTxtRoute
+  '/services/$': typeof ServicesSplatRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -315,11 +329,13 @@ export interface FileRoutesByTo {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/seo': typeof AdminSeoRoute
+  '/admin/services': typeof AdminServicesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/robots/txt': typeof RobotsTxtRoute
+  '/services/$': typeof ServicesSplatRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -358,11 +374,13 @@ export interface FileRoutesById {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/security': typeof AdminSecurityRoute
   '/admin/seo': typeof AdminSeoRoute
+  '/admin/services': typeof AdminServicesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/robots/txt': typeof RobotsTxtRoute
+  '/services/$': typeof ServicesSplatRoute
   '/services/seo': typeof ServicesSeoRoute
   '/services/starter-kit': typeof ServicesStarterKitRoute
   '/sitemap/xml': typeof SitemapXmlRoute
@@ -402,11 +420,13 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/security'
     | '/admin/seo'
+    | '/admin/services'
     | '/admin/settings'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
     | '/robots/txt'
+    | '/services/$'
     | '/services/seo'
     | '/services/starter-kit'
     | '/sitemap/xml'
@@ -442,11 +462,13 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/security'
     | '/admin/seo'
+    | '/admin/services'
     | '/admin/settings'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
     | '/robots/txt'
+    | '/services/$'
     | '/services/seo'
     | '/services/starter-kit'
     | '/sitemap/xml'
@@ -484,11 +506,13 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/security'
     | '/admin/seo'
+    | '/admin/services'
     | '/admin/settings'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
     | '/robots/txt'
+    | '/services/$'
     | '/services/seo'
     | '/services/starter-kit'
     | '/sitemap/xml'
@@ -619,6 +643,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesSeoRouteImport
       parentRoute: typeof ServicesRouteRoute
     }
+    '/services/$': {
+      id: '/services/$'
+      path: '/$'
+      fullPath: '/services/$'
+      preLoaderRoute: typeof ServicesSplatRouteImport
+      parentRoute: typeof ServicesRouteRoute
+    }
     '/robots/txt': {
       id: '/robots/txt'
       path: '/robots/txt'
@@ -652,6 +683,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/services': {
+      id: '/admin/services'
+      path: '/services'
+      fullPath: '/admin/services'
+      preLoaderRoute: typeof AdminServicesRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/seo': {
@@ -821,6 +859,7 @@ interface AdminRouteRouteChildren {
   AdminRolesRoute: typeof AdminRolesRoute
   AdminSecurityRoute: typeof AdminSecurityRoute
   AdminSeoRoute: typeof AdminSeoRoute
+  AdminServicesRoute: typeof AdminServicesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -835,6 +874,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminRolesRoute: AdminRolesRoute,
   AdminSecurityRoute: AdminSecurityRoute,
   AdminSeoRoute: AdminSeoRoute,
+  AdminServicesRoute: AdminServicesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -844,6 +884,7 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface ServicesRouteRouteChildren {
+  ServicesSplatRoute: typeof ServicesSplatRoute
   ServicesSeoRoute: typeof ServicesSeoRoute
   ServicesStarterKitRoute: typeof ServicesStarterKitRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
@@ -863,6 +904,7 @@ interface ServicesRouteRouteChildren {
 }
 
 const ServicesRouteRouteChildren: ServicesRouteRouteChildren = {
+  ServicesSplatRoute: ServicesSplatRoute,
   ServicesSeoRoute: ServicesSeoRoute,
   ServicesStarterKitRoute: ServicesStarterKitRoute,
   ServicesIndexRoute: ServicesIndexRoute,
