@@ -832,9 +832,16 @@ function AdminCMS() {
             if (pat) {
                 style.backgroundImage = style.backgroundImage ? `${pat}, ${style.backgroundImage}` : pat;
                 const ps = cfg.pattern_type === 'stripes' || cfg.pattern_type === 'zigzag' ? '12px' : '20px';
-                style.backgroundSize = (style.backgroundImage || '').includes(',') ? `${ps} ${ps}, cover` : `${ps} ${ps}`;
-                style.backgroundRepeat = 'repeat';
-                style.backgroundPosition = '0 0';
+                const isMulti = (style.backgroundImage || '').includes(',');
+                if (isMulti) {
+                    style.backgroundSize = `${ps} ${ps}, cover`;
+                    style.backgroundRepeat = 'repeat, no-repeat';
+                    style.backgroundPosition = '0 0, center';
+                } else {
+                    style.backgroundSize = `${ps} ${ps}`;
+                    style.backgroundRepeat = 'repeat';
+                    style.backgroundPosition = '0 0';
+                }
             }
         }
         return style;
@@ -1458,7 +1465,7 @@ function AdminCMS() {
                                     <p className="text-[9px] text-muted-foreground mt-0.5">Show on frontend</p>
                                 </div>
                                 <button onClick={() => handleBgFieldChange('is_active', !(activeBg || draftBg)?.is_active)}
-                                    className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${(activeBg || draftBg)?.is_active !== false ? 'bg-emerald-500' : 'bg-white/20'}`}>
+                                    className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${(activeBg || draftBg)?.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-700 border border-white/20'}`}>
                                     <span className={`block w-4 h-4 rounded-full bg-white transition-transform ${(activeBg || draftBg)?.is_active !== false ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
                                 </button>
                             </div>
