@@ -185,7 +185,7 @@ function DynamicServicePage() {
   const hasProcess = processes.length > 0;
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="relative min-h-screen text-foreground overflow-x-hidden">
       <SEOHead
         slug={`/services/${slug}`}
         title={`${service.title} — ClickTake Technologies`}

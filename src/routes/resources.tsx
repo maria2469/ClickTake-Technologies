@@ -264,7 +264,7 @@ function ResourcesPage() {
   const hasAnyResources = filteredArticles.length > 0 || filteredGuides.length > 0 || filteredWebinars.length > 0;
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="relative min-h-screen text-foreground overflow-x-hidden">
       <SEOHead slug="/resources" title="Resources & Insights — ClickTake Technologies" description="Browse our collection of SEO-optimized articles, B2B SaaS growth guides, whitepapers, and upcoming webinars on AI and development." />
       <BackgroundScene />
       <CustomCursor />

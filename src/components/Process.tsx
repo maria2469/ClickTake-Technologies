@@ -1,6 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Search, Brain, Pencil, Cog, Rocket, CheckCircle, Clock, Users, Zap } from "lucide-react";
+import { useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle, overlayStyle } from "./BackgroundRenderer";
 
 const steps = [
   {
@@ -164,11 +165,12 @@ function StepNode({ s, i }: { s: typeof steps[0]; i: number }) {
 }
 
 export function Process() {
+  const ctaBg = getSectionBackground(useBackgroundsContext(), "cta");
   const outcomesRef = useRef<HTMLDivElement>(null);
   const outcomesInView = useInView(outcomesRef, { once: true, margin: '-60px' });
 
   return (
-    <section id="process" className="relative overflow-hidden bg-background py-24 lg:py-36">
+    <section id="process" className="relative overflow-hidden py-24 lg:py-36">
       {/* BACKGROUND — unchanged per user request */}
       <div className="absolute inset-0">
         <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[140px]" />
@@ -275,23 +277,32 @@ export function Process() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="mt-16 text-center"
+          className={`${ctaBg ? 'relative overflow-hidden' : ''} mt-16 text-center`}
+          style={ctaBg ? bgToStyle(ctaBg) : {}}
         >
-          <p className="text-muted-foreground text-sm">
-            Ready to start?{" "}
-            <a
-              href="#contact"
-              className="group inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary transition-colors"
-            >
-              Let's talk about your project
-              <motion.span
-                animate={{ x: [0, 4, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
+          {ctaBg?.bg_type === "video" && (ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile) && (
+            <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full"
+              style={videoStyle(ctaBg)}
+              src={ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile || undefined} />
+          )}
+          {ctaBg?.overlay_color && <div style={overlayStyle(ctaBg)} />}
+          <div className="relative z-10">
+            <p className="text-muted-foreground text-sm">
+              Ready to start?{" "}
+              <a
+                href="#contact"
+                className="group inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary transition-colors"
               >
-                →
-              </motion.span>
-            </a>
-          </p>
+                Let's talk about your project
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  →
+                </motion.span>
+              </a>
+            </p>
+          </div>
         </motion.div>
       </div>
     </section>

@@ -235,7 +235,7 @@ function AboutPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="relative min-h-screen text-foreground overflow-x-hidden">
       <SEOHead slug="/about" title="About Us — ClickTake Technologies" description="Learn about ClickTake Technologies — our mission, our multi-national team in Birmingham and Multan, our core values, and open careers." />
       <BackgroundScene />
       <CustomCursor />

@@ -123,20 +123,15 @@ export const submitBooking = createServerFn({ method: "POST" })
       throw new Error(verify.error || "CAPTCHA verification failed. Please try again.");
     }
 
-    // 2. Insert into leads table
+    // 2. Insert into bookings table
     const { data: inserted, error: insertError } = await supabaseAdmin
-      .from("leads")
+      .from("bookings")
       .insert({
         name: values.name,
         email: values.email,
-        phone: "",
-        service_interest: "Discovery Call",
-        source_page: "Contact Page - Booking Call Form",
-        source: "Contact Form",
-        status: "New",
-        internal_notes: JSON.stringify([
-          `Booked Discovery Call: ${values.date} at ${values.time}`
-        ]),
+        booking_date: values.date,
+        booking_time: values.time,
+        status: "pending",
       })
       .select()
       .single();

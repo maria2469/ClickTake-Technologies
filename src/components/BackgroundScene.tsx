@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
+import { useBackgroundsContext, getSectionBackground } from "./BackgroundRenderer";
 
 /* ─── Palette ─────────────────────────────────────────────────── */
 const LIGHT_PALETTE: [number, number, number][] = [
@@ -48,6 +49,10 @@ interface GridPulse {
 const rgb = (c: RGB, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
 export function BackgroundScene() {
+  const backgrounds = useBackgroundsContext();
+  const globalBg = getSectionBackground(backgrounds, "global");
+  if (globalBg?.bg_type) return null;
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const darkRef = useRef(isDark());

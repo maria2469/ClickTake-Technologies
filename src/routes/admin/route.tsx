@@ -30,7 +30,6 @@ export const Route = createFileRoute("/admin")({
 const NAV_ITEMS = [
   { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard, permission: "manageRBAC" },
   { to: "/admin/cms", label: "CMS Management", icon: FileText, permission: "readCMS" },
-  { to: "/admin/services", label: "Services & Packages", icon: Sparkles, permission: "readCMS" },
   { to: "/admin/crm", label: "Lead CRM", icon: Users, permission: "readLeads" },
   { to: "/admin/roles", label: "User Roles (RBAC)", icon: Shield, permission: "manageRBAC" },
   { to: "/admin/email", label: "Email Center", icon: Mail, permission: "readLeads" },
@@ -43,8 +42,6 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin": "manageRBAC",
   "/admin/": "manageRBAC",
   "/admin/cms": "readCMS",
-  "/admin/services": "readCMS",
-  "/admin/services/": "readCMS",
   "/admin/crm": "readLeads",
   "/admin/roles": "manageRBAC",
   "/admin/email": "readLeads",

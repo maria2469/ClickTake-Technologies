@@ -86,7 +86,7 @@ function DynamicPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="relative min-h-screen text-foreground overflow-x-hidden">
       {/* Dynamic SEO Tags */}
       <SEOHead
         title={page.meta_title || page.title}

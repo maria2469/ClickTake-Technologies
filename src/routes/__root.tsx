@@ -11,7 +11,8 @@ import {
 
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { supabase } from "@/lib/supabaseClient";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { BackgroundsProvider, useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle } from "@/components/BackgroundRenderer";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "sonner";
 
@@ -140,11 +141,24 @@ function RootShell({
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  return (
+    <BackgroundsProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <RootContent />
+        </QueryClientProvider>
+      </HelmetProvider>
+    </BackgroundsProvider>
+  );
+}
 
-  // ✅ SSR-safe pathname
+function RootContent() {
   const pathname = useRouterState({
     select: (s) => s.location.pathname,
   });
+
+  const backgrounds = useBackgroundsContext();
+  const globalBg = getSectionBackground(backgrounds, "global");
 
 
   useEffect(() => {
@@ -213,23 +227,41 @@ function RootComponent() {
     });
   }, []);
 
-  return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <div className="relative min-h-screen overflow-x-hidden">
-          {/* ───── BACKGROUND LAYER ───── */}
-          <div className="fixed inset-0 z-0">
-            <BackgroundScene />
-          </div>
+  const hasGlobalBg = globalBg?.bg_type && globalBg.is_active;
 
-          {/* ───── CONTENT LAYER ───── */}
-          <main className="relative z-10">
-            <Outlet />
-          </main>
-          
-          <Toaster position="top-right" theme="dark" />
+  return (
+    <div
+      className="relative min-h-screen overflow-x-hidden"
+      style={hasGlobalBg ? { ...bgToStyle(globalBg!), backgroundAttachment: 'fixed' } : {}}
+    >
+      {/* ───── VIDEO BACKGROUND (only with active global bg) ───── */}
+      {hasGlobalBg && globalBg!.bg_type === "video" && (globalBg!.video_desktop || globalBg!.video_tablet || globalBg!.video_mobile) && (
+        <video autoPlay muted loop playsInline className="fixed inset-0 w-full h-full"
+          style={videoStyle(globalBg!)}
+          src={globalBg!.video_desktop || globalBg!.video_tablet || globalBg!.video_mobile || undefined} />
+      )}
+      {/* ───── OVERLAY (only with active global bg) ───── */}
+      {hasGlobalBg && globalBg!.overlay_color && (
+        <div className="fixed inset-0 z-0 pointer-events-none" style={{
+          backgroundColor: globalBg!.overlay_color,
+          opacity: (globalBg!.overlay_opacity || 0) / 100,
+          mixBlendMode: globalBg!.overlay_blend_mode as any,
+        }} />
+      )}
+
+      {/* ───── DEFAULT BACKGROUND (only when no global bg is active) ───── */}
+      {!hasGlobalBg && (
+        <div className="fixed inset-0 z-0">
+          <BackgroundScene />
         </div>
-      </QueryClientProvider>
-    </HelmetProvider>
+      )}
+
+      {/* ───── CONTENT LAYER ───── */}
+      <main className={`relative z-10 ${!hasGlobalBg ? 'bg-background' : ''}`}>
+        <Outlet />
+      </main>
+
+      <Toaster position="top-right" theme="dark" />
+    </div>
   );
 }

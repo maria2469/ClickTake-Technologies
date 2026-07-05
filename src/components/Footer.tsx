@@ -17,6 +17,7 @@ import { Link } from "@tanstack/react-router";
 
 import logo from "@/assets/clicktake-logo.jpg";
 import { supabase } from "@/lib/supabaseClient";
+import { useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle } from "./BackgroundRenderer";
 
 const defaultSocials = [
   { icon: Facebook, key: "facebook_url", href: "https://www.facebook.com/clicktaketechnologies/", label: "Facebook" },
@@ -57,23 +58,42 @@ export function Footer() {
     });
   }, []);
 
-  return (
-    <footer className="relative overflow-hidden border-t border-border/50 bg-background">
-      {/* GRID OVERLAY */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
-            backgroundSize: "70px 70px",
-          }}
-        />
-      </div>
+  const backgrounds = useBackgroundsContext();
+  const footerBg = getSectionBackground(backgrounds, "footer");
+  const ctaBg = getSectionBackground(backgrounds, "cta");
 
-      {/* GLOW ORBS */}
-      <div className="absolute left-0 top-0 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-3xl" />
-      <div className="absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-fuchsia-500/10 blur-3xl" />
+  return (
+    <footer className="relative overflow-hidden border-t border-border/50" style={footerBg ? bgToStyle(footerBg) : {}}>
+      {footerBg?.overlay_color && (
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundColor: footerBg.overlay_color,
+          opacity: (footerBg.overlay_opacity || 0) / 100,
+          mixBlendMode: footerBg.overlay_blend_mode as any,
+        }} />
+      )}
+      {footerBg?.bg_type === "video" && (footerBg.video_desktop || footerBg.video_tablet || footerBg.video_mobile) && (
+        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full" style={videoStyle(footerBg)}
+          src={footerBg.video_desktop || footerBg.video_tablet || footerBg.video_mobile} />
+      )}
+      {!footerBg && (
+        <div className="absolute inset-0 opacity-[0.03]">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
+              backgroundSize: "70px 70px",
+            }}
+          />
+        </div>
+      )}
+
+      {!footerBg && (
+        <>
+          <div className="absolute left-0 top-0 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-fuchsia-500/10 blur-3xl" />
+        </>
+      )}
 
       <div className="relative mx-auto max-w-7xl px-4 py-20">
 
@@ -82,11 +102,23 @@ export function Footer() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative overflow-hidden rounded-[2rem] border border-border/60 bg-card/70 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:p-12"
+          className={`relative overflow-hidden rounded-[2rem] border border-border/60 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.18)] lg:p-12 ${!ctaBg ? 'bg-card/70 backdrop-blur-xl' : ''}`}
+          style={ctaBg ? bgToStyle(ctaBg) : {}}
         >
-          {/* glow */}
-          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
+          {ctaBg?.bg_type === "video" && (ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile) && (
+            <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full" style={videoStyle(ctaBg)}
+              src={ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile || undefined} />
+          )}
+          {ctaBg?.overlay_color && (
+            <div className="absolute inset-0 pointer-events-none" style={{
+              backgroundColor: ctaBg.overlay_color,
+              opacity: (ctaBg.overlay_opacity || 0) / 100,
+              mixBlendMode: ctaBg.overlay_blend_mode as any,
+            }} />
+          )}
+          {/* glow (hidden when CTA bg active) */}
+          {!ctaBg && <><div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" /></>}
 
           <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">

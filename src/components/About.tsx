@@ -6,6 +6,7 @@ import {
     Facebook, Instagram, Linkedin, Youtube, ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle, overlayStyle } from "./BackgroundRenderer";
 
 /* ─── DATA ────────────────────────────────────────────────────── */
 
@@ -267,6 +268,7 @@ function OfficeCard({ o, i }: { o: Office; i: number }) {
 /* ─── MAIN EXPORT ───────────────────────────────────────────────── */
 
 export function About() {
+    const ctaBg = getSectionBackground(useBackgroundsContext(), "cta");
     const heroRef = useRef<HTMLDivElement>(null);
     const heroInView = useInView(heroRef, { once: true });
 
@@ -575,23 +577,32 @@ export function About() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.3 }}
-                    className="mt-16 text-center"
+                    className={`${ctaBg ? 'relative overflow-hidden' : ''} mt-16 text-center`}
+                    style={ctaBg ? bgToStyle(ctaBg) : {}}
                 >
-                    <p className="text-muted-foreground text-sm">
-                        Ready to work with us?{" "}
-                        <a
-                            href="#contact"
-                            className="group inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary transition-colors"
-                        >
-                            Start your project today
-                            <motion.span
-                                animate={{ x: [0, 4, 0] }}
-                                transition={{ duration: 1.5, repeat: Infinity }}
+                    {ctaBg?.bg_type === "video" && (ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile) && (
+                        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full"
+                            style={videoStyle(ctaBg)}
+                            src={ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile || undefined} />
+                    )}
+                    {ctaBg?.overlay_color && <div style={overlayStyle(ctaBg)} />}
+                    <div className="relative z-10">
+                        <p className="text-muted-foreground text-sm">
+                            Ready to work with us?{" "}
+                            <a
+                                href="#contact"
+                                className="group inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary transition-colors"
                             >
-                                →
-                            </motion.span>
-                        </a>
-                    </p>
+                                Start your project today
+                                <motion.span
+                                    animate={{ x: [0, 4, 0] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                >
+                                    →
+                                </motion.span>
+                            </a>
+                        </p>
+                    </div>
                 </motion.div>
 
             </div>

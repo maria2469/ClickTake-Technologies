@@ -169,7 +169,7 @@ function ContactPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="relative min-h-screen text-foreground overflow-x-hidden">
       <SEOHead slug="/contact" title="Contact Us & Book discovery call — ClickTake Technologies" description="Reach ClickTake Technologies. Submit a project inquiry form or book a discovery session on our calendar." />
       <BackgroundScene />
       <CustomCursor />

@@ -1,18 +1,31 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, Sparkles, Star } from "lucide-react";
 import { Hero3D } from "./Hero3D";
+import { useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle } from "./BackgroundRenderer";
 
 export function Hero() {
-  return (
-    <section className="relative min-h-screen overflow-hidden pt-32">
-      <div className="absolute inset-0 bg-gradient-mesh opacity-80" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,transparent,var(--background))]" />
+  const backgrounds = useBackgroundsContext();
+  const heroBg = getSectionBackground(backgrounds, "hero");
 
-      {/* Grid overlay */}
-      <div className="absolute inset-0 opacity-[0.04]" style={{
+  return (
+    <section className="relative min-h-screen overflow-hidden pt-32" style={heroBg ? bgToStyle(heroBg) : {}}>
+      {heroBg?.overlay_color && (
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundColor: heroBg.overlay_color,
+          opacity: (heroBg.overlay_opacity || 0) / 100,
+          mixBlendMode: heroBg.overlay_blend_mode as any,
+        }} />
+      )}
+      {heroBg?.bg_type === "video" && (heroBg.video_desktop || heroBg.video_tablet || heroBg.video_mobile) && (
+        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full" style={videoStyle(heroBg)}
+          src={heroBg.video_desktop || heroBg.video_tablet || heroBg.video_mobile} />
+      )}
+      {!heroBg && <div className="absolute inset-0 bg-gradient-mesh opacity-80" />}
+      {!heroBg && <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,transparent,var(--background))]" />}
+      {!heroBg && <div className="absolute inset-0 opacity-[0.04]" style={{
         backgroundImage: "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
         backgroundSize: "60px 60px",
-      }} />
+      }} />}
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-12 lg:grid-cols-2 lg:py-20">
         <motion.div

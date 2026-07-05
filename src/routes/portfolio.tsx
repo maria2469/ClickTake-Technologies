@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
 import { SEOHead } from "@/components/SEOHead";
+import { useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle, overlayStyle } from "@/components/BackgroundRenderer";
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -576,6 +577,7 @@ function InteractiveROICalculator() {
 // ─── Main Page Component ───────────────────────────────────────────────────────
 
 function PortfolioPage() {
+  const ctaBg = getSectionBackground(useBackgroundsContext(), "cta");
   const [industry, setIndustry] = useState<Industry>("All");
   const [service, setService] = useState<Service>("All");
   const [search, setSearch] = useState("");
@@ -591,7 +593,7 @@ function PortfolioPage() {
   });
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
       <SEOHead slug="/portfolio" title="Portfolio & Case Studies — ClickTake Technologies" description="Explore ClickTake's case studies — real results across e-commerce, SaaS, AI, marketing and branding projects." />
       <BackgroundScene />
       <CustomCursor />
@@ -740,10 +742,19 @@ function PortfolioPage() {
           viewport={{ once: true }}
           className="mt-20 mx-auto max-w-7xl px-4"
         >
-          <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-card/40 p-8 backdrop-blur-xl text-center"
-            style={{ boxShadow: "0 0 60px -20px rgba(99,102,241,0.15)" }}
+          <div className={`relative overflow-hidden rounded-[32px] border border-white/10 p-8 text-center ${!ctaBg ? 'bg-card/40 backdrop-blur-xl' : ''}`}
+            style={{
+              boxShadow: "0 0 60px -20px rgba(99,102,241,0.15)",
+              ...(ctaBg ? bgToStyle(ctaBg) : {}),
+            }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-fuchsia-500/5" />
+            {ctaBg?.bg_type === "video" && (ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile) && (
+              <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full"
+                style={videoStyle(ctaBg)}
+                src={ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile || undefined} />
+            )}
+            {ctaBg?.overlay_color && <div style={overlayStyle(ctaBg)} />}
+            {!ctaBg?.bg_type && <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-fuchsia-500/5" />}
             <div className="relative z-10">
               <h3 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
                 Ready for compounding growth?

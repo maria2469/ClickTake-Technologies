@@ -15,11 +15,18 @@ import {
     Check,
     ChevronUp,
     ChevronDown,
+    ChevronRight,
     Search,
     X,
     AlertCircle,
     Edit3,
-    Globe
+    Globe,
+    Layers,
+    Monitor,
+    Tablet,
+    Smartphone,
+    Eye,
+    RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -71,6 +78,33 @@ interface BlogPost {
     content?: string;
 }
 
+interface BackgroundConfig {
+    id: string;
+    section: string;
+    bg_type: string;
+    solid_color: string;
+    gradient_direction: string;
+    gradient_color_1: string;
+    gradient_color_2: string;
+    image_desktop: string;
+    image_tablet: string;
+    image_mobile: string;
+    video_desktop: string;
+    video_tablet: string;
+    video_mobile: string;
+    overlay_color: string;
+    overlay_opacity: number;
+    overlay_blend_mode: string;
+    parallax: boolean;
+    attachment: string;
+    sizing: string;
+    custom_position: string;
+    pattern_type: string;
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
 /* ───────────────── COMPONENT ───────────────── */
 
 function AdminCMS() {
@@ -116,6 +150,9 @@ function AdminCMS() {
     const [newPageSlug, setNewPageSlug] = useState("");
     const [showSavedFeedback, setShowSavedFeedback] = useState(false);
 
+    // Background State
+    const [backgrounds, setBackgrounds] = useState<BackgroundConfig[]>([]);
+
     // Search Filter States
     const [pageSearchText, setPageSearchText] = useState("");
     const [mediaSearchText, setMediaSearchText] = useState("");
@@ -138,6 +175,9 @@ function AdminCMS() {
 
             const { data: navData } = await supabase.from('cms_nav_links').select('*').order('created_at', { ascending: true });
             if (navData) setHeaderLinks(navData);
+
+            const { data: bgData } = await supabase.from('cms_backgrounds').select('*').order('created_at', { ascending: true });
+            if (bgData) setBackgrounds(bgData);
         };
         fetchInitialData();
 
@@ -146,6 +186,7 @@ function AdminCMS() {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_media' }, fetchInitialData)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_blogs' }, fetchInitialData)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_nav_links' }, fetchInitialData)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_backgrounds' }, fetchInitialData)
             .subscribe();
 
         return () => { supabase.removeChannel(channel); };
@@ -654,6 +695,118 @@ function AdminCMS() {
         toast.error(`Link removed`);
     };
 
+    // Background Management
+    const sections = ['global', 'hero', 'footer', 'cta'];
+    const bgTypes = ['Color', 'Gradient', 'Image', 'Video', 'Pattern'];
+
+    const bgTypeMap: Record<string, string> = { Color: 'solid', Gradient: 'gradient', Image: 'image', Video: 'video', Pattern: 'pattern' };
+    const bgTypeReverse: Record<string, string> = { solid: 'Color', gradient: 'Gradient', image: 'Image', video: 'Video', pattern: 'Pattern' };
+
+    const [selectedBgSection, setSelectedBgSection] = useState('global');
+
+    const activeBg = useMemo(() => {
+        return backgrounds.find(b => b.section === selectedBgSection) || null;
+    }, [backgrounds, selectedBgSection]);
+
+    const [draftBg, setDraftBg] = useState<BackgroundConfig | null>(null);
+    const isNew = !activeBg;
+
+    const handleBgFieldChange = (field: string, value: any) => {
+        if (activeBg) {
+            setBackgrounds(prev => prev.map(b => b.id === activeBg.id ? { ...b, [field]: value } : b));
+        } else {
+            setDraftBg(prev => prev ? { ...prev, [field]: value } : null);
+        }
+    };
+
+    useEffect(() => {
+        if (!activeBg && !draftBg) {
+            setDraftBg({
+                id: '', section: selectedBgSection, bg_type: 'solid', solid_color: '#0a0a0f',
+                gradient_direction: 'to right', gradient_color_1: '', gradient_color_2: '',
+                image_desktop: '', image_tablet: '', image_mobile: '',
+                video_desktop: '', video_tablet: '', video_mobile: '',
+                overlay_color: '', overlay_opacity: 0, overlay_blend_mode: 'normal',
+                parallax: false, attachment: 'scroll', sizing: 'cover', custom_position: 'center',
+                pattern_type: '', is_active: true
+            });
+        }
+    }, [selectedBgSection, activeBg]);
+
+    const handleSaveBackground = async () => {
+        const bg = activeBg || draftBg;
+        if (!bg) return;
+        if (bg.id) {
+            const { id, created_at, updated_at, ...payload } = bg;
+            const { error } = await supabase.from('cms_backgrounds').update(payload).eq('id', id);
+            if (error) { toast.error("Failed to save background"); return; }
+            toast.success("Background saved");
+        } else {
+            const { id, created_at, updated_at, ...payload } = bg as any;
+            const { data, error } = await supabase.from('cms_backgrounds').insert(payload).select('*').single();
+            if (error) { toast.error("Failed to create background"); return; }
+            setBackgrounds(prev => [...prev, data]);
+            setDraftBg(null);
+            toast.success(`Background created for "${selectedBgSection}"`);
+        }
+    };
+
+    const handleDeleteBackground = async () => {
+        if (!activeBg) return;
+        const { error } = await supabase.from('cms_backgrounds').delete().eq('id', activeBg.id);
+        if (error) { toast.error("Failed to delete background"); return; }
+        setBackgrounds(prev => prev.filter(b => b.id !== activeBg.id));
+        toast.error("Background deleted");
+    };
+
+    const handleResetBackground = async () => {
+        const bg = activeBg || draftBg;
+        if (!bg) return;
+        const defaults: Partial<BackgroundConfig> = {
+            bg_type: 'solid', solid_color: '#0a0a0f',
+            gradient_direction: 'to right', gradient_color_1: '', gradient_color_2: '',
+            image_desktop: '', image_tablet: '', image_mobile: '',
+            video_desktop: '', video_tablet: '', video_mobile: '',
+            overlay_color: '', overlay_opacity: 0, overlay_blend_mode: 'normal',
+            parallax: false, attachment: 'scroll', sizing: 'cover', custom_position: 'center',
+            pattern_type: '', is_active: true
+        };
+        if (activeBg) {
+            const { id, created_at, updated_at, ...payload } = { ...activeBg, ...defaults };
+            const { error } = await supabase.from('cms_backgrounds').update(payload).eq('id', id);
+            if (error) { toast.error("Failed to reset background"); return; }
+            setBackgrounds(prev => prev.map(b => b.id === id ? { ...b, ...defaults } : b));
+            toast.success("Background reset to defaults");
+        } else {
+            setDraftBg(prev => prev ? { ...prev, ...defaults } : null);
+            toast.success("Draft reset to defaults");
+        }
+    };
+
+    const handleResetAll = async () => {
+        const { error } = await supabase.from('cms_backgrounds').delete().in('section', sections);
+        if (error) { toast.error("Failed to reset all backgrounds"); return; }
+        setBackgrounds([]);
+        setDraftBg(null);
+        toast.success("All backgrounds reset to default");
+    };
+
+    const bgToPreviewStyle = (cfg: BackgroundConfig | null): React.CSSProperties => {
+        if (!cfg) return {};
+        if (cfg.bg_type === 'solid') return { backgroundColor: cfg.solid_color || '#0a0a0f' };
+        if (cfg.bg_type === 'gradient') {
+            const c1 = cfg.gradient_color_1 || '#0a0a0f';
+            const c2 = cfg.gradient_color_2 || '#0a0a0f';
+            return { background: `linear-gradient(${cfg.gradient_direction || 'to right'}, ${c1}, ${c2})` };
+        }
+        if (cfg.bg_type === 'image') {
+            const url = cfg.image_desktop || cfg.image_tablet || cfg.image_mobile;
+            return url ? { backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {};
+        }
+        if (cfg.bg_type === 'video') return { backgroundColor: '#1a1a2e' };
+        return {};
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -1085,6 +1238,203 @@ function AdminCMS() {
                                 <input type="text" placeholder="Route" value={newNavLink.to_path} onChange={(e) => setNewNavLink({ ...newNavLink, to_path: e.target.value })} className="rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none" />
                             </div>
                             <button onClick={handleAddNavLink} className="w-full rounded-lg bg-brand-blue text-white py-1.5 text-[10px] font-bold hover:opacity-90">Add Navigation Link</button>
+                        </div>
+                    </div>
+
+                    {/* Background Manager */}
+                    <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                            <div className="flex items-center gap-2">
+                                <Layers className="h-4 w-4 text-brand-cyan" />
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Background Manager</span>
+                            </div>
+                            {backgrounds.length > 0 && (
+                                <button onClick={handleResetAll}
+                                    className="flex items-center gap-1 rounded-md bg-rose-500/15 text-rose-400 border border-rose-500/20 px-2 py-1 text-[9px] font-bold hover:bg-rose-500/25 transition cursor-pointer">
+                                    <RotateCcw className="h-3 w-3" /> Reset All
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="space-y-3 text-[10px]">
+                            {/* Section Selector */}
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1">
+                                    <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Section</label>
+                                    <select value={selectedBgSection} onChange={(e) => { setSelectedBgSection(e.target.value); setDraftBg(null); }}
+                                        className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                        {sections.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+                                    </select>
+                                </div>
+                                {activeBg && (
+                                    <div className="flex items-center gap-1 mt-5">
+                                        <button onClick={handleDeleteBackground} className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition cursor-pointer" title="Delete">
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button onClick={handleResetBackground} className="flex items-center gap-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/20 px-2 py-1.5 text-[9px] font-bold hover:bg-amber-500/25 transition cursor-pointer" title="Reset to default">
+                                            <RotateCcw className="h-3 w-3" /> Reset
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Preview */}
+                            <div className="space-y-1">
+                                <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Preview</label>
+                                <div className="h-20 rounded-xl border border-white/10 overflow-hidden">
+                                    <div className="w-full h-full" style={bgToPreviewStyle(activeBg || draftBg)} />
+                                </div>
+                            </div>
+
+                            {/* Background Type */}
+                            <div>
+                                <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Type</label>
+                                <select value={bgTypeReverse[(activeBg || draftBg)?.bg_type || 'solid']} onChange={(e) => handleBgFieldChange('bg_type', bgTypeMap[e.target.value] || 'solid')}
+                                    className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                    {bgTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Color / Gradient */}
+                            {((activeBg || draftBg)?.bg_type === 'solid' || (activeBg || draftBg)?.bg_type === 'gradient') && (
+                                <div className="flex items-center gap-2">
+                                    {(activeBg || draftBg)?.bg_type === 'solid' ? (
+                                        <>
+                                            <input type="color" value={(activeBg || draftBg)?.solid_color || '#0a0a0f'} onChange={(e) => handleBgFieldChange('solid_color', e.target.value)}
+                                                className="flex-1 h-10 rounded cursor-pointer border-0 p-0.5" title="Color" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <input type="color" value={(activeBg || draftBg)?.gradient_color_1 || (activeBg || draftBg)?.solid_color || '#0a0a0f'} onChange={(e) => handleBgFieldChange('gradient_color_1', e.target.value)}
+                                                className="w-10 h-8 rounded cursor-pointer border-0 p-0.5" title="Color 1" />
+                                            <input type="color" value={(activeBg || draftBg)?.gradient_color_2 || (activeBg || draftBg)?.solid_color || '#0a0a0f'} onChange={(e) => handleBgFieldChange('gradient_color_2', e.target.value)}
+                                                className="w-10 h-8 rounded cursor-pointer border-0 p-0.5" title="Color 2" />
+                                            <select value={(activeBg || draftBg)?.gradient_direction || 'to right'} onChange={(e) => handleBgFieldChange('gradient_direction', e.target.value)}
+                                                className="flex-1 rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                                <option value="to right">→ Left to Right</option>
+                                                <option value="to left">← Right to Left</option>
+                                                <option value="to bottom">↓ Top to Bottom</option>
+                                                <option value="to top">↑ Bottom to Top</option>
+                                                <option value="to bottom right">↘ Diagonal</option>
+                                                <option value="to bottom left">↙ Diagonal</option>
+                                            </select>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Image / Video URLs */}
+                            {((activeBg || draftBg)?.bg_type === 'image' || (activeBg || draftBg)?.bg_type === 'video') && (
+                                <div className="space-y-2">
+                                    <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Media URLs</label>
+                                    {(['desktop', 'tablet', 'mobile'] as const).map(device => {
+                                        const bg = activeBg || draftBg;
+                                        const fieldKey = (bg?.bg_type === 'image' ? 'image' : 'video') + '_' + device;
+                                        return (
+                                            <div key={device} className="flex items-center gap-1.5">
+                                                {device === 'desktop' && <Monitor className="h-3 w-3 text-muted-foreground shrink-0" />}
+                                                {device === 'tablet' && <Tablet className="h-3 w-3 text-muted-foreground shrink-0" />}
+                                                {device === 'mobile' && <Smartphone className="h-3 w-3 text-muted-foreground shrink-0" />}
+                                                <input type="text" placeholder={`${device.charAt(0).toUpperCase() + device.slice(1)} URL`}
+                                                    value={(bg as any)?.[fieldKey] || ''}
+                                                    onChange={(e) => handleBgFieldChange(fieldKey, e.target.value)}
+                                                    className="flex-1 rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none" />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* CSS Pattern */}
+                            {(activeBg || draftBg)?.bg_type === 'pattern' && (
+                                <div>
+                                    <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Pattern</label>
+                                    <select value={(activeBg || draftBg)?.pattern_type || ''} onChange={(e) => handleBgFieldChange('pattern_type', e.target.value)}
+                                        className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                        <option value="">None</option>
+                                        <option value="dots">Dots</option>
+                                        <option value="grid">Grid</option>
+                                        <option value="stripes">Stripes</option>
+                                        <option value="checkers">Checkers</option>
+                                        <option value="zigzag">Zigzag</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Overlay */}
+                            <div className="space-y-2">
+                                <label className="block font-bold text-muted-foreground uppercase tracking-wider">Overlay</label>
+                                <div className="flex items-center gap-2">
+                                    <input type="color" value={(activeBg || draftBg)?.overlay_color || '#000000'} onChange={(e) => handleBgFieldChange('overlay_color', e.target.value)}
+                                        className="w-8 h-7 rounded cursor-pointer border-0 p-0.5 shrink-0" />
+                                    <span className="text-[9px] text-muted-foreground">0%</span>
+                                    <input type="range" min="0" max="100" value={(activeBg || draftBg)?.overlay_opacity || 0} onChange={(e) => handleBgFieldChange('overlay_opacity', parseInt(e.target.value))}
+                                        className="flex-1 h-1 accent-brand-magenta cursor-pointer" />
+                                    <span className="text-[9px] text-muted-foreground">100%</span>
+                                    <span className="text-[10px] font-mono text-muted-foreground w-6 text-right">{(activeBg || draftBg)?.overlay_opacity || 0}%</span>
+                                </div>
+                                <select value={(activeBg || draftBg)?.overlay_blend_mode || 'normal'} onChange={(e) => handleBgFieldChange('overlay_blend_mode', e.target.value)}
+                                    className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                    <option value="normal">Normal</option>
+                                    <option value="multiply">Multiply</option>
+                                    <option value="overlay">Overlay</option>
+                                    <option value="darken">Darken</option>
+                                    <option value="screen">Screen</option>
+                                </select>
+                            </div>
+
+                            {/* Behavior */}
+                            <div className="space-y-2">
+                                <label className="block font-bold text-muted-foreground uppercase tracking-wider">Behavior</label>
+                                <div className="flex items-center justify-between">
+                                    <span>Parallax</span>
+                                    <button onClick={() => handleBgFieldChange('parallax', !(activeBg || draftBg)?.parallax)}
+                                        className={`w-8 h-4 rounded-full transition-colors cursor-pointer ${(activeBg || draftBg)?.parallax ? 'bg-brand-magenta' : 'bg-white/20'}`}>
+                                        <span className={`block w-3 h-3 rounded-full bg-white transition-transform ${(activeBg || draftBg)?.parallax ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <select value={(activeBg || draftBg)?.attachment || 'scroll'} onChange={(e) => handleBgFieldChange('attachment', e.target.value)}
+                                        className="rounded-lg border border-border bg-background/50 px-2 py-1 text-[9px] focus:outline-none">
+                                        <option value="scroll">Scroll</option>
+                                        <option value="fixed">Fixed</option>
+                                    </select>
+                                    <select value={(activeBg || draftBg)?.sizing || 'cover'} onChange={(e) => handleBgFieldChange('sizing', e.target.value)}
+                                        className="rounded-lg border border-border bg-background/50 px-2 py-1 text-[9px] focus:outline-none">
+                                        <option value="cover">Cover</option>
+                                        <option value="contain">Contain</option>
+                                        <option value="fill">Fill</option>
+                                        <option value="repeat">Repeat</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                                {(activeBg || draftBg)?.sizing === 'custom' && (
+                                    <select value={(activeBg || draftBg)?.custom_position || 'center'} onChange={(e) => handleBgFieldChange('custom_position', e.target.value)}
+                                        className="w-full rounded-lg border border-border bg-background/50 px-2 py-1 text-[9px] focus:outline-none">
+                                        <option value="center">Center</option>
+                                        <option value="top">Top</option>
+                                        <option value="bottom">Bottom</option>
+                                    </select>
+                                )}
+                            </div>
+
+                            {/* Active Status */}
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <label className="block font-bold text-muted-foreground uppercase tracking-wider">Active</label>
+                                    <p className="text-[9px] text-muted-foreground mt-0.5">Show on frontend</p>
+                                </div>
+                                <button onClick={() => handleBgFieldChange('is_active', !(activeBg || draftBg)?.is_active)}
+                                    className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${(activeBg || draftBg)?.is_active !== false ? 'bg-emerald-500' : 'bg-white/20'}`}>
+                                    <span className={`block w-4 h-4 rounded-full bg-white transition-transform ${(activeBg || draftBg)?.is_active !== false ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                                </button>
+                            </div>
+
+                            {/* Save / Create */}
+                            <button onClick={handleSaveBackground}
+                                className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-brand-blue text-white py-2 text-[11px] font-bold hover:opacity-90 transition cursor-pointer">
+                                <Save className="h-3.5 w-3.5" /> {isNew ? 'Create Background' : 'Save Background'}
+                            </button>
                         </div>
                     </div>
                 </div>

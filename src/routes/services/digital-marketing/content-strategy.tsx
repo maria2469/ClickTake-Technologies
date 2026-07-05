@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { CustomCursor } from "@/components/CustomCursor";
+import { CtaSection } from "@/components/BackgroundRenderer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
@@ -109,7 +110,7 @@ const deliverables = [
 /* ─── Page ──────────────────────────────────────────────── */
 function ContentStrategyPage() {
     return (
-        <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+        <div className="relative min-h-screen text-foreground overflow-x-hidden">
             <BackgroundScene />
             <CustomCursor />
             <Navbar />
@@ -455,7 +456,7 @@ function ContentStrategyPage() {
             </section>
 
             {/* ── CTA ────────────────────────────────────────────── */}
-            <section className="relative z-10 py-24 px-4">
+            <CtaSection>
                 <div className="max-w-3xl mx-auto text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 24 }}
@@ -490,7 +491,7 @@ function ContentStrategyPage() {
                 </div>
 
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-            </section>
+            </CtaSection>
         </div>
     );
 }

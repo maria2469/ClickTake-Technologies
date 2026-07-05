@@ -124,9 +124,6 @@ export function Work() {
       id="work"
       className="relative overflow-hidden py-24 lg:py-32"
     >
-      {/* Ambient background */}
-      <div className="absolute inset-0 bg-background/20" />
-
       {/* Glow */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[130px]" />

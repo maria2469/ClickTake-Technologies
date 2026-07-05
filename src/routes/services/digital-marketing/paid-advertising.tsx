@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { CustomCursor } from "@/components/CustomCursor";
+import { CtaSection } from "@/components/BackgroundRenderer";
 import { BackgroundScene } from "@/components/BackgroundScene";
 
 export const Route = createFileRoute("/services/digital-marketing/paid-advertising")({
@@ -106,7 +107,7 @@ const deliverables = [
 
 function PaidAdvertisingPage() {
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="relative min-h-screen text-foreground overflow-x-hidden">
       <BackgroundScene />
       <CustomCursor />
       <Navbar />
@@ -350,7 +351,7 @@ function PaidAdvertisingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="relative z-10 py-24 px-4">
+      <CtaSection>
         <div className="max-w-3xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <div className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-4">Ready to make every pound count?</div>
@@ -371,7 +372,7 @@ function PaidAdvertisingPage() {
             </div>
           </motion.div>
         </div>
-      </section>
+      </CtaSection>
     </div>
   );
 }

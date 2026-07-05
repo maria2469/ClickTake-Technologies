@@ -11,6 +11,7 @@ import { Navbar } from "@/components/Navbar";
 import { CustomCursor } from "@/components/CustomCursor";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { SEOHead } from "@/components/SEOHead";
+import { useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle, overlayStyle } from "@/components/BackgroundRenderer";
 
 export const Route = createFileRoute("/services/")({
     head: () => ({
@@ -184,8 +185,9 @@ const stats = [
 ];
 
 function ServicesIndex() {
+    const ctaBg = getSectionBackground(useBackgroundsContext(), "cta");
     return (
-        <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+        <div className="relative min-h-screen text-foreground overflow-x-hidden">
             <SEOHead slug="/services" title="Services — ClickTake Technologies" description="AI solutions, web development, digital marketing, creative services, and our flagship Business Development Starter Kit." />
             <BackgroundScene />
             <CustomCursor />
@@ -362,11 +364,20 @@ function ServicesIndex() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
                         className="mt-28 relative rounded-3xl border border-border bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl p-12 md:p-16 text-center overflow-hidden"
+                        style={ctaBg ? bgToStyle(ctaBg) : {}}
                     >
-                        <div className="pointer-events-none absolute inset-0">
-                            <div className="absolute top-0 left-1/4 h-48 w-48 bg-cyan-500/10 blur-3xl rounded-full" />
-                            <div className="absolute bottom-0 right-1/4 h-48 w-48 bg-violet-500/10 blur-3xl rounded-full" />
-                        </div>
+                        {ctaBg?.bg_type === "video" && (ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile) && (
+                            <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full"
+                                style={videoStyle(ctaBg)}
+                                src={ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile || undefined} />
+                        )}
+                        {ctaBg?.overlay_color && <div style={overlayStyle(ctaBg)} />}
+                        {!ctaBg?.bg_type && (
+                            <div className="pointer-events-none absolute inset-0">
+                                <div className="absolute top-0 left-1/4 h-48 w-48 bg-cyan-500/10 blur-3xl rounded-full" />
+                                <div className="absolute bottom-0 right-1/4 h-48 w-48 bg-violet-500/10 blur-3xl rounded-full" />
+                            </div>
+                        )}
 
                         <div className="relative">
                             <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-4">Not sure where to start?</div>

@@ -823,6 +823,65 @@ ALTER TABLE cms_blogs ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT no
 ALTER TABLE cms_blogs ALTER COLUMN id SET DEFAULT 'b-' || gen_random_uuid()::text;
 
 -- ============================================================================
+-- CMS BACKGROUNDS
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS cms_backgrounds (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  section TEXT NOT NULL DEFAULT 'global',
+  bg_type TEXT NOT NULL DEFAULT 'solid',
+  solid_color TEXT DEFAULT '#0a0a0f',
+  gradient_direction TEXT DEFAULT 'to right',
+  gradient_color_1 TEXT DEFAULT '',
+  gradient_color_2 TEXT DEFAULT '',
+  image_desktop TEXT DEFAULT '',
+  image_tablet TEXT DEFAULT '',
+  image_mobile TEXT DEFAULT '',
+  video_desktop TEXT DEFAULT '',
+  video_tablet TEXT DEFAULT '',
+  video_mobile TEXT DEFAULT '',
+  overlay_color TEXT DEFAULT '',
+  overlay_opacity INTEGER DEFAULT 0,
+  overlay_blend_mode TEXT DEFAULT 'normal',
+  parallax BOOLEAN DEFAULT false,
+  attachment TEXT DEFAULT 'scroll',
+  sizing TEXT DEFAULT 'cover',
+  custom_position TEXT DEFAULT 'center',
+  pattern_type TEXT DEFAULT '',
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS section TEXT NOT NULL DEFAULT 'global';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS bg_type TEXT NOT NULL DEFAULT 'solid';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS solid_color TEXT DEFAULT '#0a0a0f';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS gradient_direction TEXT DEFAULT 'to right';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS gradient_color_1 TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS gradient_color_2 TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS image_desktop TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS image_tablet TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS image_mobile TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS video_desktop TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS video_tablet TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS video_mobile TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS overlay_color TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS overlay_opacity INTEGER DEFAULT 0;
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS overlay_blend_mode TEXT DEFAULT 'normal';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS parallax BOOLEAN DEFAULT false;
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS attachment TEXT DEFAULT 'scroll';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS sizing TEXT DEFAULT 'cover';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS custom_position TEXT DEFAULT 'center';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS pattern_type TEXT DEFAULT '';
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE cms_backgrounds ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+ALTER TABLE cms_backgrounds ADD CONSTRAINT cms_backgrounds_section_key UNIQUE (section);
+
+INSERT INTO cms_backgrounds (section, bg_type, solid_color) VALUES ('global', 'solid', '#0a0a0f')
+ON CONFLICT (section) DO NOTHING;
+
+-- ============================================================================
 -- CMS NAVIGATION LINKS
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS cms_nav_links (
@@ -862,6 +921,7 @@ ALTER TABLE job_openings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cms_blogs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cms_backgrounds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cms_nav_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE seo_page_meta ENABLE ROW LEVEL SECURITY;
 ALTER TABLE seo_sitemap_config ENABLE ROW LEVEL SECURITY;
@@ -887,6 +947,8 @@ DROP POLICY IF EXISTS "authenticated_read" ON page_views; CREATE POLICY "authent
 DROP POLICY IF EXISTS "authenticated_all" ON audit_logs; CREATE POLICY "authenticated_all" ON audit_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "authenticated_all" ON admin_notifications; CREATE POLICY "authenticated_all" ON admin_notifications FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "authenticated_all" ON cms_blogs; CREATE POLICY "authenticated_all" ON cms_blogs FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "authenticated_all" ON cms_backgrounds; CREATE POLICY "authenticated_all" ON cms_backgrounds FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "anon_select" ON cms_backgrounds; CREATE POLICY "anon_select" ON cms_backgrounds FOR SELECT TO anon USING (true);
 DROP POLICY IF EXISTS "authenticated_all" ON cms_nav_links; CREATE POLICY "authenticated_all" ON cms_nav_links FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "authenticated_all" ON seo_page_meta; CREATE POLICY "authenticated_all" ON seo_page_meta FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "authenticated_all" ON seo_sitemap_config; CREATE POLICY "authenticated_all" ON seo_sitemap_config FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -926,7 +988,7 @@ DROP POLICY IF EXISTS "anon_insert" ON leads; CREATE POLICY "anon_insert" ON lea
 DO $$
 DECLARE
   tbl TEXT;
-  tables_to_add TEXT[] := ARRAY['pages', 'cms_media', 'cms_blogs', 'cms_nav_links'];
+  tables_to_add TEXT[] := ARRAY['pages', 'cms_media', 'cms_blogs', 'cms_backgrounds', 'cms_nav_links'];
 BEGIN
   FOREACH tbl IN ARRAY tables_to_add
   LOOP
@@ -980,6 +1042,9 @@ CREATE TRIGGER update_email_templates_updated_at BEFORE UPDATE ON email_template
 DROP TRIGGER IF EXISTS update_email_workflows_updated_at ON email_workflows;
 CREATE TRIGGER update_email_workflows_updated_at BEFORE UPDATE ON email_workflows
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_cms_backgrounds_updated_at ON cms_backgrounds;
+CREATE TRIGGER update_cms_backgrounds_updated_at BEFORE UPDATE ON cms_backgrounds
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 DROP TRIGGER IF EXISTS update_admin_users_updated_at ON admin_users;
 CREATE TRIGGER update_admin_users_updated_at BEFORE UPDATE ON admin_users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -1002,71 +1067,3 @@ INSERT INTO admin_notifications (title, message, type) VALUES
   ('Welcome to ClickTake Admin', 'Your admin portal is fully operational. Configure your system settings to get started.', 'info'),
   ('New Lead Captured', 'A new contact form submission has been received from the website.', 'lead')
 ON CONFLICT (id) DO NOTHING;
-
--- ============================================================================
--- SERVICES & PACKAGES
--- ============================================================================
-
-CREATE TABLE IF NOT EXISTS services (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT UNIQUE NOT NULL,
-  category TEXT NOT NULL,
-  category_label TEXT NOT NULL DEFAULT '',
-  title TEXT NOT NULL,
-  gradient TEXT NOT NULL DEFAULT 'from-cyan-400 via-blue-500 to-violet-600',
-  glow TEXT NOT NULL DEFAULT 'rgba(6,182,212,0.15)',
-  eyebrow TEXT NOT NULL DEFAULT '',
-  description TEXT NOT NULL DEFAULT '',
-  detailed_description TEXT NOT NULL DEFAULT '',
-  icon_name TEXT NOT NULL DEFAULT 'Sparkles',
-  items JSONB DEFAULT '[]',
-  results JSONB DEFAULT '[]',
-  differentiators JSONB DEFAULT '[]',
-  deliverables JSONB DEFAULT '[]',
-  display_order INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS service_processes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  service_id UUID REFERENCES services(id) ON DELETE CASCADE,
-  step_number INTEGER NOT NULL,
-  title TEXT NOT NULL,
-  description TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS pricing_packages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  service_id UUID REFERENCES services(id) ON DELETE CASCADE,
-  package_level TEXT NOT NULL,
-  price TEXT NOT NULL,
-  delivery_days TEXT DEFAULT '',
-  description TEXT DEFAULT '',
-  features JSONB DEFAULT '[]',
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-ALTER TABLE services ENABLE ROW LEVEL SECURITY;
-ALTER TABLE service_processes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pricing_packages ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "anon_select" ON services;
-CREATE POLICY "anon_select" ON services FOR SELECT TO public USING (true);
-
-DROP POLICY IF EXISTS "anon_select" ON service_processes;
-CREATE POLICY "anon_select" ON service_processes FOR SELECT TO public USING (true);
-
-DROP POLICY IF EXISTS "anon_select" ON pricing_packages;
-CREATE POLICY "anon_select" ON pricing_packages FOR SELECT TO public USING (true);
-
-DROP POLICY IF EXISTS "authenticated_all" ON services;
-CREATE POLICY "authenticated_all" ON services FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "authenticated_all" ON service_processes;
-CREATE POLICY "authenticated_all" ON service_processes FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "authenticated_all" ON pricing_packages;
-CREATE POLICY "authenticated_all" ON pricing_packages FOR ALL TO authenticated USING (true) WITH CHECK (true);
-
