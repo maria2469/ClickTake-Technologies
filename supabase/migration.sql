@@ -923,6 +923,8 @@ ALTER TABLE admin_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cms_blogs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cms_backgrounds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cms_nav_links ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cms_typography ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cms_font_presets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE seo_page_meta ENABLE ROW LEVEL SECURITY;
 ALTER TABLE seo_sitemap_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE seo_robots_config ENABLE ROW LEVEL SECURITY;
@@ -950,6 +952,10 @@ DROP POLICY IF EXISTS "authenticated_all" ON cms_blogs; CREATE POLICY "authentic
 DROP POLICY IF EXISTS "authenticated_all" ON cms_backgrounds; CREATE POLICY "authenticated_all" ON cms_backgrounds FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "anon_select" ON cms_backgrounds; CREATE POLICY "anon_select" ON cms_backgrounds FOR SELECT TO anon USING (true);
 DROP POLICY IF EXISTS "authenticated_all" ON cms_nav_links; CREATE POLICY "authenticated_all" ON cms_nav_links FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "authenticated_all" ON cms_typography; CREATE POLICY "authenticated_all" ON cms_typography FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "anon_select" ON cms_typography; CREATE POLICY "anon_select" ON cms_typography FOR SELECT TO anon USING (true);
+DROP POLICY IF EXISTS "authenticated_all" ON cms_font_presets; CREATE POLICY "authenticated_all" ON cms_font_presets FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "anon_select" ON cms_font_presets; CREATE POLICY "anon_select" ON cms_font_presets FOR SELECT TO anon USING (true);
 DROP POLICY IF EXISTS "authenticated_all" ON seo_page_meta; CREATE POLICY "authenticated_all" ON seo_page_meta FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "authenticated_all" ON seo_sitemap_config; CREATE POLICY "authenticated_all" ON seo_sitemap_config FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "authenticated_all" ON seo_robots_config; CREATE POLICY "authenticated_all" ON seo_robots_config FOR ALL TO authenticated USING (true) WITH CHECK (true);
@@ -988,7 +994,7 @@ DROP POLICY IF EXISTS "anon_insert" ON leads; CREATE POLICY "anon_insert" ON lea
 DO $$
 DECLARE
   tbl TEXT;
-  tables_to_add TEXT[] := ARRAY['pages', 'cms_media', 'cms_blogs', 'cms_backgrounds', 'cms_nav_links'];
+  tables_to_add TEXT[] := ARRAY['pages', 'cms_media', 'cms_blogs', 'cms_backgrounds', 'cms_nav_links', 'cms_typography', 'cms_font_presets'];
 BEGIN
   FOREACH tbl IN ARRAY tables_to_add
   LOOP
@@ -1051,6 +1057,9 @@ CREATE TRIGGER update_admin_users_updated_at BEFORE UPDATE ON admin_users
 DROP TRIGGER IF EXISTS update_security_settings_updated_at ON security_settings;
 CREATE TRIGGER update_security_settings_updated_at BEFORE UPDATE ON security_settings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_cms_typography_updated_at ON cms_typography;
+CREATE TRIGGER update_cms_typography_updated_at BEFORE UPDATE ON cms_typography
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================================
 -- SEED ADMIN USER
@@ -1067,3 +1076,76 @@ INSERT INTO admin_notifications (title, message, type) VALUES
   ('Welcome to ClickTake Admin', 'Your admin portal is fully operational. Configure your system settings to get started.', 'info'),
   ('New Lead Captured', 'A new contact form submission has been received from the website.', 'lead')
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- ADVANCED TYPOGRAPHY ENGINE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS cms_typography (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  element TEXT NOT NULL,
+  font_family TEXT NOT NULL DEFAULT 'Inter',
+  font_source TEXT DEFAULT 'google',
+  font_weight TEXT DEFAULT '400',
+  line_height REAL DEFAULT 1.5,
+  letter_spacing TEXT DEFAULT '0',
+  text_transform TEXT DEFAULT 'none',
+  preload BOOLEAN DEFAULT false,
+  font_file_url TEXT,
+  font_file_format TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS element TEXT;
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS font_family TEXT DEFAULT 'Inter';
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS font_source TEXT DEFAULT 'google';
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS font_weight TEXT DEFAULT '400';
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS line_height REAL DEFAULT 1.5;
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS letter_spacing TEXT DEFAULT '0';
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS text_transform TEXT DEFAULT 'none';
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS preload BOOLEAN DEFAULT false;
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS font_file_url TEXT;
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS font_file_format TEXT;
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE cms_typography ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE cms_typography ADD CONSTRAINT cms_typography_element_key UNIQUE (element);
+
+INSERT INTO cms_typography (element, font_family, font_source, font_weight, line_height, letter_spacing, text_transform, preload) VALUES
+  ('heading_h1', 'Inter', 'google', '800', 1.1, '-0.02', 'none', true),
+  ('heading_h2', 'Inter', 'google', '700', 1.2, '-0.01', 'none', true),
+  ('heading_h3', 'Inter', 'google', '600', 1.3, '0', 'none', true),
+  ('body', 'Inter', 'google', '400', 1.7, '0', 'none', false),
+  ('nav', 'Inter', 'google', '400', 1.5, '0', 'none', false),
+  ('button', 'Inter', 'google', '400', 1.5, '0', 'none', false),
+  ('quote', 'Inter', 'google', '400', 1.6, '0', 'none', false),
+  ('code', 'JetBrains Mono', 'google', '400', 1.5, '0', 'none', true),
+  ('pricing_number', 'Inter', 'google', '800', 1, '-0.02', 'none', false)
+ON CONFLICT (element) DO UPDATE SET
+  font_family = EXCLUDED.font_family,
+  font_source = EXCLUDED.font_source,
+  font_weight = EXCLUDED.font_weight,
+  line_height = EXCLUDED.line_height,
+  letter_spacing = EXCLUDED.letter_spacing,
+  text_transform = EXCLUDED.text_transform,
+  preload = EXCLUDED.preload;
+
+CREATE TABLE IF NOT EXISTS cms_font_presets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  config JSONB NOT NULL,
+  is_builtin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE cms_font_presets ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE cms_font_presets ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+ALTER TABLE cms_font_presets ADD COLUMN IF NOT EXISTS config JSONB;
+ALTER TABLE cms_font_presets ADD COLUMN IF NOT EXISTS is_builtin BOOLEAN DEFAULT false;
+ALTER TABLE cms_font_presets ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+
+INSERT INTO cms_font_presets (name, description, config, is_builtin) VALUES
+  ('Modern Sans', 'Clean and professional sans-serif pairing', '{"heading_h1":{"font_family":"Inter","font_weight":"800"},"heading_h2":{"font_family":"Inter","font_weight":"700"},"body":{"font_family":"Inter","font_weight":"400"},"nav":{"font_family":"Inter","font_weight":"500","text_transform":"uppercase","letter_spacing":"0.05"},"button":{"font_family":"Inter","font_weight":"600","text_transform":"uppercase","letter_spacing":"0.05"},"quote":{"font_family":"Inter","font_weight":"400","font_style":"italic"}}', true),
+  ('Elegant Serif', 'Sophisticated serif for headings, clean sans for body', '{"heading_h1":{"font_family":"Playfair Display","font_weight":"700"},"heading_h2":{"font_family":"Playfair Display","font_weight":"600"},"body":{"font_family":"Lato","font_weight":"400"},"nav":{"font_family":"Lato","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"button":{"font_family":"Lato","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"quote":{"font_family":"Playfair Display","font_weight":"400","font_style":"italic"}}', true),
+  ('Bold Agency', 'Bold impactful headings with clean body', '{"heading_h1":{"font_family":"Montserrat","font_weight":"900"},"heading_h2":{"font_family":"Montserrat","font_weight":"800"},"body":{"font_family":"Open Sans","font_weight":"400"},"nav":{"font_family":"Montserrat","font_weight":"600","text_transform":"uppercase","letter_spacing":"0.05"},"button":{"font_family":"Montserrat","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"quote":{"font_family":"Playfair Display","font_weight":"400","font_style":"italic"}}', true),
+  ('Minimal Tech', 'Clean modern tech-startup aesthetic', '{"heading_h1":{"font_family":"DM Sans","font_weight":"700"},"heading_h2":{"font_family":"DM Sans","font_weight":"500"},"body":{"font_family":"DM Sans","font_weight":"400"},"nav":{"font_family":"DM Sans","font_weight":"500","text_transform":"uppercase","letter_spacing":"0.08"},"button":{"font_family":"DM Sans","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"quote":{"font_family":"DM Serif Display","font_weight":"400","font_style":"italic"}}', true);

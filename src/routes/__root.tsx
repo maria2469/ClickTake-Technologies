@@ -18,6 +18,114 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 
+/* ───────────────── TYPOGRAPHY LOADER ───────────────── */
+
+const FONT_ELEMENT_MAP: Record<string, string> = {
+  heading_h1: "--font-heading-h1", heading_h2: "--font-heading-h2", heading_h3: "--font-heading-h3",
+  body: "--font-body", nav: "--font-nav", button: "--font-button",
+  quote: "--font-quote", code: "--font-code", pricing_number: "--font-pricing",
+};
+
+function FontLoader() {
+  useEffect(() => {
+    const root = document.documentElement;
+    const loaded = new Set<string>();
+
+    supabase.from("cms_typography").select("*").then(({ data, error }) => {
+      if (error) { console.error("FontLoader: failed to fetch typography", error); return; }
+      if (!data) return;
+      const families = new Map<string, Set<string>>();
+
+      for (const r of data) {
+        const cssVar = FONT_ELEMENT_MAP[r.element];
+        if (!cssVar) continue;
+        const fontValue = `"${r.font_family}", ${r.element === "code" ? "monospace" : "sans-serif"}`;
+        root.style.setProperty(cssVar, fontValue);
+
+        if (r.element === "body") {
+          root.style.setProperty("--font-sans", `"${r.font_family}", ui-sans-serif, system-ui, sans-serif`);
+        }
+        if (r.element === "heading_h1") {
+          root.style.setProperty("--font-display", `"${r.font_family}", ui-sans-serif, system-ui, sans-serif`);
+        }
+
+        if (r.font_source === "custom" && r.font_file_url && !loaded.has(r.font_file_url)) {
+          loaded.add(r.font_file_url);
+          const id = `font-face-${r.element}`;
+          if (!document.getElementById(id)) {
+            const style = document.createElement("style");
+            style.id = id;
+            style.textContent = `@font-face{font-family:"${r.font_family}";src:url("${r.font_file_url}") format("${r.font_file_format || "woff2"}");font-weight:${r.font_weight};font-display:swap}`;
+            document.head.appendChild(style);
+          }
+        }
+
+        if (r.font_source !== "google") continue;
+        if (!families.has(r.font_family)) families.set(r.font_family, new Set());
+        for (const w of (r.font_weight || "400").split(",")) families.get(r.font_family)!.add(w.trim());
+      }
+
+      // Inject Google Fonts link
+      if (families.size > 0) {
+        const params = Array.from(families.entries())
+          .map(([family, weights]) => `${family.replace(/ /g, "+")}:wght@${Array.from(weights).sort().join(";")}`)
+          .join("&family=");
+        const href = `https://fonts.googleapis.com/css2?family=${params}&display=swap`;
+        if (!document.getElementById("google-fonts-link")) {
+          const link = document.createElement("link");
+          link.id = "google-fonts-link";
+          link.rel = "stylesheet";
+          link.href = href;
+          document.head.appendChild(link);
+        }
+      }
+
+      // Inject runtime style tag with ALL typography properties
+      const existing = document.getElementById("typography-runtime");
+      if (existing) existing.remove();
+      const STYLE_SEL: Record<string, string> = {
+        body: "body",
+        heading_h1: "h1",
+        heading_h2: "h2",
+        heading_h3: "h3",
+        nav: "nav, header nav a, .nav-link",
+        button: "button, .btn, [role=\"button\"]",
+        quote: "blockquote, .quote",
+        code: "code, pre, code *, pre *",
+        pricing_number: ".pricing-number, .price, .pricing .amount",
+      };
+      const css = data.map(r => {
+        const sel = STYLE_SEL[r.element];
+        if (!sel) return "";
+        const family = `"${r.font_family}", ${r.element === "code" ? "monospace" : "sans-serif"}`;
+        const weight = r.font_weight || "400";
+        const height = r.line_height || 1.5;
+        const spacing = r.letter_spacing ? `${parseFloat(r.letter_spacing)}em` : "0em";
+        const transform = r.text_transform || "none";
+        return `${sel}{font-family:${family};font-weight:${weight};line-height:${height};letter-spacing:${spacing};text-transform:${transform}}`;
+      }).filter(Boolean).join("");
+      const style = document.createElement("style");
+      style.id = "typography-runtime";
+      style.textContent = css;
+      document.head.appendChild(style);
+    });
+
+    // Adobe Fonts
+    supabase.from("site_settings").select("value").eq("key", "adobe_fonts_kit_id").maybeSingle().then(({ data }) => {
+      const kitId = data?.value;
+      if (kitId && !document.getElementById("adobe-fonts")) {
+        const link = document.createElement("link");
+        link.id = "adobe-fonts";
+        link.rel = "stylesheet";
+        link.href = `https://use.typekit.net/${kitId}.css`;
+        document.head.appendChild(link);
+      }
+    });
+  }, []);
+
+  return null;
+}
+
 /* ───────────────── NOT FOUND ───────────────── */
 
 
@@ -230,7 +338,9 @@ function RootContent() {
   const hasGlobalBg = globalBg?.bg_type && globalBg.is_active;
 
   return (
-    <div
+    <>
+      <FontLoader />
+      <div
       className="relative min-h-screen overflow-x-hidden"
       style={hasGlobalBg ? { ...bgToStyle(globalBg!), backgroundAttachment: 'fixed' } : {}}
     >
@@ -263,5 +373,6 @@ function RootContent() {
 
       <Toaster position="top-right" theme="dark" />
     </div>
+    </>
   );
 }

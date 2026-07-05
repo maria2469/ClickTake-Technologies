@@ -27,6 +27,7 @@ import { Route as RobotsTxtRouteImport } from './routes/robots.txt'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
+import { Route as AdminTypographyRouteImport } from './routes/admin/typography'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminServicesRouteImport } from './routes/admin/services'
 import { Route as AdminSeoRouteImport } from './routes/admin/seo'
@@ -141,6 +142,11 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
   id: '/legal/cookies',
   path: '/legal/cookies',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTypographyRoute = AdminTypographyRouteImport.update({
+  id: '/typography',
+  path: '/typography',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
@@ -289,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/admin/seo': typeof AdminSeoRoute
   '/admin/services': typeof AdminServicesRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/typography': typeof AdminTypographyRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -331,6 +338,7 @@ export interface FileRoutesByTo {
   '/admin/seo': typeof AdminSeoRoute
   '/admin/services': typeof AdminServicesRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/typography': typeof AdminTypographyRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -376,6 +384,7 @@ export interface FileRoutesById {
   '/admin/seo': typeof AdminSeoRoute
   '/admin/services': typeof AdminServicesRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/typography': typeof AdminTypographyRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
@@ -422,6 +431,7 @@ export interface FileRouteTypes {
     | '/admin/seo'
     | '/admin/services'
     | '/admin/settings'
+    | '/admin/typography'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
@@ -464,6 +474,7 @@ export interface FileRouteTypes {
     | '/admin/seo'
     | '/admin/services'
     | '/admin/settings'
+    | '/admin/typography'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
@@ -508,6 +519,7 @@ export interface FileRouteTypes {
     | '/admin/seo'
     | '/admin/services'
     | '/admin/settings'
+    | '/admin/typography'
     | '/legal/cookies'
     | '/legal/privacy'
     | '/legal/terms'
@@ -677,6 +689,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/legal/cookies'
       preLoaderRoute: typeof LegalCookiesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/typography': {
+      id: '/admin/typography'
+      path: '/typography'
+      fullPath: '/admin/typography'
+      preLoaderRoute: typeof AdminTypographyRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/settings': {
       id: '/admin/settings'
@@ -861,6 +880,7 @@ interface AdminRouteRouteChildren {
   AdminSeoRoute: typeof AdminSeoRoute
   AdminServicesRoute: typeof AdminServicesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTypographyRoute: typeof AdminTypographyRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -876,6 +896,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSeoRoute: AdminSeoRoute,
   AdminServicesRoute: AdminServicesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminTypographyRoute: AdminTypographyRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

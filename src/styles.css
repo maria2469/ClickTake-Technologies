@@ -157,6 +157,26 @@
     letter-spacing: -0.025em;
   }
 
+  nav, header nav a, .nav-link {
+    font-family: var(--font-nav, var(--font-sans));
+  }
+
+  code, pre, code *, pre * {
+    font-family: var(--font-code, "JetBrains Mono", monospace);
+  }
+
+  button, .btn, [role="button"] {
+    font-family: var(--font-button, var(--font-sans));
+  }
+
+  blockquote, .quote {
+    font-family: var(--font-quote, var(--font-sans));
+  }
+
+  .pricing-number, .price, .pricing .amount {
+    font-family: var(--font-pricing, var(--font-display));
+  }
+
   ::selection {
     background: var(--brand-magenta);
     color: white;
