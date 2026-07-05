@@ -41,7 +41,8 @@ function getPatternCSS(pattern_type: string): string | null {
 export function bgToStyle(bg: BackgroundConfig): React.CSSProperties {
   const style: React.CSSProperties = {};
 
-  // Base background (pattern is handled as overlay, not a base type)
+  // Base background
+  let baseLayers = 0;
   switch (bg.bg_type) {
     case "solid":
     case "pattern":
@@ -51,11 +52,12 @@ export function bgToStyle(bg: BackgroundConfig): React.CSSProperties {
       const c1 = bg.gradient_color_1 || bg.solid_color || "#0a0a0f";
       const c2 = bg.gradient_color_2 || bg.solid_color || "#0a0a0f";
       style.backgroundImage = `linear-gradient(${bg.gradient_direction || "to right"}, ${c1}, ${c2})`;
+      baseLayers = 1;
       break;
     }
     case "image": {
       const url = bg.image_desktop || bg.image_tablet || bg.image_mobile;
-      if (url) style.backgroundImage = `url(${url})`;
+      if (url) { style.backgroundImage = `url(${url})`; baseLayers = 1; }
       else style.backgroundColor = bg.solid_color || "#0a0a0f";
       break;
     }
@@ -71,15 +73,19 @@ export function bgToStyle(bg: BackgroundConfig): React.CSSProperties {
   if (bg.pattern_type) {
     const pat = getPatternCSS(bg.pattern_type);
     if (pat) {
-      style.backgroundImage = style.backgroundImage ? `${pat}, ${style.backgroundImage}` : pat;
+      if (style.backgroundImage) {
+        style.backgroundImage = `${pat}, ${style.backgroundImage}`;
+      } else {
+        style.backgroundImage = pat;
+      }
     }
   }
 
   // Sizing & behavior
   const hasPattern = !!bg.pattern_type;
-  const isMulti = hasPattern && !!(style.backgroundImage as string || '').includes(',');
+  const hasBaseImage = baseLayers > 0;
 
-  if (isMulti) {
+  if (hasPattern && hasBaseImage) {
     const ps = bg.pattern_type === "stripes" || bg.pattern_type === "zigzag" ? "12px" : "20px";
     style.backgroundSize = `${ps} ${ps}, ${bg.sizing === "custom" ? "auto" : bg.sizing || "cover"}`;
     style.backgroundRepeat = "repeat, no-repeat";

@@ -806,6 +806,7 @@ function AdminCMS() {
     const bgToPreviewStyle = (cfg: BackgroundConfig | null): React.CSSProperties => {
         if (!cfg) return {};
         const style: React.CSSProperties = {};
+        let baseLayers = 0;
         switch (cfg.bg_type) {
             case 'solid':
             case 'pattern':
@@ -815,11 +816,12 @@ function AdminCMS() {
                 const c1 = cfg.gradient_color_1 || cfg.solid_color || '#0a0a0f';
                 const c2 = cfg.gradient_color_2 || cfg.solid_color || '#0a0a0f';
                 style.backgroundImage = `linear-gradient(${cfg.gradient_direction || 'to right'}, ${c1}, ${c2})`;
+                baseLayers = 1;
                 break;
             }
             case 'image': {
                 const url = cfg.image_desktop || cfg.image_tablet || cfg.image_mobile;
-                if (url) { style.backgroundImage = `url(${url})`; style.backgroundSize = 'cover'; style.backgroundPosition = 'center'; }
+                if (url) { style.backgroundImage = `url(${url})`; style.backgroundSize = 'cover'; style.backgroundPosition = 'center'; baseLayers = 1; }
                 else style.backgroundColor = cfg.solid_color || '#0a0a0f';
                 break;
             }
@@ -830,10 +832,13 @@ function AdminCMS() {
         if (cfg.pattern_type) {
             const pat = getPatternPreview(cfg.pattern_type);
             if (pat) {
-                style.backgroundImage = style.backgroundImage ? `${pat}, ${style.backgroundImage}` : pat;
+                if (style.backgroundImage) {
+                    style.backgroundImage = `${pat}, ${style.backgroundImage}`;
+                } else {
+                    style.backgroundImage = pat;
+                }
                 const ps = cfg.pattern_type === 'stripes' || cfg.pattern_type === 'zigzag' ? '12px' : '20px';
-                const isMulti = (style.backgroundImage || '').includes(',');
-                if (isMulti) {
+                if (baseLayers > 0) {
                     style.backgroundSize = `${ps} ${ps}, cover`;
                     style.backgroundRepeat = 'repeat, no-repeat';
                     style.backgroundPosition = '0 0, center';
