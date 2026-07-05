@@ -791,20 +791,53 @@ function AdminCMS() {
         toast.success("All backgrounds reset to default");
     };
 
+    const getPatternPreview = (type: string): string | null => {
+        const c = 'rgba(255,255,255,0.15)';
+        switch (type) {
+            case 'dots': return `radial-gradient(circle, ${c} 1px, transparent 1px)`;
+            case 'grid': return `linear-gradient(${c} 1px, transparent 1px), linear-gradient(90deg, ${c} 1px, transparent 1px)`;
+            case 'stripes': return `repeating-linear-gradient(45deg, transparent, transparent 4px, ${c} 4px, ${c} 8px)`;
+            case 'checkers': return `conic-gradient(${c} 25%, transparent 25% 50%, ${c} 50% 75%, transparent 75%)`;
+            case 'zigzag': return `repeating-linear-gradient(-45deg, transparent, transparent 4px, ${c} 4px, ${c} 8px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${c} 4px, ${c} 8px)`;
+            default: return null;
+        }
+    };
+
     const bgToPreviewStyle = (cfg: BackgroundConfig | null): React.CSSProperties => {
         if (!cfg) return {};
-        if (cfg.bg_type === 'solid') return { backgroundColor: cfg.solid_color || '#0a0a0f' };
-        if (cfg.bg_type === 'gradient') {
-            const c1 = cfg.gradient_color_1 || '#0a0a0f';
-            const c2 = cfg.gradient_color_2 || '#0a0a0f';
-            return { background: `linear-gradient(${cfg.gradient_direction || 'to right'}, ${c1}, ${c2})` };
+        const style: React.CSSProperties = {};
+        switch (cfg.bg_type) {
+            case 'solid':
+            case 'pattern':
+                style.backgroundColor = cfg.solid_color || '#0a0a0f';
+                break;
+            case 'gradient': {
+                const c1 = cfg.gradient_color_1 || cfg.solid_color || '#0a0a0f';
+                const c2 = cfg.gradient_color_2 || cfg.solid_color || '#0a0a0f';
+                style.backgroundImage = `linear-gradient(${cfg.gradient_direction || 'to right'}, ${c1}, ${c2})`;
+                break;
+            }
+            case 'image': {
+                const url = cfg.image_desktop || cfg.image_tablet || cfg.image_mobile;
+                if (url) { style.backgroundImage = `url(${url})`; style.backgroundSize = 'cover'; style.backgroundPosition = 'center'; }
+                else style.backgroundColor = cfg.solid_color || '#0a0a0f';
+                break;
+            }
+            case 'video':
+                style.backgroundColor = '#1a1a2e';
+                break;
         }
-        if (cfg.bg_type === 'image') {
-            const url = cfg.image_desktop || cfg.image_tablet || cfg.image_mobile;
-            return url ? { backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {};
+        if (cfg.pattern_type) {
+            const pat = getPatternPreview(cfg.pattern_type);
+            if (pat) {
+                style.backgroundImage = style.backgroundImage ? `${pat}, ${style.backgroundImage}` : pat;
+                const ps = cfg.pattern_type === 'stripes' || cfg.pattern_type === 'zigzag' ? '12px' : '20px';
+                style.backgroundSize = (style.backgroundImage || '').includes(',') ? `${ps} ${ps}, cover` : `${ps} ${ps}`;
+                style.backgroundRepeat = 'repeat';
+                style.backgroundPosition = '0 0';
+            }
         }
-        if (cfg.bg_type === 'video') return { backgroundColor: '#1a1a2e' };
-        return {};
+        return style;
     };
 
     return (

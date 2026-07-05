@@ -41,34 +41,53 @@ function getPatternCSS(pattern_type: string): string | null {
 export function bgToStyle(bg: BackgroundConfig): React.CSSProperties {
   const style: React.CSSProperties = {};
 
+  // Base background (pattern is handled as overlay, not a base type)
   switch (bg.bg_type) {
     case "solid":
+    case "pattern":
       style.backgroundColor = bg.solid_color || "#0a0a0f";
       break;
-    case "gradient":
-      style.backgroundImage = `linear-gradient(${bg.gradient_direction || "to right"}, ${bg.gradient_color_1 || bg.solid_color}, ${bg.gradient_color_2 || bg.solid_color})`;
+    case "gradient": {
+      const c1 = bg.gradient_color_1 || bg.solid_color || "#0a0a0f";
+      const c2 = bg.gradient_color_2 || bg.solid_color || "#0a0a0f";
+      style.backgroundImage = `linear-gradient(${bg.gradient_direction || "to right"}, ${c1}, ${c2})`;
       break;
+    }
     case "image": {
       const url = bg.image_desktop || bg.image_tablet || bg.image_mobile;
       if (url) style.backgroundImage = `url(${url})`;
+      else style.backgroundColor = bg.solid_color || "#0a0a0f";
       break;
     }
     case "video":
       style.backgroundColor = bg.solid_color || "#0a0a0f";
       break;
-    case "pattern": {
-      style.backgroundColor = bg.solid_color || "#0a0a0f";
-      const pat = getPatternCSS(bg.pattern_type);
-      if (pat) style.backgroundImage = pat;
-      break;
-    }
     case "animated":
       if (bg.solid_color) style.backgroundColor = bg.solid_color;
       break;
   }
 
-  if (bg.bg_type === "pattern") {
-    style.backgroundSize = bg.pattern_type === "stripes" || bg.pattern_type === "zigzag" ? "12px 12px" : "20px 20px";
+  // Pattern overlay (layered on top of any base background)
+  if (bg.pattern_type) {
+    const pat = getPatternCSS(bg.pattern_type);
+    if (pat) {
+      style.backgroundImage = style.backgroundImage ? `${pat}, ${style.backgroundImage}` : pat;
+    }
+  }
+
+  // Sizing & behavior
+  const hasPattern = !!bg.pattern_type;
+  const isMulti = hasPattern && !!(style.backgroundImage as string || '').includes(',');
+
+  if (isMulti) {
+    const ps = bg.pattern_type === "stripes" || bg.pattern_type === "zigzag" ? "12px" : "20px";
+    style.backgroundSize = `${ps} ${ps}, ${bg.sizing === "custom" ? "auto" : bg.sizing || "cover"}`;
+    style.backgroundRepeat = "repeat, no-repeat";
+    style.backgroundPosition = "0 0, center";
+    style.backgroundAttachment = `${bg.parallax ? "fixed" : "scroll"}, ${bg.parallax ? "fixed" : "scroll"}`;
+  } else if (hasPattern) {
+    const ps = bg.pattern_type === "stripes" || bg.pattern_type === "zigzag" ? "12px" : "20px";
+    style.backgroundSize = `${ps} ${ps}`;
     style.backgroundRepeat = "repeat";
     style.backgroundPosition = "0 0";
     style.backgroundAttachment = bg.parallax ? "fixed" : "scroll";
