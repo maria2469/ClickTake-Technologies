@@ -1411,3 +1411,11 @@ DROP POLICY IF EXISTS "authenticated_all" ON cms_theme_presets;
 CREATE POLICY "authenticated_all" ON cms_theme_presets FOR ALL TO authenticated USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "anon_select" ON cms_theme_presets;
 CREATE POLICY "anon_select" ON cms_theme_presets FOR SELECT TO anon USING (true);
+
+-- Added columns for CMS Redesign
+ALTER TABLE cms_blogs ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'General';
+ALTER TABLE cms_blogs ADD COLUMN IF NOT EXISTS tags TEXT DEFAULT '';
+ALTER TABLE cms_nav_links ADD COLUMN IF NOT EXISTS position TEXT DEFAULT 'header';
+ALTER TABLE pages ADD COLUMN IF NOT EXISTS show_in_nav BOOLEAN DEFAULT false;
+ALTER TABLE pages ADD COLUMN IF NOT EXISTS nav_order INTEGER DEFAULT 0;
+ALTER TABLE pages ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT false;

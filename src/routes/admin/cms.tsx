@@ -15,7 +15,6 @@ import {
     Check,
     ChevronUp,
     ChevronDown,
-    ChevronRight,
     Search,
     X,
     AlertCircle,
@@ -25,8 +24,15 @@ import {
     Monitor,
     Tablet,
     Smartphone,
-    Eye,
-    RotateCcw
+    RotateCcw,
+    Copy,
+    Tag,
+    Compass,
+    Settings,
+    BookOpen,
+    Folder,
+    ExternalLink,
+    Archive
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,6 +65,8 @@ interface CMSPage {
     meta_description?: string;
     canonical_url?: string;
     og_image_url?: string;
+    show_in_nav?: boolean;
+    nav_order?: number;
 }
 
 interface MediaFile {
@@ -76,6 +84,8 @@ interface BlogPost {
     date: string;
     status: "Published" | "Draft";
     content?: string;
+    category?: string;
+    tags?: string;
 }
 
 interface BackgroundConfig {
@@ -108,11 +118,17 @@ interface BackgroundConfig {
 /* ───────────────── COMPONENT ───────────────── */
 
 function AdminCMS() {
+    // Premium Tab State
+    const [activeTab, setActiveTab] = useState<'pages' | 'blog' | 'navigation' | 'media' | 'backgrounds'>('pages');
+
     const [pages, setPages] = useState<CMSPage[]>([]);
     const [savedPages, setSavedPages] = useState<CMSPage[]>([]);
     const [selectedPageId, setSelectedPageId] = useState<string>("");
     const [expandedSeoPageId, setExpandedSeoPageId] = useState<string | null>(null);
+    const [dbWarning, setDbWarning] = useState<boolean>(false);
+    const [pageStatusTab, setPageStatusTab] = useState<'all' | 'active' | 'draft' | 'archived'>('all');
     
+    // Page Manager Handlers
     const handleTogglePublish = async (pageId: string, currentStatus: boolean, e: React.MouseEvent) => {
         e.stopPropagation();
         try {
@@ -127,22 +143,75 @@ function AdminCMS() {
         }
     };
 
+    const handleToggleArchive = async (pageId: string, currentArchiveStatus: boolean, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const { error } = await supabase.from('pages').update({ is_archived: !currentArchiveStatus }).eq('id', pageId);
+            if (error) throw error;
+            toast.success(`Page ${!currentArchiveStatus ? 'archived' : 'restored'}`);
+            setPages(pages.map(p => p.id === pageId ? { ...p, is_archived: !currentArchiveStatus } : p));
+            setSavedPages(savedPages.map(p => p.id === pageId ? { ...p, is_archived: !currentArchiveStatus } : p));
+        } catch (err: any) {
+            toast.error(`Failed to update archive status: ${err.message}`);
+        }
+    };
+
+    // Duplicate Page
+    const handleDuplicatePage = async (page: CMSPage, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const timestamp = Date.now().toString().slice(-4);
+            const rawSlug = page.slug.replace(/^\//, '');
+            const newSlug = `/${rawSlug}-copy-${timestamp}`;
+            const newTitle = `${page.title} (Copy)`;
+            
+            const newPageData = {
+                title: newTitle,
+                slug: newSlug,
+                is_published: false,
+                blocks: page.blocks,
+                meta_title: page.meta_title ? `${page.meta_title} (Copy)` : null,
+                meta_description: page.meta_description,
+                canonical_url: page.canonical_url,
+                og_image_url: page.og_image_url
+            };
+
+            const { data, error } = await supabase.from('pages').insert(newPageData).select().single();
+            if (error) throw error;
+
+            const createdPage = { ...data, blocks: data.blocks || page.blocks };
+            setPages(prev => [...prev, createdPage]);
+            setSelectedPageId(createdPage.id);
+            toast.success(`Duplicated page as "${newTitle}"`);
+            await logAudit(`Duplicated page ${page.title} as ${newTitle}`, "page", createdPage.id);
+        } catch (err: any) {
+            toast.error(`Failed to duplicate page: ${err.message}`);
+        }
+    };
+
     // Media Library State
     const [mediaList, setMediaList] = useState<MediaFile[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [autoConvertToWebP, setAutoConvertToWebP] = useState(true);
+    const [mediaTypeFilter, setMediaTypeFilter] = useState<'all' | 'image' | 'video' | 'pdf'>('all');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Blog & Navigation States
     const [blogList, setBlogList] = useState<BlogPost[]>([]);
     const [newBlogTitle, setNewBlogTitle] = useState("");
-    const [headerLinks, setHeaderLinks] = useState<{ id: string; label: string; to_path: string }[]>([]);
-    const [newNavLink, setNewNavLink] = useState({ label: "", to_path: "" });
-    const [showLabelDropdown, setShowLabelDropdown] = useState(false);
-    const labelDropdownRef = useRef<HTMLDivElement>(null);
     const [editingBlogId, setEditingBlogId] = useState<string | null>(null);
     const [blogContent, setBlogContent] = useState("");
+    const [blogCategory, setBlogCategory] = useState("General");
+    const [blogTags, setBlogTags] = useState("");
+    const [blogStatus, setBlogStatus] = useState<"Published" | "Draft">("Draft");
+
+    // Nav Links (Header vs Footer)
+    const [navLinks, setNavLinks] = useState<{ id: string; label: string; to_path: string; position?: string }[]>([]);
+    const [newNavLink, setNewNavLink] = useState({ label: "", to_path: "", position: "header" });
+    const [showLabelDropdown, setShowLabelDropdown] = useState(false);
+    const labelDropdownRef = useRef<HTMLDivElement>(null);
 
     // Modals & Feedback UI States
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
@@ -156,15 +225,17 @@ function AdminCMS() {
     // Search Filter States
     const [pageSearchText, setPageSearchText] = useState("");
     const [mediaSearchText, setMediaSearchText] = useState("");
+    const [blogSearchText, setBlogSearchText] = useState("");
 
-    useEffect(() => {
-        const fetchInitialData = async () => {
+    // Fetch All Data
+    const fetchInitialData = async () => {
+        try {
             const { data: pagesData } = await supabase.from('pages').select('*');
             if (pagesData && pagesData.length > 0) {
                 const mappedPages = pagesData.map(p => ({ ...p, blocks: p.blocks || [] }));
                 setPages(mappedPages);
                 setSavedPages(mappedPages);
-                setSelectedPageId(mappedPages[0].id);
+                if (!selectedPageId) setSelectedPageId(mappedPages[0].id);
             }
 
             const { data: mediaData } = await supabase.from('cms_media').select('*').order('created_at', { ascending: false });
@@ -174,11 +245,19 @@ function AdminCMS() {
             if (blogsData) setBlogList(blogsData);
 
             const { data: navData } = await supabase.from('cms_nav_links').select('*').order('created_at', { ascending: true });
-            if (navData) setHeaderLinks(navData);
+            if (navData) setNavLinks(navData);
 
             const { data: bgData } = await supabase.from('cms_backgrounds').select('*').order('created_at', { ascending: true });
             if (bgData) setBackgrounds(bgData);
-        };
+        } catch (error: any) {
+            console.error("Error fetching CMS data:", error);
+            if (error.message && (error.message.includes("column") || error.message.includes("relation"))) {
+                setDbWarning(true);
+            }
+        }
+    };
+
+    useEffect(() => {
         fetchInitialData();
 
         const channel = supabase.channel('cms-sync')
@@ -208,14 +287,13 @@ function AdminCMS() {
         return pages.find((p) => p.id === selectedPageId) || pages[0];
     }, [pages, selectedPageId]);
 
-    // Unsaved Changes Count Computation (compared to savedPages state)
+    // Unsaved Changes Count Computation
     const unsavedChangesCount = useMemo(() => {
         let count = 0;
-        
         pages.forEach((p) => {
             const saved = savedPages.find((sp) => sp.id === p.id);
             if (!saved) {
-                count++; // New page
+                count++;
             } else {
                 if (
                     saved.title !== p.title || 
@@ -244,18 +322,16 @@ function AdminCMS() {
                 }
             }
         });
-
         savedPages.forEach((sp) => {
             if (!pages.some((p) => p.id === sp.id)) {
-                count++; // Deleted page
+                count++;
             }
         });
-
         return count;
     }, [pages, savedPages]);
 
     // Update SEO settings fields locally
-    const handleUpdatePageSeo = (pageId: string, field: 'meta_title' | 'meta_description' | 'canonical_url' | 'og_image_url', value: string) => {
+    const handleUpdatePageSeo = (pageId: string, field: 'meta_title' | 'meta_description' | 'canonical_url' | 'og_image_url' | 'show_in_nav' | 'nav_order', value: any) => {
         setPages(pages.map(p => p.id === pageId ? { ...p, [field]: value } : p));
     };
 
@@ -270,7 +346,9 @@ function AdminCMS() {
                     meta_title: page.meta_title || null,
                     meta_description: page.meta_description || null,
                     canonical_url: page.canonical_url || null,
-                    og_image_url: page.og_image_url || null
+                    og_image_url: page.og_image_url || null,
+                    show_in_nav: page.show_in_nav || false,
+                    nav_order: page.nav_order || 0
                 })
                 .eq('id', pageId);
             
@@ -281,32 +359,52 @@ function AdminCMS() {
                 meta_title: page.meta_title,
                 meta_description: page.meta_description,
                 canonical_url: page.canonical_url,
-                og_image_url: page.og_image_url
+                og_image_url: page.og_image_url,
+                show_in_nav: page.show_in_nav,
+                nav_order: page.nav_order
             } : sp));
 
-            toast.success(`SEO Settings for "${page.title}" saved successfully!`);
+            toast.success(`Settings for "${page.title}" saved successfully!`);
         } catch (err: any) {
-            toast.error(`Failed to save SEO Settings: ${err.message}`);
+            toast.error(`Failed to save Settings: ${err.message}`);
         }
     };
 
-    // Page Search Filtering
+    // Filters
     const filteredPages = useMemo(() => {
-        return pages.filter(
-            (p) =>
+        return pages
+            .filter((p) => {
+                const isArchived = (p as any).is_archived === true;
+                if (pageStatusTab === 'all') return true;
+                if (pageStatusTab === 'active') return p.is_published && !isArchived;
+                if (pageStatusTab === 'draft') return !p.is_published && !isArchived;
+                if (pageStatusTab === 'archived') return isArchived;
+                return true;
+            })
+            .filter((p) =>
                 p.title.toLowerCase().includes(pageSearchText.toLowerCase()) ||
                 p.slug.toLowerCase().includes(pageSearchText.toLowerCase())
-        );
-    }, [pages, pageSearchText]);
+            );
+    }, [pages, pageSearchText, pageStatusTab]);
 
-    // Media Search Filtering
     const filteredMediaList = useMemo(() => {
-        return mediaList.filter((m) =>
-            m.name.toLowerCase().includes(mediaSearchText.toLowerCase())
-        );
-    }, [mediaList, mediaSearchText]);
+        return mediaList
+            .filter((m) => m.name.toLowerCase().includes(mediaSearchText.toLowerCase()))
+            .filter((m) => {
+                if (mediaTypeFilter === 'all') return true;
+                return m.type === mediaTypeFilter;
+            });
+    }, [mediaList, mediaSearchText, mediaTypeFilter]);
 
-    // Update Block Handlers
+    const filteredBlogs = useMemo(() => {
+        return blogList.filter((b) => 
+            b.title.toLowerCase().includes(blogSearchText.toLowerCase()) ||
+            (b.category && b.category.toLowerCase().includes(blogSearchText.toLowerCase())) ||
+            (b.tags && b.tags.toLowerCase().includes(blogSearchText.toLowerCase()))
+        );
+    }, [blogList, blogSearchText]);
+
+    // Visual Canvas Block Handlers
     const handleUpdateBlockContent = (blockId: string, newText: string) => {
         setPages(
             pages.map((p) =>
@@ -327,7 +425,6 @@ function AdminCMS() {
         );
     };
 
-    // Save All Pages Layouts
     const handleSavePage = async () => {
         for (const page of pages) {
             const { error } = await supabase
@@ -349,7 +446,6 @@ function AdminCMS() {
             }
         }
         
-        // Handle deletions
         for (const sp of savedPages) {
             if (!pages.some(p => p.id === sp.id)) {
                 await supabase.from('pages').delete().eq('id', sp.id);
@@ -364,7 +460,6 @@ function AdminCMS() {
         }, 2000);
     };
 
-    // Page Creation Form Submit
     const handleCreatePageSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedTitle = newPageTitle.trim();
@@ -373,7 +468,6 @@ function AdminCMS() {
         if (!trimmedTitle || !trimmedSlug) return;
         if (!trimmedSlug.startsWith("/")) trimmedSlug = "/" + trimmedSlug;
 
-        // Check if page with slug exists
         if (pages.some((p) => p.slug.toLowerCase() === trimmedSlug.toLowerCase())) {
             toast.error(`A page with route slug "${trimmedSlug}" already exists.`);
             return;
@@ -396,7 +490,6 @@ function AdminCMS() {
         }
 
         const newPage = { ...data, blocks: data.blocks || newPageData.blocks };
-
         setPages([...pages, newPage]);
         setSelectedPageId(newPage.id);
         setIsCreatePageModalOpen(false);
@@ -431,7 +524,7 @@ function AdminCMS() {
         toast.error(`Deleted page "${deletedPageTitle}"`);
     };
 
-    // Block Creation
+    // Block Management
     const handleAddBlock = (type: "header" | "text" | "button" | "media") => {
         let content = "";
         let meta = undefined;
@@ -460,7 +553,6 @@ function AdminCMS() {
         toast.success(`Added ${type.toUpperCase()} block. Remember to save layout.`);
     };
 
-    // Block Reordering (Up/Down)
     const handleMoveBlock = (blockId: string, direction: "up" | "down", e: React.MouseEvent) => {
         e.stopPropagation();
         const currentPage = pages.find((p) => p.id === selectedPageId);
@@ -484,7 +576,6 @@ function AdminCMS() {
         );
     };
 
-    // Block Deletion
     const handleDeleteBlock = (blockId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         setPages(
@@ -496,7 +587,7 @@ function AdminCMS() {
         );
     };
 
-    // Convert Image to WebP (Simple Client-side)
+    // Client-side WebP Conversion Option
     const convertToWebP = async (file: File): Promise<File> => {
         if (!file.type.startsWith('image/') || file.type === 'image/webp') return file;
         return new Promise((resolve) => {
@@ -511,7 +602,7 @@ function AdminCMS() {
                     if (blob) {
                         resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
                     } else resolve(file);
-                }, 'image/webp', 0.8);
+                }, 'image/webp', 0.85);
             };
             img.src = URL.createObjectURL(file);
         });
@@ -523,12 +614,11 @@ function AdminCMS() {
         const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
         if (!cloudName || !uploadPreset) {
-            toast.error("Missing Cloudinary credentials in .env (VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET)");
+            toast.error("Missing Cloudinary credentials in .env.local (VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET)");
             return;
         }
 
         toast.info(`Uploading ${files.length} file(s)...`);
-        
         setUploading(true);
         setUploadProgress(0);
 
@@ -537,9 +627,8 @@ function AdminCMS() {
             const rawFile = filesArray[i];
             let file = rawFile;
             
-
-            // WebP Conversion for images (Client-side savings)
-            if (file.type.startsWith('image/')) {
+            // WebP Conversion if enabled
+            if (autoConvertToWebP && file.type.startsWith('image/')) {
                 file = await convertToWebP(file);
             }
 
@@ -552,7 +641,6 @@ function AdminCMS() {
             formData.append("upload_preset", uploadPreset);
 
             try {
-                // Upload to Cloudinary Unsigned API
                 const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
                     method: "POST",
                     body: formData,
@@ -566,7 +654,6 @@ function AdminCMS() {
                 const data = await res.json();
                 let publicUrl = data.secure_url;
 
-                // Enforce WebP and auto quality via Cloudinary transformations if it's an image
                 if (type === "image") {
                     const parts = publicUrl.split("/upload/");
                     if (parts.length === 2) {
@@ -587,27 +674,18 @@ function AdminCMS() {
                     url: publicUrl
                 };
 
-                // Insert reference into Supabase CMS Media table
                 const { data: insertedData, error: dbError } = await supabase
                     .from('cms_media')
                     .insert(newMedia)
                     .select()
                     .single();
 
-
-                if (dbError) {
-                    throw new Error(`DB Insert failed: ${dbError.message}`);
-                }
-
-                // UPDATE UI IMMEDIATELY
+                if (dbError) throw dbError;
                 setMediaList((prev) => [insertedData, ...prev]);
-
                 toast.success(`${file.name} uploaded successfully`);
-
             } catch (err: any) {
                 toast.error(`Upload failed for ${file.name}: ${err.message}`);
             }
-
             setUploadProgress(Math.round(((i + 1) / filesArray.length) * 100));
         }
         
@@ -626,16 +704,10 @@ function AdminCMS() {
     };
 
     const handleDeleteMedia = async (id: string, url: string) => {
-        // Optimistic UI update
         setMediaList((prev) => prev.filter((m) => m.id !== id));
-        
-        // Extract filePath from URL if needed to delete from storage, but for now just delete DB record
         const { error } = await supabase.from('cms_media').delete().eq('id', id);
-        
         if (error) {
             toast.error(`Failed to delete asset: ${error.message}`);
-            // If it failed, we could refetch here or let the realtime channel handle sync,
-            // but for now showing the error is enough.
         } else {
             toast.success("Asset deleted");
         }
@@ -645,16 +717,44 @@ function AdminCMS() {
     const handleAddBlogPost = async () => {
         const title = newBlogTitle.trim();
         if (!title) return;
-        const { data, error } = await supabase.from('cms_blogs').insert({
-            title,
-        }).select('*').single();
-        if (error) { toast.error("Failed to create blog post"); return; }
         
-        setNewBlogTitle("");
-        toast.success(`Draft "${title}" created`);
-        setBlogList(prev => [data, ...prev]);
-        setEditingBlogId(data.id);
-        setBlogContent(data.content);
+        // Gracefully attempt with new columns first, fallback if DB not updated
+        const payload: any = { title };
+        if (!dbWarning) {
+            payload.category = "General";
+            payload.tags = "";
+        }
+
+        try {
+            const { data, error } = await supabase.from('cms_blogs').insert(payload).select('*').single();
+            if (error) throw error;
+            
+            setNewBlogTitle("");
+            toast.success(`Draft "${title}" created`);
+            setBlogList(prev => [data, ...prev]);
+            setEditingBlogId(data.id);
+            setBlogContent(data.content || "");
+            setBlogCategory(data.category || "General");
+            setBlogTags(data.tags || "");
+            setBlogStatus("Draft");
+        } catch (err: any) {
+            // Fallback for missing columns
+            if (err.message && err.message.includes("column")) {
+                setDbWarning(true);
+                const { data, error } = await supabase.from('cms_blogs').insert({ title }).select('*').single();
+                if (error) {
+                    toast.error("Failed to create blog post");
+                    return;
+                }
+                setNewBlogTitle("");
+                toast.success(`Draft "${title}" created (Fallback mode)`);
+                setBlogList(prev => [data, ...prev]);
+                setEditingBlogId(data.id);
+                setBlogContent(data.content || "");
+            } else {
+                toast.error("Failed to create blog post");
+            }
+        }
     };
 
     const handleDeleteBlog = async (id: string) => {
@@ -667,35 +767,97 @@ function AdminCMS() {
 
     const handleSaveBlogContent = async () => {
         if (!editingBlogId) return;
-        const { error } = await supabase.from('cms_blogs').update({ content: blogContent }).eq('id', editingBlogId);
-        if (error) { toast.error("Failed to save content"); return; }
-        toast.success("Blog content saved successfully");
+
+        const payload: any = { 
+            content: blogContent,
+            status: blogStatus
+        };
+        if (!dbWarning) {
+            payload.category = blogCategory;
+            payload.tags = blogTags;
+        }
+
+        try {
+            const { error } = await supabase.from('cms_blogs').update(payload).eq('id', editingBlogId);
+            if (error) throw error;
+            toast.success("Blog post saved successfully");
+            
+            // Sync local blogList view
+            setBlogList(prev => prev.map(b => b.id === editingBlogId ? { ...b, ...payload } : b));
+        } catch (err: any) {
+            if (err.message && err.message.includes("column")) {
+                setDbWarning(true);
+                // Try fallback (save content only)
+                const { error } = await supabase.from('cms_blogs').update({ content: blogContent, status: blogStatus }).eq('id', editingBlogId);
+                if (error) {
+                    toast.error("Failed to save post");
+                    return;
+                }
+                toast.success("Blog post saved successfully (Fallback mode)");
+            } else {
+                toast.error("Failed to save content");
+            }
+        }
     };
 
-    // Nav Links Management
+    // Nav Links Management (Header & Footer separation)
     const handleAddNavLink = async () => {
         const trimmedLabel = newNavLink.label.trim();
         let trimmedPath = newNavLink.to_path.trim();
         if (!trimmedLabel || !trimmedPath) return;
         if (!trimmedPath.startsWith('/')) trimmedPath = '/' + trimmedPath;
-        const { data, error } = await supabase.from('cms_nav_links').insert({
+
+        const payload: any = {
             label: trimmedLabel,
             to_path: trimmedPath,
-        }).select('*').single();
-        if (error) { toast.error("Failed to add nav link"); return; }
-        toast.success(`Link "${newNavLink.label}" added`);
-        setHeaderLinks(prev => [...prev, data]);
-        setNewNavLink({ label: "", to_path: "" });
+        };
+        if (!dbWarning) {
+            payload.position = newNavLink.position;
+        }
+
+        try {
+            const { data, error } = await supabase.from('cms_nav_links').insert(payload).select('*').single();
+            if (error) throw error;
+            toast.success(`Link "${trimmedLabel}" added to ${newNavLink.position}`);
+            setNavLinks(prev => [...prev, data]);
+            setNewNavLink({ label: "", to_path: "", position: "header" });
+        } catch (err: any) {
+            if (err.message && err.message.includes("column")) {
+                setDbWarning(true);
+                // Fallback (ignore position column)
+                const { data, error } = await supabase.from('cms_nav_links').insert({
+                    label: trimmedLabel,
+                    to_path: trimmedPath
+                }).select('*').single();
+                if (error) {
+                    toast.error("Failed to add navigation link");
+                    return;
+                }
+                toast.success(`Link "${trimmedLabel}" added (Fallback mode)`);
+                setNavLinks(prev => [...prev, data]);
+                setNewNavLink({ label: "", to_path: "", position: "header" });
+            } else {
+                toast.error("Failed to add nav link");
+            }
+        }
     };
 
     const handleDeleteNavLink = async (id: string) => {
         const { error } = await supabase.from('cms_nav_links').delete().eq('id', id);
         if (error) { toast.error("Failed to remove nav link"); return; }
-        setHeaderLinks(prev => prev.filter(l => l.id !== id));
+        setNavLinks(prev => prev.filter(l => l.id !== id));
         toast.error(`Link removed`);
     };
 
-    // Background Management
+    const headerLinks = useMemo(() => {
+        return navLinks.filter(l => !l.position || l.position === 'header');
+    }, [navLinks]);
+
+    const footerLinks = useMemo(() => {
+        return navLinks.filter(l => l.position === 'footer');
+    }, [navLinks]);
+
+    // ───────────────── BACKGROUND MANAGER (UNCHANGED LOGIC) ─────────────────
     const sections = ['global', 'hero', 'footer', 'cta'];
     const bgTypes = ['Color', 'Gradient', 'Image', 'Video', 'Pattern'];
 
@@ -860,419 +1022,673 @@ function AdminCMS() {
             transition={{ duration: 0.3 }}
             className="space-y-6"
         >
-            <div className="flex items-center justify-between gap-4">
+            {/* Database Warning Banner */}
+            {dbWarning && (
+                <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs shadow-md">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <div>
+                        <span className="font-bold">CMS DB Sync Warning:</span> Category, Tags, and Navigation Link Position features are running in fallback mode because the database migration hasn't been applied. Please run <code className="bg-black/40 px-1 py-0.5 rounded font-mono select-all">node scripts/patch-cms.mjs</code> to fully sync database columns.
+                    </div>
+                </div>
+            )}
+
+            <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <h1 className="font-display text-2xl font-bold tracking-tight">CMS Website Engine (Realtime)</h1>
+                    <h1 className="font-display text-2xl font-bold tracking-tight">Content Management System</h1>
                     <p className="text-xs text-muted-foreground mt-1">
-                        Manage pages, layout blocks, assets, and navigation menus effortlessly.
+                        Full-control visual engine to edit layouts, blogs, navigation links, backgrounds, and assets.
                     </p>
                 </div>
-                <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/5 px-3 py-1.5 text-[10px] font-bold text-muted-foreground">
-                    <FileText className="h-3.5 w-3.5" />
-                    {pages.length} Pages Live
+                <div className="flex items-center gap-2">
+                    <span className="hidden sm:flex items-center gap-1.5 rounded-full bg-white/5 border border-white/5 px-3 py-1.5 text-[10px] font-bold text-muted-foreground">
+                        <FileText className="h-3.5 w-3.5" />
+                        {pages.length} Pages Live
+                    </span>
+                    <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Realtime Live
+                    </span>
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-4">
-                {/* Sidebar */}
-                <div className="space-y-4">
-                    {/* Page Manager */}
-                    <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
-                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center justify-between">
-                            <span>Active Pages</span>
-                            <button
-                                onClick={() => setIsCreatePageModalOpen(true)}
-                                className="flex items-center justify-center p-1 rounded hover:bg-white/5 text-brand-magenta transition-colors cursor-pointer"
-                                title="Create Page"
-                            >
-                                <Plus className="h-4 w-4" />
-                            </button>
-                        </div>
-                        <div className="relative mb-3">
-                            <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
-                            <input
-                                type="text"
-                                placeholder="Search pages..."
-                                value={pageSearchText}
-                                onChange={(e) => setPageSearchText(e.target.value)}
-                                className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1 text-[11px] focus:outline-none text-foreground"
-                            />
-                        </div>
-                        <div className="space-y-2 max-h-[450px] overflow-y-auto pr-1">
-                            {filteredPages.map((p) => (
-                                <div key={p.id} className="group relative w-full border border-white/5 rounded-xl bg-white/5 p-1">
-                                    <div className="flex items-center justify-between w-full">
+            {/* Premium Tab Bar Navigation */}
+            <div className="flex border-b border-white/10 overflow-x-auto gap-2 pb-0.5">
+                {[
+                    { id: 'pages', label: 'Pages & Blocks', icon: Globe },
+                    { id: 'blog', label: 'Blog & News', icon: BookOpen },
+                    { id: 'navigation', label: 'Menus & Navigation', icon: Compass },
+                    { id: 'media', label: 'Media Library', icon: ImageIcon },
+                    { id: 'backgrounds', label: 'Background Config', icon: Layers }
+                ].map(tab => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => { setActiveTab(tab.id as any); setEditingBlogId(null); }}
+                            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all duration-200 shrink-0 cursor-pointer ${
+                                isActive 
+                                    ? 'border-brand-magenta text-foreground bg-white/5 rounded-t-lg'
+                                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-t-lg'
+                            }`}
+                        >
+                            <Icon className={`h-4 w-4 ${isActive ? 'text-brand-magenta' : 'text-muted-foreground'}`} />
+                            {tab.label}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Main Tabs Container */}
+            <div className="min-h-[500px]">
+                {/* 1. PAGES TAB */}
+                {activeTab === 'pages' && (
+                    <div className="grid gap-6 lg:grid-cols-4">
+                        {/* Pages Sidebar List */}
+                        <div className="space-y-4">
+                            <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
+                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center justify-between">
+                                    <span>Active Pages</span>
+                                    <button
+                                        onClick={() => setIsCreatePageModalOpen(true)}
+                                        className="flex items-center justify-center p-1 rounded hover:bg-white/5 text-brand-magenta transition-colors cursor-pointer"
+                                        title="Create Page"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </button>
+                                </div>
+                                <div className="relative mb-3">
+                                    <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search pages..."
+                                        value={pageSearchText}
+                                        onChange={(e) => setPageSearchText(e.target.value)}
+                                        className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1 text-[11px] focus:outline-none text-foreground"
+                                    />
+                                </div>
+                                <div className="flex gap-1 mb-3 border-b border-white/5 pb-2 overflow-x-auto">
+                                    {(['all', 'active', 'draft', 'archived'] as const).map(tab => (
                                         <button
-                                            onClick={() => setSelectedPageId(p.id)}
-                                            className={`flex-1 flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                                                selectedPageId === p.id
-                                                    ? "bg-white/15 text-foreground border-l-2 border-brand-magenta"
-                                                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                                            key={tab}
+                                            onClick={() => setPageStatusTab(tab)}
+                                            className={`px-2 py-1 text-[9px] font-bold rounded-lg capitalize border transition shrink-0 cursor-pointer ${
+                                                pageStatusTab === tab
+                                                    ? 'bg-brand-magenta border-brand-magenta text-white font-extrabold shadow'
+                                                    : 'bg-white/5 border-white/5 text-muted-foreground hover:text-foreground'
                                             }`}
                                         >
-                                            <span className="truncate pr-10">{p.title}</span>
-                                            <span className="text-[9px] font-mono text-muted-foreground opacity-60 group-hover:opacity-0 transition-opacity truncate shrink-0">
-                                                {p.slug}
-                                            </span>
-                                        </button>
-                                        <div className="absolute right-2 top-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/5 transition-opacity shadow z-10">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setExpandedSeoPageId(expandedSeoPageId === p.id ? null : p.id);
-                                                }}
-                                                className={`p-1 rounded cursor-pointer ${expandedSeoPageId === p.id ? "text-brand-cyan hover:bg-brand-cyan/10" : "text-muted-foreground hover:bg-white/10"}`}
-                                                title="SEO Settings"
-                                            >
-                                                <Globe className="h-3 w-3" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => handleTogglePublish(p.id, p.is_published, e)}
-                                                className={`p-1 rounded cursor-pointer ${p.is_published ? "text-emerald-400 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-white/10"}`}
-                                                title={p.is_published ? "Unpublish" : "Publish"}
-                                            >
-                                                <Check className="h-3 w-3" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => handleDeletePage(p.id, e)}
-                                                className="p-1 rounded text-muted-foreground hover:text-brand-pink hover:bg-white/10 cursor-pointer"
-                                                title="Delete Page"
-                                            >
-                                                <Trash2 className="h-3 w-3" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Expandable SEO Settings */}
-                                    {expandedSeoPageId === p.id && (
-                                        <div className="mt-2 p-2 border-t border-white/5 space-y-2 bg-black/20 rounded-lg">
-                                            <div className="text-[10px] font-bold text-brand-cyan uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                <Globe className="h-3 w-3" /> SEO Settings
-                                            </div>
-                                            
-                                            <div className="space-y-1">
-                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Meta Title</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Meta title..."
-                                                    value={p.meta_title || ""}
-                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'meta_title', e.target.value)}
-                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
-                                                />
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Meta Description</label>
-                                                <textarea
-                                                    placeholder="Meta description..."
-                                                    rows={2}
-                                                    value={p.meta_description || ""}
-                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'meta_description', e.target.value)}
-                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan resize-none"
-                                                />
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Canonical URL</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Canonical URL..."
-                                                    value={p.canonical_url || ""}
-                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'canonical_url', e.target.value)}
-                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
-                                                />
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="block text-[8px] text-muted-foreground uppercase font-semibold">OG Image URL</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="OG Image URL..."
-                                                    value={p.og_image_url || ""}
-                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'og_image_url', e.target.value)}
-                                                    className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
-                                                />
-                                            </div>
-
-                                            <button
-                                                onClick={() => handleSavePageSeo(p.id)}
-                                                className="w-full rounded bg-brand-cyan hover:opacity-90 text-black py-1 text-[10px] font-bold transition cursor-pointer"
-                                            >
-                                                Save SEO Settings
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Blog posts list manager */}
-                    <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
-                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                            Blog & News Feed
-                        </div>
-                        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                            {blogList.map((blog) => (
-                                <div key={blog.id} className="flex items-center justify-between rounded-xl bg-white/5 p-2.5 text-[11px]">
-                                    <div className="overflow-hidden mr-2">
-                                        <p className="font-semibold truncate leading-snug text-foreground">{blog.title}</p>
-                                        <span className="text-[9px] text-muted-foreground">{blog.date} • {blog.status}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <button onClick={() => { setEditingBlogId(blog.id); setBlogContent(blog.content || ""); }} className="text-muted-foreground hover:text-brand-cyan p-1 shrink-0 cursor-pointer">
-                                            <Edit3 className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button onClick={() => handleDeleteBlog(blog.id)} className="text-muted-foreground hover:text-brand-pink p-1 shrink-0 cursor-pointer">
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                            <input
-                                type="text"
-                                placeholder="New post title..."
-                                value={newBlogTitle}
-                                onChange={(e) => setNewBlogTitle(e.target.value)}
-                                className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
-                            />
-                            <button
-                                onClick={handleAddBlogPost}
-                                className="rounded-lg bg-brand-magenta text-white px-3 text-[11px] font-bold hover:opacity-90 transition cursor-pointer"
-                            >
-                                Add
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Editor Area */}
-                <div className="lg:col-span-2 space-y-6">
-                    {editingBlogId ? (
-                        <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
-                            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                    Rich Text Editor (Blog)
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setEditingBlogId(null)}
-                                        className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 text-muted-foreground hover:bg-white/5"
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        onClick={handleSaveBlogContent}
-                                        className="flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-lg bg-brand-magenta text-white hover:opacity-90"
-                                    >
-                                        <Save className="h-3.5 w-3.5" /> Save Post
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="bg-white rounded-lg overflow-hidden">
-                                <Editor
-                                    apiKey="no-api-key"
-                                    value={blogContent}
-                                    onEditorChange={(newContent) => setBlogContent(newContent)}
-                                    init={{
-                                        height: 400,
-                                        menubar: false,
-                                        plugins: [
-                                            'advlist autolink lists link image charmap print preview anchor',
-                                            'searchreplace visualblocks code fullscreen',
-                                            'insertdatetime media table paste code help wordcount'
-                                        ],
-                                        toolbar: 'undo redo | formatselect | bold italic backcolor | \
-                                        alignleft aligncenter alignright alignjustify | \
-                                        bullist numlist outdent indent | removeformat | help'
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
-                            <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3 gap-2">
-                                <div>
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                            Visual Editor Canvas
-                                        </h3>
-                                        {unsavedChangesCount > 0 && (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
-                                                <span className="h-1 w-1 rounded-full bg-amber-400"></span>
-                                                {unsavedChangesCount} unsaved
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                                        Selected page: <span className="text-foreground font-semibold">{selectedPage?.title || ""}</span>
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={handleSavePage}
-                                    className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md transition-all cursor-pointer ${
-                                        showSavedFeedback ? "bg-emerald-600" : "bg-linear-to-r from-brand-magenta to-brand-blue hover:scale-[1.02]"
-                                    }`}
-                                >
-                                    {showSavedFeedback ? <><Check className="h-3.5 w-3.5" /> Saved!</> : <><Save className="h-3.5 w-3.5" /> Save layout</>}
-                                </button>
-                            </div>
-
-                            <div className="border border-white/5 bg-background/50 rounded-xl p-4 space-y-4 max-h-[380px] overflow-y-auto min-h-[300px]">
-                                {selectedPage?.blocks?.map((block, index) => (
-                                    <div key={block.id} className="group relative border border-dashed border-white/10 hover:border-brand-magenta/40 p-4 rounded-xl transition">
-                                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5 z-10 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/10 shadow">
-                                            <button disabled={index === 0} onClick={(e) => handleMoveBlock(block.id, "up", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronUp className="h-3.5 w-3.5" /></button>
-                                            <button disabled={index === (selectedPage.blocks.length - 1)} onClick={(e) => handleMoveBlock(block.id, "down", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronDown className="h-3.5 w-3.5" /></button>
-                                            <button onClick={(e) => handleDeleteBlock(block.id, e)} className="text-muted-foreground hover:text-brand-pink p-1 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
-                                            <span className="text-[9px] uppercase font-mono bg-white/10 px-1.5 py-0.5 rounded text-muted-foreground">{block.type}</span>
-                                        </div>
-
-                                        {block.type === "header" && <h2 className="font-display text-xl font-bold tracking-tight text-gradient">{block.content}</h2>}
-                                        {block.type === "text" && <div className="text-xs text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: block.content }} />}
-                                        {block.type === "button" && (
-                                            <div className="pt-2">
-                                                <span className="inline-flex rounded-full bg-gradient-brand px-4 py-1.5 text-[11px] font-bold text-white shadow">{block.content}</span>
-                                                <span className="ml-2 text-[9px] text-muted-foreground font-mono">({block.meta})</span>
-                                            </div>
-                                        )}
-                                        {block.type === "media" && (
-                                            <div className="my-2 rounded-lg overflow-hidden border border-white/5 bg-black/20 max-h-48 flex items-center justify-center p-2">
-                                                {block.content ? <img src={block.content} className="max-h-40 object-contain rounded" alt="CMS Media Block" /> : <div className="p-8 text-xs text-muted-foreground flex items-center gap-1.5"><AlertCircle className="h-3.5 w-3.5" /> No image source URL</div>}
-                                            </div>
-                                        )}
-
-                                        <div className="mt-3 hidden group-hover:block border-t border-white/5 pt-3">
-                                            {block.type === "text" ? (
-                                                <div className="bg-white rounded-lg overflow-hidden mt-2">
-                                                    <Editor
-                                                        apiKey="no-api-key"
-                                                        value={block.content}
-                                                        onEditorChange={(newContent) => handleUpdateBlockContent(block.id, newContent)}
-                                                        init={{ height: 200, menubar: false, plugins: ['link textcolor'], toolbar: 'bold italic underline | link' }}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">{block.type === "media" ? "Media URL" : "Edit Content"}</label>
-                                                    <input type="text" value={block.content} onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)} className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors" />
-                                                </>
-                                            )}
-                                            {block.type === "button" && (
-                                                <div className="mt-2">
-                                                    <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">Button Link (to)</label>
-                                                    <input type="text" value={block.meta || ""} onChange={(e) => handleUpdateBlockMeta(block.id, e.target.value)} className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                                {(!selectedPage || !selectedPage.blocks || selectedPage.blocks.length === 0) && (
-                                    <div className="flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
-                                        <Inbox className="h-8 w-8 mb-2 opacity-40" />
-                                        <p className="text-xs font-semibold">No blocks on this page layout</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="mt-4 border-t border-white/5 pt-4">
-                                <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-2.5 tracking-wider">Insert Layout Block</span>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    {['header', 'text', 'button', 'media'].map(type => (
-                                        <button key={type} onClick={() => handleAddBlock(type as any)} className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-foreground transition cursor-pointer capitalize">
-                                            <Plus className="h-3.5 w-3.5 text-brand-magenta" /> {type}
+                                            {tab}
                                         </button>
                                     ))}
                                 </div>
+                                <div className="space-y-2 max-h-[450px] overflow-y-auto pr-1">
+                                    {filteredPages.map((p) => (
+                                        <div key={p.id} className="group relative w-full border border-white/5 rounded-xl bg-white/5 p-1.5 transition hover:bg-white/10">
+                                            <div className="flex flex-col w-full pr-14">
+                                                <button
+                                                    onClick={() => setSelectedPageId(p.id)}
+                                                    className="w-full text-left rounded px-1.5 py-1 text-xs font-semibold transition-all cursor-pointer text-foreground hover:text-brand-magenta truncate"
+                                                >
+                                                    {p.title}
+                                                </button>
+                                                <div className="flex items-center gap-1.5 px-1.5 mt-0.5">
+                                                    <span className="text-[9px] font-mono text-muted-foreground/60 truncate max-w-[100px]" title={p.slug}>{p.slug}</span>
+                                                    <span className={`px-1 rounded text-[7px] font-bold tracking-wider uppercase scale-90 origin-left border ${
+                                                        (p as any).is_archived
+                                                            ? 'bg-rose-500/10 text-brand-pink border-brand-pink/20'
+                                                            : p.is_published
+                                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                                                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                    }`}>
+                                                        {(p as any).is_archived ? 'Archived' : p.is_published ? 'Active' : 'Draft'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-card/95 backdrop-blur-sm p-1 rounded-lg border border-white/10 transition-all shadow z-10">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setExpandedSeoPageId(expandedSeoPageId === p.id ? null : p.id);
+                                                    }}
+                                                    className={`p-1 rounded cursor-pointer ${expandedSeoPageId === p.id ? "text-brand-cyan hover:bg-brand-cyan/10" : "text-muted-foreground hover:bg-white/10"}`}
+                                                    title="SEO Settings"
+                                                >
+                                                    <Globe className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleTogglePublish(p.id, p.is_published, e)}
+                                                    className={`p-1 rounded cursor-pointer ${p.is_published ? "text-emerald-400 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-white/10"}`}
+                                                    title={p.is_published ? "Unpublish" : "Publish"}
+                                                >
+                                                    <Check className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleDuplicatePage(p, e)}
+                                                    className="p-1 rounded text-brand-cyan hover:bg-brand-cyan/10 cursor-pointer"
+                                                    title="Duplicate Page"
+                                                >
+                                                    <Copy className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleToggleArchive(p.id, (p as any).is_archived || false, e)}
+                                                    className={`p-1 rounded cursor-pointer ${ (p as any).is_archived ? "text-rose-400 hover:bg-rose-500/10" : "text-muted-foreground hover:bg-white/10"}`}
+                                                    title={(p as any).is_archived ? "Unarchive (Restore)" : "Archive Page"}
+                                                >
+                                                    <Archive className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleDeletePage(p.id, e)}
+                                                    className="p-1 rounded text-muted-foreground hover:text-brand-pink hover:bg-white/10 cursor-pointer"
+                                                    title="Delete Page"
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                            
+                                            {/* Expandable Page Settings */}
+                                            {expandedSeoPageId === p.id && (
+                                                <div className="mt-2 p-2 border-t border-white/5 space-y-2 bg-black/25 rounded-lg">
+                                                    <div className="text-[10px] font-bold text-brand-cyan uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                        <Globe className="h-3 w-3" /> Page Settings
+                                                    </div>
+                                                    
+                                                    <div className="space-y-1">
+                                                        <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Meta Title</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Meta title..."
+                                                            value={p.meta_title || ""}
+                                                            onChange={(e) => handleUpdatePageSeo(p.id, 'meta_title', e.target.value)}
+                                                            className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Meta Description</label>
+                                                        <textarea
+                                                            placeholder="Meta description..."
+                                                            rows={2}
+                                                            value={p.meta_description || ""}
+                                                            onChange={(e) => handleUpdatePageSeo(p.id, 'meta_description', e.target.value)}
+                                                            className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan resize-none"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        <label className="block text-[8px] text-muted-foreground uppercase font-semibold">Canonical URL</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Canonical URL..."
+                                                            value={p.canonical_url || ""}
+                                                            onChange={(e) => handleUpdatePageSeo(p.id, 'canonical_url', e.target.value)}
+                                                            className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        <label className="block text-[8px] text-muted-foreground uppercase font-semibold">OG Image URL</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="OG Image URL..."
+                                                            value={p.og_image_url || ""}
+                                                            onChange={(e) => handleUpdatePageSeo(p.id, 'og_image_url', e.target.value)}
+                                                            className="w-full rounded bg-background/50 border border-white/10 px-2 py-1 text-[10px] text-foreground focus:outline-none focus:border-brand-cyan"
+                                                        />
+                                                    </div>
+
+                                                    <div className="border-t border-white/10 pt-2 mt-2 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="text-[9px] text-muted-foreground font-semibold flex items-center gap-1 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={p.show_in_nav || false}
+                                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'show_in_nav', e.target.checked)}
+                                                                    className="rounded bg-background/50 border border-white/10 cursor-pointer"
+                                                                />
+                                                                Show in Header Nav
+                                                            </label>
+                                                            <div className="flex items-center gap-1">
+                                                                <label className="text-[8px] text-muted-foreground uppercase font-semibold">Order:</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={p.nav_order || 0}
+                                                                    onChange={(e) => handleUpdatePageSeo(p.id, 'nav_order', parseInt(e.target.value) || 0)}
+                                                                    className="w-12 rounded bg-background/50 border border-white/10 px-1 py-0.5 text-[9px] text-foreground focus:outline-none focus:border-brand-cyan text-center"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => handleSavePageSeo(p.id)}
+                                                        className="w-full rounded bg-brand-cyan hover:opacity-90 text-black py-1 text-[10px] font-bold transition cursor-pointer mt-2"
+                                                    >
+                                                        Save Settings
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {filteredPages.length === 0 && (
+                                        <div className="p-8 text-center text-xs text-muted-foreground">
+                                            No pages found
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    )}
-                </div>
 
-                {/* Media Library & Menus */}
-                <div className="space-y-4">
-                    <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl flex flex-col">
-                        <div className="flex items-center justify-between mb-3 gap-2">
-                            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Media Library</div>
-                            {uploading && (
-                              <div className="text-[10px] text-muted-foreground mt-1">
-                                Uploading... {uploadProgress}%
-                              </div>
-                            )}
-                            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/5 px-2.5 py-1 text-[10px] hover:bg-white/10 font-bold transition cursor-pointer shrink-0">
-                                <Upload className="h-3 w-3 text-brand-cyan" /> Upload
-                            </button>
-                            <input type="file" ref={fileInputRef} onChange={(e) => { if (e.target.files) handleFilesSelected(e.target.files); }} multiple accept="image/*,application/pdf,video/*" className="hidden" />
-                        </div>
-
-                        <div className="relative mb-3">
-                            <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
-                            <input type="text" placeholder="Search library..." value={mediaSearchText} onChange={(e) => setMediaSearchText(e.target.value)} className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1 text-[11px] focus:outline-none text-foreground" />
-                        </div>
-
-                        <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} className={`border border-dashed rounded-xl p-3 mb-3 text-center transition-all flex flex-col items-center justify-center min-h-[90px] ${isDragging ? "border-brand-magenta bg-brand-magenta/10 scale-[0.98]" : "border-white/10 hover:border-brand-magenta/30 bg-background/20"}`}>
-                            <Upload className={`h-5 w-5 mb-1.5 ${isDragging ? "animate-bounce text-brand-magenta" : "text-muted-foreground"}`} />
-                            <p className="text-[10px] font-semibold">{isDragging ? "Drop to upload!" : "Drag files here (WebP auto-convert)"}</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
-                            {filteredMediaList.map((file) => (
-                                <div key={file.id} className="relative group rounded-lg border border-white/5 overflow-hidden bg-background">
-                                    {file.type === "image" ? <img src={file.url} className="h-16 w-full object-cover" alt="" /> : <div className="h-16 w-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted-foreground">{(file.type || 'FILE').toUpperCase()}</div>}
-                                    <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1 transition-all">
-                                        <span className="text-[8px] text-white truncate font-semibold">{file.name}</span>
-                                        {file.url && (
-                                            <button onClick={() => { navigator.clipboard.writeText(file.url); toast.success("Copied!"); }} className="bg-brand-blue text-white rounded px-1.5 py-0.5 text-[8px] mx-auto cursor-pointer">
-                                                Copy Link
-                                            </button>
-                                        )}
-                                        <div className="flex items-center justify-between mt-auto">
-                                            <span className="text-[7px] text-white/70">{file.size}</span>
-                                            <Trash2 className="h-3 w-3 text-brand-pink cursor-pointer" onClick={() => handleDeleteMedia(file.id, file.url)} />
+                        {/* Page Visual Canvas Editor Area */}
+                        <div className="lg:col-span-3 space-y-6">
+                            <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
+                                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3 gap-2 flex-wrap">
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                                Visual Editor Canvas
+                                            </h3>
+                                            {unsavedChangesCount > 0 && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
+                                                    {unsavedChangesCount} unsaved
+                                                </span>
+                                            )}
                                         </div>
+                                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                                            Selected page: <span className="text-foreground font-semibold">{selectedPage?.title || ""}</span>
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleSavePage}
+                                        className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md transition-all cursor-pointer ${
+                                            showSavedFeedback ? "bg-emerald-600" : "bg-gradient-to-r from-brand-magenta to-brand-blue hover:scale-[1.02]"
+                                        }`}
+                                    >
+                                        {showSavedFeedback ? <><Check className="h-3.5 w-3.5" /> Saved!</> : <><Save className="h-3.5 w-3.5" /> Save layout</>}
+                                    </button>
+                                </div>
+
+                                <div className="border border-white/5 bg-background/50 rounded-xl p-4 space-y-4 max-h-[550px] overflow-y-auto min-h-[300px]">
+                                    {selectedPage?.blocks?.map((block, index) => (
+                                        <div key={block.id} className="group relative border border-dashed border-white/10 hover:border-brand-magenta/40 p-4 rounded-xl transition">
+                                            <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5 z-10 bg-card/95 backdrop-blur-sm p-1 rounded-lg border border-white/10 shadow">
+                                                <button disabled={index === 0} onClick={(e) => handleMoveBlock(block.id, "up", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronUp className="h-3.5 w-3.5" /></button>
+                                                <button disabled={index === (selectedPage.blocks.length - 1)} onClick={(e) => handleMoveBlock(block.id, "down", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronDown className="h-3.5 w-3.5" /></button>
+                                                <button onClick={(e) => handleDeleteBlock(block.id, e)} className="text-muted-foreground hover:text-brand-pink p-1 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                <span className="text-[9px] uppercase font-mono bg-white/10 px-1.5 py-0.5 rounded text-muted-foreground">{block.type}</span>
+                                            </div>
+
+                                            {block.type === "header" && <h2 className="font-display text-xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-magenta to-brand-blue">{block.content}</h2>}
+                                            {block.type === "text" && <div className="text-xs text-muted-foreground leading-relaxed prose prose-invert" dangerouslySetInnerHTML={{ __html: block.content }} />}
+                                            {block.type === "button" && (
+                                                <div className="pt-2">
+                                                    <span className="inline-flex rounded-full bg-gradient-brand px-4 py-1.5 text-[11px] font-bold text-white shadow">{block.content}</span>
+                                                    <span className="ml-2 text-[9px] text-muted-foreground font-mono">({block.meta})</span>
+                                                </div>
+                                            )}
+                                            {block.type === "media" && (
+                                                <div className="my-2 rounded-lg overflow-hidden border border-white/5 bg-black/20 max-h-48 flex items-center justify-center p-2">
+                                                    {block.content ? <img src={block.content} className="max-h-40 object-contain rounded" alt="CMS Media Block" /> : <div className="p-8 text-xs text-muted-foreground flex items-center gap-1.5"><AlertCircle className="h-3.5 w-3.5" /> No image source URL</div>}
+                                                </div>
+                                            )}
+
+                                            <div className="mt-3 hidden group-hover:block border-t border-white/5 pt-3">
+                                                {block.type === "text" ? (
+                                                    <div className="bg-white rounded-lg overflow-hidden mt-2">
+                                                        <Editor
+                                                            apiKey="no-api-key"
+                                                            value={block.content}
+                                                            onEditorChange={(newContent) => handleUpdateBlockContent(block.id, newContent)}
+                                                            init={{ height: 200, menubar: false, plugins: ['link textcolor'], toolbar: 'bold italic underline | link' }}
+                                                        />
+                                                    </div>
+                                                ) : block.type === "media" ? (
+                                                    <div className="mt-2">
+                                                        <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">Select Media Source</label>
+                                                        <div className="flex gap-2">
+                                                            <select
+                                                                value={block.content}
+                                                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                                                className="flex-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-cyan transition-colors"
+                                                            >
+                                                                <option value="">-- Select from Media Library --</option>
+                                                                {mediaList.map(m => (
+                                                                    <option key={m.id} value={m.url}>{m.name}</option>
+                                                                ))}
+                                                            </select>
+                                                            <input type="text" placeholder="Or type custom URL..." value={block.content} onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)} className="flex-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors" />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">Edit Content</label>
+                                                        <input type="text" value={block.content} onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)} className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors" />
+                                                    </>
+                                                )}
+                                                {block.type === "button" && (
+                                                    <div className="mt-3">
+                                                        <label className="block text-[10px] text-muted-foreground mb-1 uppercase tracking-wider">Button Link (to)</label>
+                                                        <div className="flex gap-2">
+                                                            <select
+                                                                value={block.meta || ""}
+                                                                onChange={(e) => handleUpdateBlockMeta(block.id, e.target.value)}
+                                                                className="flex-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-cyan transition-colors"
+                                                            >
+                                                                <option value="">-- Select Page Route --</option>
+                                                                {pages.map(p => {
+                                                                    const path = (p.slug === 'home' || p.slug === '/') ? '/' : `/${p.slug.replace(/^\/+/, '')}`;
+                                                                    return <option key={p.id} value={path}>{p.title} ({path})</option>
+                                                                })}
+                                                            </select>
+                                                            <input type="text" placeholder="Or type custom URL..." value={block.meta || ""} onChange={(e) => handleUpdateBlockMeta(block.id, e.target.value)} className="flex-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-brand-magenta transition-colors" />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!selectedPage || !selectedPage.blocks || selectedPage.blocks.length === 0) && (
+                                        <div className="flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
+                                            <Inbox className="h-8 w-8 mb-2 opacity-40" />
+                                            <p className="text-xs font-semibold">No blocks on this page layout</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-4 border-t border-white/5 pt-4">
+                                    <span className="block text-[10px] uppercase font-bold text-muted-foreground mb-2.5 tracking-wider">Insert Layout Block</span>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {['header', 'text', 'button', 'media'].map(type => (
+                                            <button key={type} onClick={() => handleAddBlock(type as any)} className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 hover:border-brand-magenta/40 bg-white/5 hover:bg-white/10 px-3 py-2 text-xs font-semibold text-foreground transition cursor-pointer capitalize">
+                                                <Plus className="h-3.5 w-3.5 text-brand-magenta" /> {type}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
+                )}
 
-                    <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
-                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Header Navigation Menu</div>
-                        <div className="space-y-1.5 max-h-36 overflow-y-auto mb-3 pr-1">
-                            {headerLinks.map((link) => (
-                                <div key={link.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-1.5 text-[11px]">
-                                    <span className="font-semibold">{link.label}</span>
-                                    <span className="font-mono text-muted-foreground text-[9px]">{link.to_path}</span>
-                                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-brand-pink cursor-pointer" onClick={() => handleDeleteNavLink(link.id)} />
+                {/* 2. BLOG TAB */}
+                {activeTab === 'blog' && (
+                    <div className="grid gap-6 lg:grid-cols-4">
+                        {/* Blog Sidebar List */}
+                        <div className="space-y-4">
+                            <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
+                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center justify-between">
+                                    <span>Blog & News Posts</span>
                                 </div>
-                            ))}
-                        </div>
-                        <div className="space-y-2 border-t border-white/5 pt-3">
-                            <div className="grid grid-cols-2 gap-1.5">
-                                <div className="relative" ref={labelDropdownRef}>
+                                <div className="relative mb-3">
+                                    <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
                                     <input
                                         type="text"
-                                        placeholder="Label"
+                                        placeholder="Search blogs..."
+                                        value={blogSearchText}
+                                        onChange={(e) => setBlogSearchText(e.target.value)}
+                                        className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1.5 text-[11px] focus:outline-none text-foreground"
+                                    />
+                                </div>
+
+                                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                                    {filteredBlogs.map((blog) => (
+                                        <div 
+                                            key={blog.id} 
+                                            onClick={() => { 
+                                                setEditingBlogId(blog.id); 
+                                                setBlogContent(blog.content || "");
+                                                setBlogCategory(blog.category || "General");
+                                                setBlogTags(blog.tags || "");
+                                                setBlogStatus(blog.status || "Draft");
+                                            }}
+                                            className={`relative group rounded-xl border p-3 text-[11px] transition-all cursor-pointer ${
+                                                editingBlogId === blog.id
+                                                    ? 'bg-brand-magenta/10 border-brand-magenta/40 text-foreground'
+                                                    : 'bg-white/5 border-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground'
+                                            }`}
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="overflow-hidden mr-2">
+                                                    <p className="font-semibold truncate leading-snug">{blog.title}</p>
+                                                    <div className="flex items-center gap-1.5 mt-1 text-[9px] flex-wrap">
+                                                        <span className="text-muted-foreground">{blog.date}</span>
+                                                        <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold ${
+                                                            blog.status === 'Published' 
+                                                                ? 'bg-emerald-500/10 text-emerald-400' 
+                                                                : 'bg-amber-500/10 text-amber-400'
+                                                        }`}>
+                                                            {blog.status}
+                                                        </span>
+                                                        {blog.category && (
+                                                            <span className="px-1.5 py-0.5 rounded-full bg-brand-cyan/10 text-brand-cyan text-[8px] font-semibold">
+                                                                {blog.category}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {blog.tags && (
+                                                        <div className="flex items-center gap-1 mt-1 text-[8px] flex-wrap max-w-full">
+                                                            <Tag className="h-2.5 w-2.5 text-muted-foreground" />
+                                                            <span className="truncate max-w-[120px] text-muted-foreground">{blog.tags}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteBlog(blog.id); }} 
+                                                    className="text-muted-foreground hover:text-brand-pink p-1 shrink-0 cursor-pointer self-start opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {filteredBlogs.length === 0 && (
+                                        <div className="p-8 text-center text-xs text-muted-foreground">
+                                            No blog posts found
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-3 flex flex-col gap-2 border-t border-white/5 pt-3">
+                                    <label className="block text-[10px] text-muted-foreground uppercase font-bold">Create Post Draft</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Post title..."
+                                            value={newBlogTitle}
+                                            onChange={(e) => setNewBlogTitle(e.target.value)}
+                                            className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-brand-magenta transition-colors"
+                                        />
+                                        <button
+                                            onClick={handleAddBlogPost}
+                                            className="rounded-lg bg-brand-magenta text-white px-3 text-[11px] font-bold hover:opacity-90 transition cursor-pointer"
+                                        >
+                                            Create
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Blog Rich Text Editor Area */}
+                        <div className="lg:col-span-3">
+                            {editingBlogId ? (
+                                <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl space-y-4">
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-3 flex-wrap gap-2">
+                                        <div>
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                                Rich Text Editor (Blog Post)
+                                            </h3>
+                                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                                                Editing: <span className="text-foreground font-semibold">{blogList.find(b => b.id === editingBlogId)?.title}</span>
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setEditingBlogId(null)}
+                                                className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 text-muted-foreground hover:bg-white/5 cursor-pointer"
+                                            >
+                                                Close
+                                            </button>
+                                            <button
+                                                onClick={handleSaveBlogContent}
+                                                className="flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-lg bg-brand-magenta text-white hover:opacity-90 cursor-pointer shadow-md"
+                                            >
+                                                <Save className="h-3.5 w-3.5" /> Save Post Details
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Blog Metadata Controls */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-black/25 p-3.5 rounded-xl border border-white/5 text-xs">
+                                        <div className="space-y-1">
+                                            <label className="block text-[10px] text-muted-foreground uppercase font-bold">Category</label>
+                                            <select 
+                                                value={blogCategory} 
+                                                onChange={(e) => setBlogCategory(e.target.value)}
+                                                className="w-full rounded-lg border border-white/15 bg-background px-2.5 py-1.5 focus:outline-none focus:border-brand-cyan text-foreground text-xs"
+                                            >
+                                                <option value="General">General</option>
+                                                <option value="Marketing">Marketing</option>
+                                                <option value="Technology">Technology</option>
+                                                <option value="Design">Design</option>
+                                                <option value="Development">Development</option>
+                                                <option value="Business">Business</option>
+                                                <option value="News">News</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-[10px] text-muted-foreground uppercase font-bold">Tags (comma-separated)</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="e.g. SEO, AI, WebDesign"
+                                                value={blogTags}
+                                                onChange={(e) => setBlogTags(e.target.value)}
+                                                className="w-full rounded-lg border border-white/15 bg-background px-2.5 py-1.5 focus:outline-none focus:border-brand-cyan text-foreground text-xs"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="block text-[10px] text-muted-foreground uppercase font-bold">Status</label>
+                                            <select 
+                                                value={blogStatus} 
+                                                onChange={(e) => setBlogStatus(e.target.value as any)}
+                                                className="w-full rounded-lg border border-white/15 bg-background px-2.5 py-1.5 focus:outline-none focus:border-brand-cyan text-foreground text-xs"
+                                            >
+                                                <option value="Draft">Draft</option>
+                                                <option value="Published">Published</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Main TinyMCE WYSIWYG Editor */}
+                                    <div className="bg-white rounded-lg overflow-hidden border border-white/10">
+                                        <Editor
+                                            apiKey="no-api-key"
+                                            value={blogContent}
+                                            onEditorChange={(newContent) => setBlogContent(newContent)}
+                                            init={{
+                                                height: 400,
+                                                menubar: true,
+                                                plugins: [
+                                                    'advlist autolink lists link image charmap print preview anchor',
+                                                    'searchreplace visualblocks code fullscreen',
+                                                    'insertdatetime media table paste code help wordcount'
+                                                ],
+                                                toolbar: 'undo redo | formatselect | bold italic underline forecolor backcolor | \
+                                                alignleft aligncenter alignright alignjustify | \
+                                                bullist numlist outdent indent | removeformat | image media link code fullscreen'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="rounded-2xl border border-white/10 bg-card/40 p-10 text-center backdrop-blur-xl min-h-[350px] flex flex-col items-center justify-center text-muted-foreground">
+                                    <BookOpen className="h-10 w-10 mb-3 opacity-30 text-brand-magenta" />
+                                    <p className="text-sm font-bold">No Blog Post Selected</p>
+                                    <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                                        Select a post from the sidebar list to start editing its content and parameters, or create a new draft.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 3. NAVIGATION TAB */}
+                {activeTab === 'navigation' && (
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* Header Navigation Editor */}
+                        <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl flex flex-col space-y-4">
+                            <div className="border-b border-white/5 pb-2">
+                                <h3 className="text-sm font-bold text-foreground">Header Navigation Links</h3>
+                                <p className="text-[10px] text-muted-foreground">Appears in the header navigation menu.</p>
+                            </div>
+                            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1 flex-1">
+                                {headerLinks.map((link) => (
+                                    <div key={link.id} className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-[11px] group">
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-foreground">{link.label}</span>
+                                            <span className="font-mono text-muted-foreground text-[9px] mt-0.5">{link.to_path}</span>
+                                        </div>
+                                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-brand-pink cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteNavLink(link.id)} />
+                                    </div>
+                                ))}
+                                {headerLinks.length === 0 && (
+                                    <div className="text-center py-8 text-xs text-muted-foreground">No links in Header Menu</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer Navigation Editor */}
+                        <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl flex flex-col space-y-4">
+                            <div className="border-b border-white/5 pb-2">
+                                <h3 className="text-sm font-bold text-foreground">Footer Navigation Links</h3>
+                                <p className="text-[10px] text-muted-foreground">Appears in the footer site maps.</p>
+                            </div>
+                            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1 flex-1">
+                                {footerLinks.map((link) => (
+                                    <div key={link.id} className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-[11px] group">
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-foreground">{link.label}</span>
+                                            <span className="font-mono text-muted-foreground text-[9px] mt-0.5">{link.to_path}</span>
+                                        </div>
+                                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-brand-pink cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteNavLink(link.id)} />
+                                    </div>
+                                ))}
+                                {footerLinks.length === 0 && (
+                                    <div className="text-center py-8 text-xs text-muted-foreground">No links in Footer Menu</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Link Creation Manager */}
+                        <div className="md:col-span-2 rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Add Navigation link</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                <div className="relative" ref={labelDropdownRef}>
+                                    <label className="block text-[9px] text-muted-foreground uppercase font-bold mb-1">Link Label</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Home"
                                         value={newNavLink.label}
                                         onFocus={() => setShowLabelDropdown(true)}
                                         onChange={(e) => setNewNavLink({ ...newNavLink, label: e.target.value })}
-                                        className="w-full rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none"
+                                        className="w-full rounded-lg border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-cyan text-foreground"
                                     />
                                     {showLabelDropdown && (
-                                        <div className="absolute left-0 top-full mt-1 w-full rounded-lg border border-white/10 bg-card shadow-xl z-50 max-h-32 overflow-y-auto">
+                                        <div className="absolute left-0 top-full mt-1 w-full rounded-lg border border-white/10 bg-card shadow-2xl z-50 max-h-36 overflow-y-auto">
                                             {[...new Set([
-                                                ...headerLinks.map(l => l.label),
+                                                ...navLinks.map(l => l.label),
                                                 'Home', 'Services', 'Work', 'Resources', 'Process', 'Testimonials', 'About', 'Contact',
-                                                'Starter Kit', 'Blog', 'SEO', 'AI Chatbots', 'LLM Solutions', 'Full Stack Web',
-                                                'Graphic Design', 'Video Production', 'Privacy Policy', 'Terms of Service', 'Cookie Policy'
+                                                'Blog', 'SEO', 'AI Chatbots', 'LLM Solutions', 'Full Stack Web',
+                                                'Graphic Design', 'Privacy Policy', 'Terms of Service', 'Cookie Policy'
                                             ])].map(label => (
                                                 <button
                                                     key={label}
                                                     type="button"
                                                     onMouseDown={() => { setNewNavLink(prev => ({ ...prev, label })); setShowLabelDropdown(false); }}
-                                                    className="w-full text-left px-2.5 py-1.5 text-[10px] hover:bg-white/10 transition cursor-pointer"
+                                                    className="w-full text-left px-2.5 py-1.5 text-[10px] hover:bg-white/10 text-foreground transition cursor-pointer"
                                                 >
                                                     {label}
                                                 </button>
@@ -1280,18 +1696,181 @@ function AdminCMS() {
                                         </div>
                                     )}
                                 </div>
-                                <input type="text" placeholder="Route" value={newNavLink.to_path} onChange={(e) => setNewNavLink({ ...newNavLink, to_path: e.target.value })} className="rounded-lg border bg-background px-2 py-1 text-[10px] focus:outline-none" />
+                                <div>
+                                    <label className="block text-[9px] text-muted-foreground uppercase font-bold mb-1">Route Path</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="/route" 
+                                        value={newNavLink.to_path} 
+                                        onChange={(e) => setNewNavLink({ ...newNavLink, to_path: e.target.value })} 
+                                        className="w-full rounded-lg border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-cyan text-foreground" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] text-muted-foreground uppercase font-bold mb-1">Position</label>
+                                    <select
+                                        value={newNavLink.position}
+                                        onChange={(e) => setNewNavLink({ ...newNavLink, position: e.target.value })}
+                                        className="w-full rounded-lg border bg-background px-3 py-2 text-xs focus:outline-none focus:border-brand-cyan text-foreground"
+                                    >
+                                        <option value="header">Header Menu</option>
+                                        <option value="footer">Footer Menu</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-end">
+                                    <button 
+                                        onClick={handleAddNavLink} 
+                                        className="w-full rounded-lg bg-brand-blue text-white py-2 text-xs font-bold hover:opacity-90 shadow-md transition cursor-pointer"
+                                    >
+                                        Add Link Item
+                                    </button>
+                                </div>
                             </div>
-                            <button onClick={handleAddNavLink} className="w-full rounded-lg bg-brand-blue text-white py-1.5 text-[10px] font-bold hover:opacity-90">Add Navigation Link</button>
                         </div>
                     </div>
+                )}
 
-                    {/* Background Manager */}
-                    <div className="rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-xl">
-                        <div className="flex items-center justify-between gap-2 mb-3">
+                {/* 4. MEDIA TAB */}
+                {activeTab === 'media' && (
+                    <div className="rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl flex flex-col space-y-4">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-3 flex-wrap gap-2">
+                            <div>
+                                <h3 className="text-sm font-bold text-foreground">Media Asset Library</h3>
+                                <p className="text-[10px] text-muted-foreground">Upload and link files directly inside the page visual layouts.</p>
+                            </div>
+                            <div className="flex items-center gap-3 flex-wrap">
+                                {/* WebP Optimization Toggle */}
+                                <div className="flex items-center gap-2 bg-black/35 px-3 py-1.5 rounded-lg border border-white/5">
+                                    <label htmlFor="webp-convert" className="text-[10px] font-bold text-brand-cyan uppercase tracking-wider cursor-pointer">Optimize Images (WebP)</label>
+                                    <input 
+                                        id="webp-convert"
+                                        type="checkbox"
+                                        checked={autoConvertToWebP}
+                                        onChange={(e) => setAutoConvertToWebP(e.target.checked)}
+                                        className="w-3.5 h-3.5 accent-brand-cyan rounded cursor-pointer"
+                                    />
+                                </div>
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()} 
+                                    className="flex items-center gap-1.5 rounded-lg bg-brand-magenta text-white px-3 py-1.5 text-xs hover:opacity-95 font-bold transition cursor-pointer shadow-md"
+                                >
+                                    <Upload className="h-3.5 w-3.5" /> Upload Files
+                                </button>
+                                <input type="file" ref={fileInputRef} onChange={(e) => { if (e.target.files) handleFilesSelected(e.target.files); }} multiple accept="image/*,application/pdf,video/*" className="hidden" />
+                            </div>
+                        </div>
+
+                        {/* Search & Type Filters */}
+                        <div className="flex gap-2 flex-col sm:flex-row items-center">
+                            <div className="relative flex-1 w-full">
+                                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search media by filename..." 
+                                    value={mediaSearchText} 
+                                    onChange={(e) => setMediaSearchText(e.target.value)} 
+                                    className="w-full rounded-lg border border-border bg-background/50 pl-8 pr-2.5 py-1.5 text-xs focus:outline-none text-foreground" 
+                                />
+                            </div>
+                            <div className="flex gap-1.5 shrink-0">
+                                {[
+                                    { id: 'all', label: 'All Files' },
+                                    { id: 'image', label: 'Images' },
+                                    { id: 'video', label: 'Videos' },
+                                    { id: 'pdf', label: 'PDFs' }
+                                ].map(filter => (
+                                    <button 
+                                        key={filter.id}
+                                        onClick={() => setMediaTypeFilter(filter.id as any)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                                            mediaTypeFilter === filter.id 
+                                                ? 'bg-brand-cyan border-brand-cyan text-black' 
+                                                : 'bg-white/5 border-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
+                                        }`}
+                                    >
+                                        {filter.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Drag and Drop Zone */}
+                        <div 
+                            onDragOver={handleDragOver} 
+                            onDragLeave={handleDragLeave} 
+                            onDrop={handleDrop} 
+                            className={`border border-dashed rounded-xl p-6 text-center transition-all flex flex-col items-center justify-center min-h-[120px] ${
+                                isDragging 
+                                    ? "border-brand-magenta bg-brand-magenta/10 scale-[0.98]" 
+                                    : "border-white/10 hover:border-brand-magenta/30 bg-background/20"
+                            }`}
+                        >
+                            <Upload className={`h-6 w-6 mb-2 ${isDragging ? "animate-bounce text-brand-magenta" : "text-muted-foreground"}`} />
+                            <p className="text-xs font-bold">{isDragging ? "Release files here!" : "Drag & Drop files here"}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">Supports Images (automatic WebP optimization), Videos, and PDFs</p>
+                            {uploading && (
+                                <div className="w-full max-w-xs mt-3 bg-black/40 rounded-full h-1.5 overflow-hidden">
+                                    <div className="bg-brand-cyan h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                                    <span className="block text-[9px] text-brand-cyan mt-1 text-center font-bold">Uploading {uploadProgress}%</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Assets Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 max-h-[450px] overflow-y-auto pr-1">
+                            {filteredMediaList.map((file) => (
+                                <div key={file.id} className="relative group rounded-xl border border-white/10 overflow-hidden bg-background/60 shadow-md">
+                                    {file.type === "image" ? (
+                                        <img src={file.url} className="h-28 w-full object-cover" alt="" />
+                                    ) : (
+                                        <div className="h-28 w-full flex flex-col items-center justify-center bg-white/5 text-[10px] font-bold text-muted-foreground gap-1.5">
+                                            {file.type === 'pdf' ? <FileText className="h-6 w-6 text-brand-cyan" /> : <Monitor className="h-6 w-6 text-brand-magenta" />}
+                                            {(file.type || 'FILE').toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/85 opacity-0 group-hover:opacity-100 flex flex-col justify-between p-2.5 transition-all duration-200">
+                                        <span className="text-[9px] text-white truncate font-bold" title={file.name}>{file.name}</span>
+                                        {file.url && (
+                                            <div className="flex flex-col gap-1.5 my-auto">
+                                                <button 
+                                                    onClick={() => { navigator.clipboard.writeText(file.url); toast.success("Copied Url to Clipboard!"); }} 
+                                                    className="bg-brand-blue text-white rounded-lg px-2.5 py-1 text-[9px] mx-auto cursor-pointer flex items-center gap-1 hover:opacity-95 font-semibold"
+                                                >
+                                                    <Copy className="h-2.5 w-2.5" /> Copy Link
+                                                </button>
+                                                <a 
+                                                    href={file.url} 
+                                                    target="_blank" 
+                                                    rel="noreferrer" 
+                                                    className="bg-white/10 text-white rounded-lg px-2.5 py-1 text-[9px] mx-auto cursor-pointer flex items-center gap-1 hover:bg-white/15 font-semibold"
+                                                >
+                                                    <ExternalLink className="h-2.5 w-2.5" /> Open
+                                                </a>
+                                            </div>
+                                        )}
+                                        <div className="flex items-center justify-between mt-auto">
+                                            <span className="text-[8px] text-white/70 font-mono">{file.size}</span>
+                                            <Trash2 className="h-3.5 w-3.5 text-brand-pink hover:scale-110 transition cursor-pointer" onClick={() => handleDeleteMedia(file.id, file.url)} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {filteredMediaList.length === 0 && (
+                                <div className="col-span-full py-12 text-center text-xs text-muted-foreground">
+                                    No assets in media library
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 5. BACKGROUNDS TAB - UNCHANGED MANAGER COMPONENT */}
+                {activeTab === 'backgrounds' && (
+                    <div className="max-w-2xl mx-auto rounded-2xl border border-white/10 bg-card/40 p-5 backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-2 mb-4 border-b border-white/5 pb-3">
                             <div className="flex items-center gap-2">
                                 <Layers className="h-4 w-4 text-brand-cyan" />
-                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Background Manager</span>
+                                <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Background Manager</span>
                             </div>
                             {backgrounds.length > 0 && (
                                 <button onClick={handleResetAll}
@@ -1301,23 +1880,23 @@ function AdminCMS() {
                             )}
                         </div>
 
-                        <div className="space-y-3 text-[10px]">
+                        <div className="space-y-4 text-xs">
                             {/* Section Selector */}
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <div className="flex-1 min-w-[200px]">
                                     <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Section</label>
                                     <select value={selectedBgSection} onChange={(e) => { setSelectedBgSection(e.target.value); setDraftBg(null); }}
-                                        className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                        className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground">
                                         {sections.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                                     </select>
                                 </div>
                                 {activeBg && (
-                                    <div className="flex items-center gap-1 mt-5">
-                                        <button onClick={handleDeleteBackground} className="p-1.5 rounded-lg bg-rose-500/20 text-brand-pink border border-brand-pink/30 hover:bg-rose-500/30 transition cursor-pointer" title="Delete">
-                                            <Trash2 className="h-3.5 w-3.5" />
+                                    <div className="flex items-center gap-1.5 mt-5">
+                                        <button onClick={handleDeleteBackground} className="p-2 rounded-lg bg-rose-500/20 text-brand-pink border border-brand-pink/30 hover:bg-rose-500/30 transition cursor-pointer" title="Delete">
+                                            <Trash2 className="h-4 w-4" />
                                         </button>
-                                        <button onClick={handleResetBackground} className="flex items-center gap-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/20 px-2 py-1.5 text-[9px] font-bold hover:bg-amber-500/25 transition cursor-pointer" title="Reset to default">
-                                            <RotateCcw className="h-3 w-3" /> Reset
+                                        <button onClick={handleResetBackground} className="flex items-center gap-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/20 px-2.5 py-2 text-[10px] font-bold hover:bg-amber-500/25 transition cursor-pointer" title="Reset to default">
+                                            <RotateCcw className="h-3 w-3" /> Reset Section
                                         </button>
                                     </div>
                                 )}
@@ -1326,7 +1905,7 @@ function AdminCMS() {
                             {/* Preview */}
                             <div className="space-y-1">
                                 <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Preview</label>
-                                <div className="h-20 rounded-xl border border-white/10 overflow-hidden">
+                                <div className="h-28 rounded-xl border border-white/10 overflow-hidden shadow-inner">
                                     <div className="w-full h-full" style={bgToPreviewStyle(activeBg || draftBg)} />
                                 </div>
                             </div>
@@ -1335,27 +1914,29 @@ function AdminCMS() {
                             <div>
                                 <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Type</label>
                                 <select value={bgTypeReverse[(activeBg || draftBg)?.bg_type || 'solid']} onChange={(e) => handleBgFieldChange('bg_type', bgTypeMap[e.target.value] || 'solid')}
-                                    className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                    className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground">
                                     {bgTypes.map(t => <option key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
 
                             {/* Color / Gradient */}
                             {((activeBg || draftBg)?.bg_type === 'solid' || (activeBg || draftBg)?.bg_type === 'gradient') && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3">
                                     {(activeBg || draftBg)?.bg_type === 'solid' ? (
-                                        <>
+                                        <div className="flex-1 flex gap-2 items-center">
                                             <input type="color" value={(activeBg || draftBg)?.solid_color || 'var(--background)'} onChange={(e) => handleBgFieldChange('solid_color', e.target.value)}
-                                                className="flex-1 h-10 rounded cursor-pointer border-0 p-0.5" title="Color" />
-                                        </>
+                                                className="w-12 h-10 rounded cursor-pointer border-0 p-0.5 shrink-0 bg-transparent" title="Color Picker" />
+                                            <input type="text" value={(activeBg || draftBg)?.solid_color || ''} onChange={(e) => handleBgFieldChange('solid_color', e.target.value)}
+                                                className="flex-1 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs focus:outline-none text-foreground font-mono" placeholder="Solid hex color" />
+                                        </div>
                                     ) : (
                                         <>
                                             <input type="color" value={(activeBg || draftBg)?.gradient_color_1 || (activeBg || draftBg)?.solid_color || 'var(--background)'} onChange={(e) => handleBgFieldChange('gradient_color_1', e.target.value)}
-                                                className="w-10 h-8 rounded cursor-pointer border-0 p-0.5" title="Color 1" />
+                                                className="w-12 h-10 rounded cursor-pointer border-0 p-0.5 bg-transparent" title="Color 1" />
                                             <input type="color" value={(activeBg || draftBg)?.gradient_color_2 || (activeBg || draftBg)?.solid_color || 'var(--background)'} onChange={(e) => handleBgFieldChange('gradient_color_2', e.target.value)}
-                                                className="w-10 h-8 rounded cursor-pointer border-0 p-0.5" title="Color 2" />
+                                                className="w-12 h-10 rounded cursor-pointer border-0 p-0.5 bg-transparent" title="Color 2" />
                                             <select value={(activeBg || draftBg)?.gradient_direction || 'to right'} onChange={(e) => handleBgFieldChange('gradient_direction', e.target.value)}
-                                                className="flex-1 rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                                className="flex-1 rounded-lg border border-border bg-background/50 px-2 py-2 focus:outline-none text-foreground">
                                                 <option value="to right">→ Left to Right</option>
                                                 <option value="to left">← Right to Left</option>
                                                 <option value="to bottom">↓ Top to Bottom</option>
@@ -1370,20 +1951,20 @@ function AdminCMS() {
 
                             {/* Image / Video URLs */}
                             {((activeBg || draftBg)?.bg_type === 'image' || (activeBg || draftBg)?.bg_type === 'video') && (
-                                <div className="space-y-2">
-                                    <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Media URLs</label>
+                                <div className="space-y-3">
+                                    <label className="block font-bold text-muted-foreground uppercase tracking-wider">Media URLs</label>
                                     {(['desktop', 'tablet', 'mobile'] as const).map(device => {
                                         const bg = activeBg || draftBg;
                                         const fieldKey = (bg?.bg_type === 'image' ? 'image' : 'video') + '_' + device;
                                         return (
-                                            <div key={device} className="flex items-center gap-1.5">
-                                                {device === 'desktop' && <Monitor className="h-3 w-3 text-muted-foreground shrink-0" />}
-                                                {device === 'tablet' && <Tablet className="h-3 w-3 text-muted-foreground shrink-0" />}
-                                                {device === 'mobile' && <Smartphone className="h-3 w-3 text-muted-foreground shrink-0" />}
+                                            <div key={device} className="flex items-center gap-2">
+                                                {device === 'desktop' && <Monitor className="h-4 w-4 text-muted-foreground shrink-0" />}
+                                                {device === 'tablet' && <Tablet className="h-4 w-4 text-muted-foreground shrink-0" />}
+                                                {device === 'mobile' && <Smartphone className="h-4 w-4 text-muted-foreground shrink-0" />}
                                                 <input type="text" placeholder={`${device.charAt(0).toUpperCase() + device.slice(1)} URL`}
                                                     value={(bg as any)?.[fieldKey] || ''}
                                                     onChange={(e) => handleBgFieldChange(fieldKey, e.target.value)}
-                                                    className="flex-1 rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none" />
+                                                    className="flex-1 rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground text-xs" />
                                             </div>
                                         );
                                     })}
@@ -1395,7 +1976,7 @@ function AdminCMS() {
                                 <div>
                                     <label className="block font-bold text-muted-foreground mb-1 uppercase tracking-wider">Pattern</label>
                                     <select value={(activeBg || draftBg)?.pattern_type || ''} onChange={(e) => handleBgFieldChange('pattern_type', e.target.value)}
-                                        className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                        className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground">
                                         <option value="">None</option>
                                         <option value="dots">Dots</option>
                                         <option value="grid">Grid</option>
@@ -1409,17 +1990,17 @@ function AdminCMS() {
                             {/* Overlay */}
                             <div className="space-y-2">
                                 <label className="block font-bold text-muted-foreground uppercase tracking-wider">Overlay</label>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3">
                                     <input type="color" value={(activeBg || draftBg)?.overlay_color || '#000000'} onChange={(e) => handleBgFieldChange('overlay_color', e.target.value)}
-                                        className="w-8 h-7 rounded cursor-pointer border-0 p-0.5 shrink-0" />
-                                    <span className="text-[9px] text-muted-foreground">0%</span>
+                                        className="w-9 h-8 rounded cursor-pointer border-0 p-0.5 shrink-0 bg-transparent" />
+                                    <span className="text-[10px] text-muted-foreground">0%</span>
                                     <input type="range" min="0" max="100" value={(activeBg || draftBg)?.overlay_opacity || 0} onChange={(e) => handleBgFieldChange('overlay_opacity', parseInt(e.target.value))}
                                         className="flex-1 h-1 accent-brand-magenta cursor-pointer" />
-                                    <span className="text-[9px] text-muted-foreground">100%</span>
-                                    <span className="text-[10px] font-mono text-muted-foreground w-6 text-right">{(activeBg || draftBg)?.overlay_opacity || 0}%</span>
+                                    <span className="text-[10px] text-muted-foreground">100%</span>
+                                    <span className="font-mono text-muted-foreground w-8 text-right">{(activeBg || draftBg)?.overlay_opacity || 0}%</span>
                                 </div>
                                 <select value={(activeBg || draftBg)?.overlay_blend_mode || 'normal'} onChange={(e) => handleBgFieldChange('overlay_blend_mode', e.target.value)}
-                                    className="w-full rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">
+                                    className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground">
                                     <option value="normal">Normal</option>
                                     <option value="multiply">Multiply</option>
                                     <option value="overlay">Overlay</option>
@@ -1429,45 +2010,54 @@ function AdminCMS() {
                             </div>
 
                             {/* Behavior */}
-                            <div className="space-y-2">
-                                <label className="block font-bold text-muted-foreground uppercase tracking-wider">Behavior</label>
+                            <div className="space-y-3 bg-black/20 p-3 rounded-xl border border-white/5">
+                                <label className="block font-bold text-muted-foreground uppercase tracking-wider">Behavior & Layout</label>
                                 <div className="flex items-center justify-between">
-                                    <span>Parallax</span>
+                                    <span>Parallax Animation Effect</span>
                                     <button onClick={() => handleBgFieldChange('parallax', !(activeBg || draftBg)?.parallax)}
-                                        className={`w-8 h-4 rounded-full transition-colors cursor-pointer ${(activeBg || draftBg)?.parallax ? 'bg-brand-magenta' : 'bg-white/20'}`}>
-                                        <span className={`block w-3 h-3 rounded-full bg-white transition-transform ${(activeBg || draftBg)?.parallax ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                                        className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${(activeBg || draftBg)?.parallax ? 'bg-brand-magenta' : 'bg-white/20'}`}>
+                                        <span className={`block w-4 h-4 rounded-full bg-white transition-transform ${(activeBg || draftBg)?.parallax ? 'translate-x-4' : 'translate-x-0.5'}`} />
                                     </button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <select value={(activeBg || draftBg)?.attachment || 'scroll'} onChange={(e) => handleBgFieldChange('attachment', e.target.value)}
-                                        className="rounded-lg border border-border bg-background/50 px-2 py-1 text-[9px] focus:outline-none">
-                                        <option value="scroll">Scroll</option>
-                                        <option value="fixed">Fixed</option>
-                                    </select>
-                                    <select value={(activeBg || draftBg)?.sizing || 'cover'} onChange={(e) => handleBgFieldChange('sizing', e.target.value)}
-                                        className="rounded-lg border border-border bg-background/50 px-2 py-1 text-[9px] focus:outline-none">
-                                        <option value="cover">Cover</option>
-                                        <option value="contain">Contain</option>
-                                        <option value="fill">Fill</option>
-                                        <option value="repeat">Repeat</option>
-                                        <option value="custom">Custom</option>
-                                    </select>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] text-muted-foreground uppercase mb-1">Attachment</label>
+                                        <select value={(activeBg || draftBg)?.attachment || 'scroll'} onChange={(e) => handleBgFieldChange('attachment', e.target.value)}
+                                            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground">
+                                            <option value="scroll">Scroll</option>
+                                            <option value="fixed">Fixed</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] text-muted-foreground uppercase mb-1">Sizing</label>
+                                        <select value={(activeBg || draftBg)?.sizing || 'cover'} onChange={(e) => handleBgFieldChange('sizing', e.target.value)}
+                                            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground">
+                                            <option value="cover">Cover</option>
+                                            <option value="contain">Contain</option>
+                                            <option value="fill">Fill</option>
+                                            <option value="repeat">Repeat</option>
+                                            <option value="custom">Custom</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 {(activeBg || draftBg)?.sizing === 'custom' && (
-                                    <select value={(activeBg || draftBg)?.custom_position || 'center'} onChange={(e) => handleBgFieldChange('custom_position', e.target.value)}
-                                        className="w-full rounded-lg border border-border bg-background/50 px-2 py-1 text-[9px] focus:outline-none">
-                                        <option value="center">Center</option>
-                                        <option value="top">Top</option>
-                                        <option value="bottom">Bottom</option>
-                                    </select>
+                                    <div>
+                                        <label className="block text-[10px] text-muted-foreground uppercase mb-1">Custom Sizing Position</label>
+                                        <select value={(activeBg || draftBg)?.custom_position || 'center'} onChange={(e) => handleBgFieldChange('custom_position', e.target.value)}
+                                            className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 focus:outline-none text-foreground">
+                                            <option value="center">Center</option>
+                                            <option value="top">Top</option>
+                                            <option value="bottom">Bottom</option>
+                                        </select>
+                                    </div>
                                 )}
                             </div>
 
                             {/* Active Status */}
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-white/5">
                                 <div>
-                                    <label className="block font-bold text-muted-foreground uppercase tracking-wider">Active</label>
-                                    <p className="text-[9px] text-muted-foreground mt-0.5">Show on frontend</p>
+                                    <label className="block font-bold text-muted-foreground uppercase tracking-wider">Publish Status</label>
+                                    <p className="text-[9px] text-muted-foreground mt-0.5">Toggle background visibility on front-end section</p>
                                 </div>
                                 <button onClick={() => handleBgFieldChange('is_active', !(activeBg || draftBg)?.is_active)}
                                     className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${(activeBg || draftBg)?.is_active !== false ? 'bg-emerald-500' : 'bg-zinc-700 border border-white/20'}`}>
@@ -1477,29 +2067,29 @@ function AdminCMS() {
 
                             {/* Save / Create */}
                             <button onClick={handleSaveBackground}
-                                className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-brand-blue text-white py-2 text-[11px] font-bold hover:opacity-90 transition cursor-pointer">
-                                <Save className="h-3.5 w-3.5" /> {isNew ? 'Create Background' : 'Save Background'}
+                                className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-brand-blue text-white py-2.5 text-xs font-bold hover:opacity-90 transition cursor-pointer shadow-md">
+                                <Save className="h-4 w-4" /> {isNew ? 'Create Background' : 'Save Background Config'}
                             </button>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Create Page Modal */}
             <AnimatePresence>
                 {isCreatePageModalOpen && (
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-elegant space-y-4">
+                    <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
                             <div className="flex items-center justify-between border-b border-white/5 pb-3">
                                 <h3 className="font-display font-bold text-sm tracking-tight">Create New CMS Page</h3>
-                                <button onClick={() => setIsCreatePageModalOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                                <button onClick={() => setIsCreatePageModalOpen(false)} className="text-muted-foreground hover:text-foreground cursor-pointer"><X className="h-4 w-4" /></button>
                             </div>
                             <form onSubmit={handleCreatePageSubmit} className="space-y-4">
-                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Title</label><input type="text" value={newPageTitle} onChange={(e) => setNewPageTitle(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
-                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Slug</label><input type="text" value={newPageSlug} onChange={(e) => setNewPageSlug(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none" required /></div>
+                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Title</label><input type="text" value={newPageTitle} onChange={(e) => setNewPageTitle(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none focus:border-brand-magenta text-foreground" required /></div>
+                                <div><label className="block text-[10px] font-bold text-muted-foreground mb-1.5 uppercase">Page Slug</label><input type="text" value={newPageSlug} onChange={(e) => setNewPageSlug(e.target.value)} className="w-full rounded-xl border bg-background px-3.5 py-2 text-xs focus:outline-none focus:border-brand-magenta text-foreground" required /></div>
                                 <div className="flex items-center gap-2 pt-2">
-                                    <button type="button" onClick={() => setIsCreatePageModalOpen(false)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-xs font-semibold">Cancel</button>
-                                    <button type="submit" className="flex-1 rounded-xl bg-brand-magenta text-white py-2.5 text-xs font-semibold">Create Page</button>
+                                    <button type="button" onClick={() => setIsCreatePageModalOpen(false)} className="flex-1 rounded-xl border border-white/10 py-2.5 text-xs font-semibold cursor-pointer">Cancel</button>
+                                    <button type="submit" className="flex-1 rounded-xl bg-brand-magenta text-white py-2.5 text-xs font-semibold cursor-pointer">Create Page</button>
                                 </div>
                             </form>
                         </motion.div>

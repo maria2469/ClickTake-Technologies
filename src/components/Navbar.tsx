@@ -79,26 +79,74 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    supabase.from('cms_nav_links').select('label, to_path').then(({ data }) => {
-      if (data && data.length > 0) {
-        const dbMap = new Map(data.map(d => [d.label, d.to_path]));
-        const merged = links.map(l => {
-          const dbPath = dbMap.get(l.label);
-          if (dbPath) return { ...l, to: dbPath, href: dbPath };
-          return l;
-        });
-        data.forEach(d => {
-          if (!links.some(l => l.label === d.label)) {
-            merged.push({ label: d.label, to: d.to_path, isPage: true as const });
-          }
-        });
-        setNavLinks(merged);
-      } else {
-        setNavLinks(links);
+  const fetchNav = async () => {
+    const [{ data: pagesData }, { data: navLinksData }] = await Promise.all([
+      supabase
+        .from('pages')
+        .select('title, slug, nav_order, is_archived')
+        .eq('is_published', true)
+        .eq('show_in_nav', true)
+        .order('nav_order', { ascending: true }),
+      supabase
+        .from('cms_nav_links')
+        .select('label, to_path')
+    ]);
+
+    let finalLinks: any[] = [];
+
+    if (pagesData) {
+      // Filter out archived
+      const activePages = pagesData.filter(p => p.is_archived !== true);
+      // Deduplicate by slug
+      const uniquePages = Array.from(new Map(activePages.map(p => [p.slug, p])).values());
+      finalLinks = uniquePages.map(p => {
+        const path = (p.slug === 'home' || p.slug === '/') ? '/' : `/${p.slug.replace(/^\/+/, '')}`;
+        // Preserve mega menu for Services
+        const mega = path.toLowerCase() === '/services';
+        return { label: p.title, to: path, isPage: true, mega };
+      });
+    }
+
+    if (navLinksData) {
+      navLinksData.forEach(d => {
+        // Prevent adding if label or to_path matches an existing page
+        if (!finalLinks.some(l => l.label.toLowerCase() === d.label.toLowerCase() || l.to === d.to_path)) {
+          finalLinks.push({ label: d.label, to: d.to_path, isPage: true });
+        }
+      });
+    }
+
+    // Merge missing anchor links from hardcoded links (like #process, #testimonials)
+    links.forEach(l => {
+      if (l.href?.startsWith('#')) {
+        if (!finalLinks.some(fl => fl.label.toLowerCase() === l.label.toLowerCase())) {
+          finalLinks.push(l);
+        }
       }
     });
-  }, [location.pathname]);
+
+    setNavLinks(finalLinks);
+  };
+
+  useEffect(() => {
+    fetchNav();
+    
+    // Subscribe to realtime updates for both tables
+    const channelPages = supabase
+      .channel('navbar-pages-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pages' }, () => fetchNav())
+      .subscribe();
+
+    const channelNavLinks = supabase
+      .channel('navbar-links-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_nav_links' }, () => fetchNav())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channelPages);
+      supabase.removeChannel(channelNavLinks);
+    };
+  }, []);
 
   const handleSectionClick = async (href: string) => {
     setOpen(false);
