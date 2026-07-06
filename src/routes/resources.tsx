@@ -79,7 +79,7 @@ const fallbackArticles: Article[] = [
     readTime: "6 min read",
     date: "May 24, 2026",
     tags: ["Headless Commerce", "Shopify API", "Next.js", "Web Performance"],
-    gradient: "from-cyan-500/20 via-blue-600/5 to-slate-900",
+    gradient: "from-brand-cyan/20 via-blue-600/5 to-slate-900",
   },
   {
     id: "ai-agents-ops",
@@ -91,7 +91,7 @@ const fallbackArticles: Article[] = [
     readTime: "8 min read",
     date: "May 18, 2026",
     tags: ["AI Agents", "LLMs", "RAG", "Automation", "FastAPI"],
-    gradient: "from-violet-500/20 via-indigo-600/5 to-slate-900",
+    gradient: "from-brand-magenta/20 via-indigo-600/5 to-slate-900",
   },
   {
     id: "seo-multi-location",
@@ -108,13 +108,13 @@ const fallbackArticles: Article[] = [
 ];
 
 const fallbackGuides: Guide[] = [
-  { id: "saas-playbook", title: "The 2026 B2B SaaS Growth Playbook", description: "42 pages of actionable strategies on funnel optimization, subscription models, product-led growth (PLG) setups, and scaling web infrastructure.", pages: 42, format: "PDF Booklet", gradient: "from-pink-500 to-rose-600", downloadCount: "1.2k+ downloads" },
+  { id: "saas-playbook", title: "The 2026 B2B SaaS Growth Playbook", description: "42 pages of actionable strategies on funnel optimization, subscription models, product-led growth (PLG) setups, and scaling web infrastructure.", pages: 42, format: "PDF Booklet", gradient: "from-brand-pink to-brand-pink", downloadCount: "1.2k+ downloads" },
   { id: "enterprise-ai", title: "Enterprise AI Implementation Guide: Risk, Cost, & ROI", description: "A comprehensive handbook for C-level executives detailing cost frameworks of self-hosting vs fine-tuning OpenAI models, data security compliance, and ROI timelines.", pages: 28, format: "Whitepaper", gradient: "from-amber-500 to-orange-600", downloadCount: "850+ downloads" },
 ];
 
 const fallbackWebinars: Webinar[] = [
-  { id: "series-a-tech", title: "Scaling from Seed to Series A: Tech Stack Decisions That Matter", date: "June 15, 2026", time: "3:00 PM BST / 7:00 PM PKT", speaker: "Zain Paracha & Adam Kitts", speakerRole: "Co-Founders & Technical Directors", status: "Upcoming", gradient: "from-violet-500 to-fuchsia-600" },
-  { id: "headless-shopify-deep", title: "Under The Hood: Building a Headless Shopify Store in 90 Days", date: "Recorded", time: "On-Demand (1 hr 12 mins)", speaker: "Web Development Lead", speakerRole: "Senior Full-Stack Engineer", status: "On-Demand", gradient: "from-cyan-500 to-blue-600" },
+  { id: "series-a-tech", title: "Scaling from Seed to Series A: Tech Stack Decisions That Matter", date: "June 15, 2026", time: "3:00 PM BST / 7:00 PM PKT", speaker: "Zain Paracha & Adam Kitts", speakerRole: "Co-Founders & Technical Directors", status: "Upcoming", gradient: "from-brand-magenta to-brand-magenta" },
+  { id: "headless-shopify-deep", title: "Under The Hood: Building a Headless Shopify Store in 90 Days", date: "Recorded", time: "On-Demand (1 hr 12 mins)", speaker: "Web Development Lead", speakerRole: "Senior Full-Stack Engineer", status: "On-Demand", gradient: "from-brand-cyan to-brand-blue" },
 ];
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ function ResourcesPage() {
               readTime: r.read_time || "5 min read",
               date: r.publish_date ? new Date(r.publish_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "",
               tags: r.tags || [],
-              gradient: r.gradient || "from-cyan-500/20 via-blue-600/5 to-slate-900",
+              gradient: r.gradient || "from-brand-cyan/20 via-blue-600/5 to-slate-900",
             });
           } else if (r.resource_type === "guide") {
             guideData.push({
@@ -176,7 +176,7 @@ function ResourcesPage() {
               description: r.description,
               pages: r.pages || 0,
               format: r.format || "PDF",
-              gradient: r.gradient || "from-pink-500 to-rose-600",
+              gradient: r.gradient || "from-brand-pink to-brand-pink",
               downloadCount: r.download_count ? `${r.download_count}+ downloads` : "Download",
             });
           } else if (r.resource_type === "webinar") {
@@ -188,7 +188,7 @@ function ResourcesPage() {
               speaker: r.speaker || "ClickTake Team",
               speakerRole: r.speaker_role || "",
               status: (r.webinar_status as "Upcoming" | "On-Demand") || "On-Demand",
-              gradient: r.gradient || "from-violet-500 to-fuchsia-600",
+              gradient: r.gradient || "from-brand-magenta to-brand-magenta",
             });
           }
         });
@@ -275,8 +275,8 @@ function ResourcesPage() {
         {/* HERO SECTION */}
         <section className="relative overflow-hidden py-16 lg:py-24">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-violet-500/10 blur-[130px]" />
-            <div className="absolute bottom-0 right-1/3 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[130px]" />
+            <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-brand-magenta/10 blur-[130px]" />
+            <div className="absolute bottom-0 right-1/3 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[130px]" />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-4 text-center">
@@ -317,7 +317,7 @@ function ResourcesPage() {
                     onClick={() => setActiveTab(tab)}
                     className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
                       activeTab === tab
-                        ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-md"
+                        ? "bg-gradient-to-r from-brand-cyan to-brand-magenta text-white shadow-md"
                         : "border border-white/10 bg-white/5 text-muted-foreground hover:border-white/20 hover:text-foreground"
                     }`}
                   >
@@ -357,7 +357,7 @@ function ResourcesPage() {
                 {filteredArticles.length > 0 && (
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <BookOpen className="h-5 w-5 text-cyan-400" />
+                      <BookOpen className="h-5 w-5 text-brand-cyan" />
                       <h2 className="text-xl font-bold uppercase tracking-wider text-muted-foreground/80">SEO & Growth Articles</h2>
                       <div className="h-px flex-1 bg-white/5" />
                     </div>
@@ -373,7 +373,7 @@ function ResourcesPage() {
                         >
                           <div>
                             <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                              <span className="rounded-full bg-cyan-500/10 border border-cyan-500/25 px-2.5 py-0.5 text-cyan-400 font-semibold uppercase tracking-wider">
+                              <span className="rounded-full bg-brand-cyan/10 border border-brand-cyan/25 px-2.5 py-0.5 text-brand-cyan font-semibold uppercase tracking-wider">
                                 {art.category}
                               </span>
                               <div className="flex items-center gap-1 font-mono">
@@ -398,7 +398,7 @@ function ResourcesPage() {
                             </div>
                             <button
                               onClick={() => setSelectedArticle(art)}
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 group-hover:text-white transition-colors"
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-brand-cyan group-hover:text-white transition-colors"
                             >
                               Read full <ArrowUpRight className="h-3 w-3" />
                             </button>
@@ -413,7 +413,7 @@ function ResourcesPage() {
                 {filteredGuides.length > 0 && (
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <FileText className="h-5 w-5 text-violet-400" />
+                      <FileText className="h-5 w-5 text-brand-magenta" />
                       <h2 className="text-xl font-bold uppercase tracking-wider text-muted-foreground/80">Playbooks & Whitepapers (Gated)</h2>
                       <div className="h-px flex-1 bg-white/5" />
                     </div>
@@ -427,7 +427,7 @@ function ResourcesPage() {
                           transition={{ delay: idx * 0.1 }}
                           className="group relative overflow-hidden rounded-2xl border border-white/10 bg-card/40 backdrop-blur-xl p-7 hover:border-white/20 transition-all duration-300"
                         >
-                          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-brand-magenta/5 to-transparent pointer-events-none" />
                           <div className="flex flex-col sm:flex-row gap-6 justify-between items-start">
                             
                             {/* Graphic Book Mockup */}
@@ -462,7 +462,7 @@ function ResourcesPage() {
                                 </span>
                                 <button
                                   onClick={() => setGatedGuide(guide)}
-                                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:scale-105 transition-transform"
+                                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-magenta to-brand-magenta px-4 py-2 text-xs font-semibold text-white shadow-md hover:scale-105 transition-transform"
                                 >
                                   Download Book <Download className="h-3.5 w-3.5" />
                                 </button>
@@ -504,7 +504,7 @@ function ResourcesPage() {
                             <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
                               web.status === "Upcoming"
                                 ? "bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse"
-                                : "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
+                                : "bg-brand-cyan/10 border-brand-cyan/30 text-brand-cyan"
                             }`}>
                               {web.status}
                             </span>
@@ -566,7 +566,7 @@ function ResourcesPage() {
             className="relative overflow-hidden rounded-3xl border border-white/10 bg-card/40 p-8 backdrop-blur-xl text-center"
             style={{ boxShadow: "0 0 60px -20px rgba(99,102,241,0.15)" }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-fuchsia-500/5" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/5 via-brand-magenta/5 to-brand-magenta/5" />
             <div className="relative z-10 max-w-2xl mx-auto">
               <h3 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
                 Get monthly tech insights directly.
@@ -598,7 +598,7 @@ function ResourcesPage() {
                 />
                 <button
                   type="submit"
-                  className="rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform shrink-0"
+                  className="rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform shrink-0"
                 >
                   Join Briefing
                 </button>
@@ -637,7 +637,7 @@ function ResourcesPage() {
               </button>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                <span className="rounded-full bg-cyan-500/10 border border-cyan-500/25 px-2.5 py-0.5 text-cyan-400 font-semibold uppercase tracking-wider">
+                <span className="rounded-full bg-brand-cyan/10 border border-brand-cyan/25 px-2.5 py-0.5 text-brand-cyan font-semibold uppercase tracking-wider">
                   {selectedArticle.category}
                 </span>
                 <span>•</span>
@@ -700,7 +700,7 @@ function ResourcesPage() {
 
               {!formSubmitted ? (
                 <div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 shadow-lg mb-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-cyan to-brand-magenta shadow-lg mb-4">
                     {gatedGuide ? <Download className="h-5 w-5 text-white" /> : <Calendar className="h-5 w-5 text-white" />}
                   </div>
 
@@ -760,7 +760,7 @@ function ResourcesPage() {
                     </div>
 
                     {formError && (
-                      <div className="text-xs text-rose-400 flex items-center gap-1.5">
+                      <div className="text-xs text-brand-pink flex items-center gap-1.5">
                         <AlertCircle className="h-4 w-4 shrink-0" />
                         {formError}
                       </div>
@@ -768,7 +768,7 @@ function ResourcesPage() {
 
                     <button
                       type="submit"
-                      className="w-full mt-2 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 py-3 text-sm font-semibold text-white shadow-lg hover:scale-[1.02] transition-transform"
+                      className="w-full mt-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-magenta py-3 text-sm font-semibold text-white shadow-lg hover:scale-[1.02] transition-transform"
                     >
                       {gatedGuide ? "Unlock PDF Book" : "Confirm Seat Registration"}
                     </button>

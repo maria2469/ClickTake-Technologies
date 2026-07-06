@@ -9,7 +9,7 @@ const steps = [
     title: "Discovery",
     desc: "Deep research into your goals, users and positioning to uncover opportunities that drive long-term growth.",
     icon: Search,
-    color: "from-cyan-500 to-blue-600",
+    color: "from-brand-cyan to-brand-blue",
     glow: "shadow-cyan-500/25",
     glowRaw: "rgba(0,200,255,0.3)",
     detail: "Competitor audits · User research · Market positioning · KPI mapping",
@@ -20,7 +20,7 @@ const steps = [
     title: "Strategy",
     desc: "A scalable roadmap aligned with branding, user experience and measurable business impact.",
     icon: Brain,
-    color: "from-blue-500 to-sky-600",
+    color: "from-brand-blue to-sky-600",
     glow: "shadow-blue-500/25",
     glowRaw: "rgba(59,130,246,0.3)",
     detail: "Tech stack selection · Wireframes · Sprint planning · Resource allocation",
@@ -31,7 +31,7 @@ const steps = [
     title: "Design",
     desc: "Premium interfaces crafted with motion, clarity and immersive visual systems that captivate.",
     icon: Pencil,
-    color: "from-sky-500 to-teal-500",
+    color: "from-brand-cyan to-teal-500",
     glow: "shadow-sky-500/25",
     glowRaw: "rgba(14,165,233,0.3)",
     detail: "UI/UX systems · Component libraries · Motion design · Brand integration",
@@ -42,7 +42,7 @@ const steps = [
     title: "Build",
     desc: "Modern engineering with AI integrations, scalable architecture and production-ready performance.",
     icon: Cog,
-    color: "from-teal-500 to-cyan-500",
+    color: "from-teal-500 to-brand-cyan",
     glow: "shadow-teal-500/25",
     glowRaw: "rgba(20,184,166,0.3)",
     detail: "Agile sprints · Code reviews · QA testing · Performance audits",
@@ -53,7 +53,7 @@ const steps = [
     title: "Launch",
     desc: "Deployment, optimisation and continuous iteration focused on performance and growth metrics.",
     icon: Rocket,
-    color: "from-cyan-500 to-blue-500",
+    color: "from-brand-cyan to-brand-blue",
     glow: "shadow-cyan-500/25",
     glowRaw: "rgba(0,200,255,0.3)",
     detail: "CI/CD pipeline · Analytics setup · SEO launch · Growth tracking",
@@ -173,8 +173,8 @@ export function Process() {
     <section id="process" className="relative overflow-hidden py-24 lg:py-36">
       {/* BACKGROUND — unchanged per user request */}
       <div className="absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[140px]" />
-        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[120px]" />
+        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-brand-blue/10 blur-[140px]" />
+        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[120px]" />
         <div
           className="absolute inset-0 opacity-[0.025]"
           style={{
@@ -216,7 +216,7 @@ export function Process() {
           <div className="absolute left-0 right-0 top-14 hidden lg:block overflow-hidden">
             <div className="h-px w-full bg-white/5" />
             <motion.div
-              className="absolute inset-0 h-px bg-gradient-to-r from-cyan-500 via-blue-500 via-sky-500 to-cyan-500"
+              className="absolute inset-0 h-px bg-gradient-to-r from-brand-cyan via-brand-blue via-sky-500 to-brand-cyan"
               initial={{ scaleX: 0, originX: 0 }}
               whileInView={{ scaleX: 1 }}
               viewport={{ once: true }}
@@ -241,7 +241,7 @@ export function Process() {
 
         {/* Connector arrow (mobile) */}
         <div className="mt-4 flex justify-center lg:hidden">
-          <div className="h-12 w-px bg-gradient-to-b from-cyan-500/40 to-transparent" />
+          <div className="h-12 w-px bg-gradient-to-b from-brand-cyan/40 to-transparent" />
         </div>
 
         {/* OUTCOMES GRID */}
@@ -261,7 +261,7 @@ export function Process() {
                   className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   style={{ background: 'radial-gradient(circle at 50% 0%, rgba(0,200,255,0.05), transparent 70%)' }}
                 />
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border border-white/10">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-cyan/20 to-brand-blue/10 border border-white/10">
                   <Icon className="h-5 w-5 text-primary" />
                 </div>
                 <h4 className="font-semibold text-foreground text-sm">{o.label}</h4>

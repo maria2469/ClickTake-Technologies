@@ -722,7 +722,7 @@ function AdminCMS() {
     useEffect(() => {
         if (!activeBg && !draftBg) {
             setDraftBg({
-                id: '', section: selectedBgSection, bg_type: 'solid', solid_color: '#0a0a0f',
+                id: '', section: selectedBgSection, bg_type: 'solid', solid_color: 'var(--background)',
                 gradient_direction: 'to right', gradient_color_1: '', gradient_color_2: '',
                 image_desktop: '', image_tablet: '', image_mobile: '',
                 video_desktop: '', video_tablet: '', video_mobile: '',
@@ -763,7 +763,7 @@ function AdminCMS() {
         const bg = activeBg || draftBg;
         if (!bg) return;
         const defaults: Partial<BackgroundConfig> = {
-            bg_type: 'solid', solid_color: '#0a0a0f',
+            bg_type: 'solid', solid_color: 'var(--background)',
             gradient_direction: 'to right', gradient_color_1: '', gradient_color_2: '',
             image_desktop: '', image_tablet: '', image_mobile: '',
             video_desktop: '', video_tablet: '', video_mobile: '',
@@ -792,7 +792,7 @@ function AdminCMS() {
     };
 
     const getPatternPreview = (type: string): string | null => {
-        const c = 'rgba(255,255,255,0.15)';
+        const c = 'color-mix(in oklab, var(--foreground) 15%, transparent)';
         switch (type) {
             case 'dots': return `radial-gradient(circle, ${c} 1px, transparent 1px)`;
             case 'grid': return `linear-gradient(${c} 1px, transparent 1px), linear-gradient(90deg, ${c} 1px, transparent 1px)`;
@@ -810,11 +810,11 @@ function AdminCMS() {
         switch (cfg.bg_type) {
             case 'solid':
             case 'pattern':
-                style.backgroundColor = cfg.solid_color || '#0a0a0f';
+                style.backgroundColor = cfg.solid_color || 'var(--background)';
                 break;
             case 'gradient': {
-                const c1 = cfg.gradient_color_1 || cfg.solid_color || '#0a0a0f';
-                const c2 = cfg.gradient_color_2 || cfg.solid_color || '#0a0a0f';
+                const c1 = cfg.gradient_color_1 || cfg.solid_color || 'var(--background)';
+                const c2 = cfg.gradient_color_2 || cfg.solid_color || 'var(--background)';
                 style.backgroundImage = `linear-gradient(${cfg.gradient_direction || 'to right'}, ${c1}, ${c2})`;
                 baseLayers = 1;
                 break;
@@ -822,11 +822,11 @@ function AdminCMS() {
             case 'image': {
                 const url = cfg.image_desktop || cfg.image_tablet || cfg.image_mobile;
                 if (url) { style.backgroundImage = `url(${url})`; style.backgroundSize = 'cover'; style.backgroundPosition = 'center'; baseLayers = 1; }
-                else style.backgroundColor = cfg.solid_color || '#0a0a0f';
+                else style.backgroundColor = cfg.solid_color || 'var(--background)';
                 break;
             }
             case 'video':
-                style.backgroundColor = '#1a1a2e';
+                style.backgroundColor = 'var(--card)';
                 break;
         }
         if (cfg.pattern_type) {
@@ -935,7 +935,7 @@ function AdminCMS() {
                                             </button>
                                             <button
                                                 onClick={(e) => handleDeletePage(p.id, e)}
-                                                className="p-1 rounded text-muted-foreground hover:text-rose-400 hover:bg-white/10 cursor-pointer"
+                                                className="p-1 rounded text-muted-foreground hover:text-brand-pink hover:bg-white/10 cursor-pointer"
                                                 title="Delete Page"
                                             >
                                                 <Trash2 className="h-3 w-3" />
@@ -1023,7 +1023,7 @@ function AdminCMS() {
                                         <button onClick={() => { setEditingBlogId(blog.id); setBlogContent(blog.content || ""); }} className="text-muted-foreground hover:text-brand-cyan p-1 shrink-0 cursor-pointer">
                                             <Edit3 className="h-3.5 w-3.5" />
                                         </button>
-                                        <button onClick={() => handleDeleteBlog(blog.id)} className="text-muted-foreground hover:text-rose-400 p-1 shrink-0 cursor-pointer">
+                                        <button onClick={() => handleDeleteBlog(blog.id)} className="text-muted-foreground hover:text-brand-pink p-1 shrink-0 cursor-pointer">
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
@@ -1126,7 +1126,7 @@ function AdminCMS() {
                                         <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition flex items-center gap-1.5 z-10 bg-card/90 backdrop-blur-sm p-1 rounded-lg border border-white/10 shadow">
                                             <button disabled={index === 0} onClick={(e) => handleMoveBlock(block.id, "up", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronUp className="h-3.5 w-3.5" /></button>
                                             <button disabled={index === (selectedPage.blocks.length - 1)} onClick={(e) => handleMoveBlock(block.id, "down", e)} className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-1 cursor-pointer"><ChevronDown className="h-3.5 w-3.5" /></button>
-                                            <button onClick={(e) => handleDeleteBlock(block.id, e)} className="text-muted-foreground hover:text-rose-400 p-1 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
+                                            <button onClick={(e) => handleDeleteBlock(block.id, e)} className="text-muted-foreground hover:text-brand-pink p-1 cursor-pointer"><Trash2 className="h-3.5 w-3.5" /></button>
                                             <span className="text-[9px] uppercase font-mono bg-white/10 px-1.5 py-0.5 rounded text-muted-foreground">{block.type}</span>
                                         </div>
 
@@ -1230,7 +1230,7 @@ function AdminCMS() {
                                         )}
                                         <div className="flex items-center justify-between mt-auto">
                                             <span className="text-[7px] text-white/70">{file.size}</span>
-                                            <Trash2 className="h-3 w-3 text-rose-400 cursor-pointer" onClick={() => handleDeleteMedia(file.id, file.url)} />
+                                            <Trash2 className="h-3 w-3 text-brand-pink cursor-pointer" onClick={() => handleDeleteMedia(file.id, file.url)} />
                                         </div>
                                     </div>
                                 </div>
@@ -1245,7 +1245,7 @@ function AdminCMS() {
                                 <div key={link.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-1.5 text-[11px]">
                                     <span className="font-semibold">{link.label}</span>
                                     <span className="font-mono text-muted-foreground text-[9px]">{link.to_path}</span>
-                                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-rose-400 cursor-pointer" onClick={() => handleDeleteNavLink(link.id)} />
+                                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-brand-pink cursor-pointer" onClick={() => handleDeleteNavLink(link.id)} />
                                 </div>
                             ))}
                         </div>
@@ -1295,7 +1295,7 @@ function AdminCMS() {
                             </div>
                             {backgrounds.length > 0 && (
                                 <button onClick={handleResetAll}
-                                    className="flex items-center gap-1 rounded-md bg-rose-500/15 text-rose-400 border border-rose-500/20 px-2 py-1 text-[9px] font-bold hover:bg-rose-500/25 transition cursor-pointer">
+                                    className="flex items-center gap-1 rounded-md bg-rose-500/15 text-brand-pink border border-brand-pink/20 px-2 py-1 text-[9px] font-bold hover:bg-rose-500/25 transition cursor-pointer">
                                     <RotateCcw className="h-3 w-3" /> Reset All
                                 </button>
                             )}
@@ -1313,7 +1313,7 @@ function AdminCMS() {
                                 </div>
                                 {activeBg && (
                                     <div className="flex items-center gap-1 mt-5">
-                                        <button onClick={handleDeleteBackground} className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition cursor-pointer" title="Delete">
+                                        <button onClick={handleDeleteBackground} className="p-1.5 rounded-lg bg-rose-500/20 text-brand-pink border border-brand-pink/30 hover:bg-rose-500/30 transition cursor-pointer" title="Delete">
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </button>
                                         <button onClick={handleResetBackground} className="flex items-center gap-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/20 px-2 py-1.5 text-[9px] font-bold hover:bg-amber-500/25 transition cursor-pointer" title="Reset to default">
@@ -1345,14 +1345,14 @@ function AdminCMS() {
                                 <div className="flex items-center gap-2">
                                     {(activeBg || draftBg)?.bg_type === 'solid' ? (
                                         <>
-                                            <input type="color" value={(activeBg || draftBg)?.solid_color || '#0a0a0f'} onChange={(e) => handleBgFieldChange('solid_color', e.target.value)}
+                                            <input type="color" value={(activeBg || draftBg)?.solid_color || 'var(--background)'} onChange={(e) => handleBgFieldChange('solid_color', e.target.value)}
                                                 className="flex-1 h-10 rounded cursor-pointer border-0 p-0.5" title="Color" />
                                         </>
                                     ) : (
                                         <>
-                                            <input type="color" value={(activeBg || draftBg)?.gradient_color_1 || (activeBg || draftBg)?.solid_color || '#0a0a0f'} onChange={(e) => handleBgFieldChange('gradient_color_1', e.target.value)}
+                                            <input type="color" value={(activeBg || draftBg)?.gradient_color_1 || (activeBg || draftBg)?.solid_color || 'var(--background)'} onChange={(e) => handleBgFieldChange('gradient_color_1', e.target.value)}
                                                 className="w-10 h-8 rounded cursor-pointer border-0 p-0.5" title="Color 1" />
-                                            <input type="color" value={(activeBg || draftBg)?.gradient_color_2 || (activeBg || draftBg)?.solid_color || '#0a0a0f'} onChange={(e) => handleBgFieldChange('gradient_color_2', e.target.value)}
+                                            <input type="color" value={(activeBg || draftBg)?.gradient_color_2 || (activeBg || draftBg)?.solid_color || 'var(--background)'} onChange={(e) => handleBgFieldChange('gradient_color_2', e.target.value)}
                                                 className="w-10 h-8 rounded cursor-pointer border-0 p-0.5" title="Color 2" />
                                             <select value={(activeBg || draftBg)?.gradient_direction || 'to right'} onChange={(e) => handleBgFieldChange('gradient_direction', e.target.value)}
                                                 className="flex-1 rounded-lg border border-border bg-background/50 px-2 py-1.5 text-[10px] focus:outline-none">

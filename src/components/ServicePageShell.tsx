@@ -22,7 +22,7 @@ export function ServicePageShell({ eyebrow, title, description, children }: Prop
                         <ArrowLeft className="h-4 w-4" /> Back to Services
                     </Link>
 
-                    <div className="text-xs font-semibold uppercase tracking-widest text-cyan-400">{eyebrow}</div>
+                    <div className="text-xs font-semibold uppercase tracking-widest text-brand-cyan">{eyebrow}</div>
                     <h1 className="mt-3 text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
                         {title}
                     </h1>
@@ -37,7 +37,7 @@ export function ServicePageShell({ eyebrow, title, description, children }: Prop
                         </div>
                         <a
                             href="#contact"
-                            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white"
+                            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-5 py-2.5 text-sm font-semibold text-white"
                         >
                             Book a Call <ArrowUpRight className="h-4 w-4" />
                         </a>

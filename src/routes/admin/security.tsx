@@ -263,7 +263,7 @@ function AdminSecurityPage() {
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteBackup(bk.id)}
-                                                className="text-muted-foreground hover:text-rose-400 p-1"
+                                                className="text-muted-foreground hover:text-brand-pink p-1"
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </button>
@@ -317,7 +317,7 @@ function AdminSecurityPage() {
                                         {blockedIPs.map((ipObj) => (
                                             <div key={ipObj.ip} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-xs">
                                                 <div>
-                                                    <span className="font-mono font-bold text-rose-400">{ipObj.ip}</span>
+                                                    <span className="font-mono font-bold text-brand-pink">{ipObj.ip}</span>
                                                     <span className="text-[9px] text-muted-foreground ml-3">Reason: {ipObj.reason}</span>
                                                 </div>
                                                 <div className="flex items-center gap-3">

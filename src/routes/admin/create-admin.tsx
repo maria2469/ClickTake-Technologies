@@ -130,7 +130,7 @@ export function AdminSignup() {
           opacity: [0.3, 0.5, 0.3],
         }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-brand-purple/10 rounded-full blur-[120px] pointer-events-none"
+        className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-brand-magenta/10 rounded-full blur-[120px] pointer-events-none"
       />
       <motion.div
         animate={{
@@ -150,7 +150,7 @@ export function AdminSignup() {
       >
         {/* Top Branding Logo */}
         <Link to="/" className="flex items-center gap-3 self-start group">
-          <div className="h-10 w-10 bg-gradient-brand flex items-center justify-center rounded-xl text-white font-display text-sm font-black shadow-[0_0_15px_rgba(224,25,122,0.5)] group-hover:shadow-[0_0_25px_rgba(224,25,122,0.7)] transition-all duration-300">
+          <div className="h-10 w-10 bg-gradient-brand flex items-center justify-center rounded-xl text-white font-display text-sm font-black shadow-[0_0_15px_color-mix(in oklab, var(--brand-pink) 50%, transparent)] group-hover:shadow-[0_0_25px_color-mix(in oklab, var(--brand-pink) 70%, transparent)] transition-all duration-300">
             CT
           </div>
           <div>
@@ -167,7 +167,7 @@ export function AdminSignup() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="w-72 h-72 rounded-full border border-brand-pink/20 border-t-brand-pink/60 shadow-[inset_0_0_30px_rgba(224,25,122,0.1)]"
+              className="w-72 h-72 rounded-full border border-brand-pink/20 border-t-brand-pink/60 shadow-[inset_0_0_30px_color-mix(in oklab, var(--brand-pink) 10%, transparent)]"
             />
           </div>
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -181,7 +181,7 @@ export function AdminSignup() {
             <motion.div
               animate={{ rotate: 360, scale: [1, 1.05, 1] }}
               transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-              className="w-[400px] h-[400px] rounded-full border border-brand-purple/10 border-l-brand-purple/40 shadow-[0_0_40px_rgba(123,47,190,0.1)]"
+              className="w-[400px] h-[400px] rounded-full border border-brand-magenta/10 border-l-brand-magenta/40 shadow-[0_0_40px_color-mix(in oklab, var(--brand-magenta) 10%, transparent)]"
             />
           </div>
           
@@ -189,7 +189,7 @@ export function AdminSignup() {
           <div className="relative z-10 space-y-8 max-w-sm mx-auto text-center">
             <motion.div 
               whileHover={{ scale: 1.05 }}
-              className="relative h-20 w-20 mx-auto rounded-full bg-gradient-to-br from-[#070018] to-[#0D0025] flex items-center justify-center border border-white/10 shadow-[0_0_50px_rgba(74,144,217,0.3)] group cursor-pointer"
+              className="relative h-20 w-20 mx-auto rounded-full bg-gradient-to-br from-[#070018] to-[#0D0025] flex items-center justify-center border border-white/10 shadow-[0_0_50px_color-mix(in oklab, var(--brand-blue) 30%, transparent)] group cursor-pointer"
             >
               <div className="absolute inset-0 rounded-full bg-gradient-brand opacity-20 group-hover:opacity-40 transition-opacity duration-300 blur-md" />
               <ShieldCheck className="h-10 w-10 text-white relative z-10" />
@@ -211,7 +211,7 @@ export function AdminSignup() {
                 <span className="text-[10px] font-bold tracking-wider uppercase text-[#F0EBF8]">AES-256</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                <Cpu className="h-3 w-3 text-brand-purple" />
+                <Cpu className="h-3 w-3 text-brand-magenta" />
                 <span className="text-[10px] font-bold tracking-wider uppercase text-[#F0EBF8]">Edge Network</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
@@ -238,7 +238,7 @@ export function AdminSignup() {
           className="w-full max-w-[440px] relative"
         >
           {/* Animated Form Container Glow */}
-          <div className="absolute -inset-0.5 bg-gradient-to-br from-brand-pink/30 via-brand-purple/20 to-brand-blue/30 rounded-[2rem] blur-xl opacity-50" />
+          <div className="absolute -inset-0.5 bg-gradient-to-br from-brand-pink/30 via-brand-magenta/20 to-brand-blue/30 rounded-[2rem] blur-xl opacity-50" />
 
           {/* Premium Form Glassmorphism Card */}
           <div className="relative bg-[#070018]/80 border border-white/10 rounded-[2rem] p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
@@ -285,11 +285,11 @@ export function AdminSignup() {
                     className={`w-full bg-[#0D0025]/50 border rounded-xl pl-10 pr-4 py-2.5 text-xs text-[#F0EBF8] placeholder-[#7A6B95]/50 transition-all duration-300 focus:outline-none ${
                       nameError
                         ? "border-rose-500/50 focus:border-rose-500 focus:shadow-[0_0_15px_rgba(244,63,94,0.15)]"
-                        : "border-white/10 hover:border-white/20 focus:border-brand-pink focus:shadow-[0_0_15px_rgba(224,25,122,0.2)]"
+                        : "border-white/10 hover:border-white/20 focus:border-brand-pink focus:shadow-[0_0_15px_color-mix(in oklab, var(--brand-pink) 20%, transparent)]"
                     }`}
                   />
                 </div>
-                {nameError && <p className="text-[10px] text-rose-400 font-semibold pl-1">{nameError}</p>}
+                {nameError && <p className="text-[10px] text-brand-pink font-semibold pl-1">{nameError}</p>}
               </div>
 
               {/* Row 2: Email Address */}
@@ -298,7 +298,7 @@ export function AdminSignup() {
                   Corporate Email
                 </label>
                 <div className="relative group">
-                  <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-300 ${focusedInput === 'email' ? 'text-brand-purple' : 'text-[#7A6B95]'}`} />
+                  <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-300 ${focusedInput === 'email' ? 'text-brand-magenta' : 'text-[#7A6B95]'}`} />
                   <input
                     type="email"
                     placeholder="name@clicktake.co"
@@ -312,11 +312,11 @@ export function AdminSignup() {
                     className={`w-full bg-[#0D0025]/50 border rounded-xl pl-10 pr-4 py-2.5 text-xs text-[#F0EBF8] placeholder-[#7A6B95]/50 transition-all duration-300 focus:outline-none ${
                       emailError
                         ? "border-rose-500/50 focus:border-rose-500 focus:shadow-[0_0_15px_rgba(244,63,94,0.15)]"
-                        : "border-white/10 hover:border-white/20 focus:border-brand-purple focus:shadow-[0_0_15px_rgba(123,47,190,0.2)]"
+                        : "border-white/10 hover:border-white/20 focus:border-brand-magenta focus:shadow-[0_0_15px_color-mix(in oklab, var(--brand-magenta) 20%, transparent)]"
                     }`}
                   />
                 </div>
-                {emailError && <p className="text-[10px] text-rose-400 font-semibold pl-1">{emailError}</p>}
+                {emailError && <p className="text-[10px] text-brand-pink font-semibold pl-1">{emailError}</p>}
               </div>
 
               {/* Row 3: Role Dropdown */}
@@ -329,7 +329,7 @@ export function AdminSignup() {
                   onFocus={() => setFocusedInput('role')}
                   onBlur={() => setFocusedInput(null)}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full bg-[#0D0025]/50 border border-white/10 hover:border-white/20 focus:border-brand-blue focus:shadow-[0_0_15px_rgba(74,144,217,0.2)] rounded-xl px-3.5 py-2.5 text-xs text-[#F0EBF8] transition-all duration-300 focus:outline-none appearance-none"
+                  className="w-full bg-[#0D0025]/50 border border-white/10 hover:border-white/20 focus:border-brand-blue focus:shadow-[0_0_15px_color-mix(in oklab, var(--brand-blue) 20%, transparent)] rounded-xl px-3.5 py-2.5 text-xs text-[#F0EBF8] transition-all duration-300 focus:outline-none appearance-none"
                 >
                   <option value="Super Admin">Super Admin (Full Privileges)</option>
                   <option value="Content Editor">Content Editor (CMS Manager)</option>
@@ -360,7 +360,7 @@ export function AdminSignup() {
                       className={`w-full bg-[#0D0025]/50 border rounded-xl pl-9 pr-8 py-2.5 text-xs text-[#F0EBF8] placeholder-[#7A6B95]/50 transition-all duration-300 focus:outline-none ${
                         passwordError
                           ? "border-rose-500/50 focus:border-rose-500 focus:shadow-[0_0_15px_rgba(244,63,94,0.15)]"
-                          : "border-white/10 hover:border-white/20 focus:border-brand-pink focus:shadow-[0_0_15px_rgba(224,25,122,0.2)]"
+                          : "border-white/10 hover:border-white/20 focus:border-brand-pink focus:shadow-[0_0_15px_color-mix(in oklab, var(--brand-pink) 20%, transparent)]"
                       }`}
                     />
                     <button
@@ -371,7 +371,7 @@ export function AdminSignup() {
                       {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                     </button>
                   </div>
-                  {passwordError && <p className="text-[9px] text-rose-400 font-semibold pl-1">{passwordError}</p>}
+                  {passwordError && <p className="text-[9px] text-brand-pink font-semibold pl-1">{passwordError}</p>}
                 </div>
 
                 {/* Confirm Password */}
@@ -394,7 +394,7 @@ export function AdminSignup() {
                       className={`w-full bg-[#0D0025]/50 border rounded-xl pl-9 pr-8 py-2.5 text-xs text-[#F0EBF8] placeholder-[#7A6B95]/50 transition-all duration-300 focus:outline-none ${
                         confirmPasswordError
                           ? "border-rose-500/50 focus:border-rose-500 focus:shadow-[0_0_15px_rgba(244,63,94,0.15)]"
-                          : "border-white/10 hover:border-white/20 focus:border-brand-blue focus:shadow-[0_0_15px_rgba(74,144,217,0.2)]"
+                          : "border-white/10 hover:border-white/20 focus:border-brand-blue focus:shadow-[0_0_15px_color-mix(in oklab, var(--brand-blue) 20%, transparent)]"
                       }`}
                     />
                     <button
@@ -405,7 +405,7 @@ export function AdminSignup() {
                       {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                     </button>
                   </div>
-                  {confirmPasswordError && <p className="text-[9px] text-rose-400 font-semibold pl-1">{confirmPasswordError}</p>}
+                  {confirmPasswordError && <p className="text-[9px] text-brand-pink font-semibold pl-1">{confirmPasswordError}</p>}
                 </div>
 
               </div>
@@ -425,8 +425,8 @@ export function AdminSignup() {
                     />
                     <div className={`h-4 w-4 rounded-[4px] border flex items-center justify-center transition-all duration-300 ${
                       termsAccepted
-                        ? "bg-gradient-brand border-transparent shadow-[0_0_10px_rgba(224,25,122,0.4)]"
-                        : "border-white/20 bg-[#0D0025]/80 group-hover:border-brand-purple/50 group-hover:bg-[#0D0025]"
+                        ? "bg-gradient-brand border-transparent shadow-[0_0_10px_color-mix(in oklab, var(--brand-pink) 40%, transparent)]"
+                        : "border-white/20 bg-[#0D0025]/80 group-hover:border-brand-magenta/50 group-hover:bg-[#0D0025]"
                     }`}>
                       <AnimatePresence>
                         {termsAccepted && (
@@ -455,7 +455,7 @@ export function AdminSignup() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="text-[10px] text-rose-400 font-semibold mt-1.5 pl-7"
+                      className="text-[10px] text-brand-pink font-semibold mt-1.5 pl-7"
                     >
                       {termsError}
                     </motion.p>
@@ -472,7 +472,7 @@ export function AdminSignup() {
                 className="w-full relative overflow-hidden rounded-xl p-[1px] font-bold mt-2"
               >
                 <span className="absolute inset-0 bg-gradient-brand opacity-80 group-hover:opacity-100 transition-opacity" />
-                <span className="relative flex h-[42px] items-center justify-center rounded-[11px] bg-gradient-to-r from-brand-pink to-brand-purple hover:from-brand-pink hover:via-brand-purple hover:to-brand-blue transition-all duration-500 text-white text-xs shadow-[0_0_20px_rgba(224,25,122,0.3)] hover:shadow-[0_0_25px_rgba(224,25,122,0.5)]">
+                <span className="relative flex h-[42px] items-center justify-center rounded-[11px] bg-gradient-to-r from-brand-pink to-brand-magenta hover:from-brand-pink hover:via-brand-magenta hover:to-brand-blue transition-all duration-500 text-white text-xs shadow-[0_0_20px_color-mix(in oklab, var(--brand-pink) 30%, transparent)] hover:shadow-[0_0_25px_color-mix(in oklab, var(--brand-pink) 50%, transparent)]">
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <span className="h-3.5 w-3.5 border-2 border-t-transparent border-white rounded-full animate-spin" />

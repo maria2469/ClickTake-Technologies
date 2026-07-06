@@ -8,7 +8,7 @@ export function Hero() {
   const heroBg = getSectionBackground(backgrounds, "hero");
 
   return (
-    <section className="relative min-h-screen overflow-hidden pt-32" style={heroBg ? bgToStyle(heroBg) : {}}>
+    <section className="relative min-h-screen overflow-hidden pt-32 hero-section" style={heroBg ? bgToStyle(heroBg) : {}}>
       {heroBg?.overlay_color && (
         <div className="absolute inset-0 pointer-events-none" style={{
           backgroundColor: heroBg.overlay_color,
@@ -20,9 +20,9 @@ export function Hero() {
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full" style={videoStyle(heroBg)}
           src={heroBg.video_desktop || heroBg.video_tablet || heroBg.video_mobile} />
       )}
-      {!heroBg && <div className="absolute inset-0 bg-gradient-mesh opacity-80" />}
-      {!heroBg && <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,transparent,var(--background))]" />}
-      {!heroBg && <div className="absolute inset-0 opacity-[0.04]" style={{
+      {!heroBg && <div className="absolute inset-0 hero-gradient-layer bg-gradient-mesh opacity-80" />}
+      {!heroBg && <div className="absolute inset-0 hero-radial-layer bg-[radial-gradient(circle_at_50%_120%,transparent,var(--background))]" />}
+      {!heroBg && <div className="absolute inset-0 opacity-[0.04] hero-grid-layer" style={{
         backgroundImage: "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
         backgroundSize: "60px 60px",
       }} />}
@@ -117,7 +117,7 @@ export function Hero() {
       </div>
 
       {/* Marquee */}
-      <div className="relative mt-8 overflow-hidden border-y border-border/50 py-6">
+      <div className="relative mt-8 overflow-hidden border-y border-border/50 py-6 hero-marquee">
         <div className="flex animate-marquee gap-16 whitespace-nowrap font-display text-2xl font-medium text-muted-foreground">
           {[...Array(2)].map((_, k) => (
             <div key={k} className="flex items-center gap-16">

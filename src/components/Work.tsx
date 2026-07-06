@@ -126,8 +126,8 @@ export function Work() {
     >
       {/* Glow */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[130px]" />
-        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-violet-500/10 blur-[130px]" />
+        <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-brand-cyan/10 blur-[130px]" />
+        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-brand-magenta/10 blur-[130px]" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4">
@@ -240,7 +240,7 @@ export function Work() {
                   {/* button */}
                   <a
                     href={p.url}
-                    className="group/btn inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:scale-105"
+                    className="group/btn inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:scale-105"
                   >
                     View project
                     <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />

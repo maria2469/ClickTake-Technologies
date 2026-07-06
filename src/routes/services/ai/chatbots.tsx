@@ -35,8 +35,8 @@ const services = [
     {
         icon: Headphones,
         title: "Customer Support Agents",
-        color: "from-cyan-500 to-blue-600",
-        glow: "rgba(6,182,212,0.15)",
+        color: "from-brand-cyan to-brand-blue",
+        glow: "color-mix(in oklab, var(--brand-cyan) 15%, transparent)",
         desc: "Resolve 70–80% of support tickets without a human — instantly, at any hour, in any language. Escalation to your team only when it genuinely matters.",
         items: [
             "Natural language understanding across all ticket types",
@@ -67,8 +67,8 @@ const services = [
     {
         icon: Workflow,
         title: "Autonomous Operations Agents",
-        color: "from-violet-500 to-indigo-600",
-        glow: "rgba(139,92,246,0.15)",
+        color: "from-brand-magenta to-brand-blue",
+        glow: "color-mix(in oklab, var(--brand-magenta) 15%, transparent)",
         desc: "Multi-step agents that operate across your tools — reading, deciding, and executing without waiting for a human in the loop.",
         items: [
             "Tool-using agents with 100+ integration connectors",
@@ -133,13 +133,13 @@ function ChatbotsPage() {
                             <Link to="/services" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5">
                                 <ArrowLeft className="h-4 w-4" /> Back to Services
                             </Link>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-400">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-cyan">
                                 AI & Machine Learning
                             </div>
                         </motion.div>
                         <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
                             AI agents that work while{" "}
-                            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-magenta bg-clip-text text-transparent">
                                 your team sleeps.
                             </span>
                         </motion.h1>
@@ -147,7 +147,7 @@ function ChatbotsPage() {
                             We build AI chatbots and autonomous agents that resolve support tickets, qualify leads, and run operations workflows — without human intervention, at any scale.
                         </motion.p>
                         <motion.div variants={fadeUp} custom={2} className="mt-8 flex flex-wrap gap-3">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-blue px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
                                 Build your AI agent <ArrowUpRight className="h-4 w-4" />
                             </a>
                             <a href="#services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-7 py-3.5 font-semibold backdrop-blur hover:bg-secondary transition-colors">
@@ -156,8 +156,8 @@ function ChatbotsPage() {
                         </motion.div>
                     </motion.div>
                 </div>
-                <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
+                <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-brand-cyan/10 blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-brand-blue/10 blur-3xl" />
             </section>
 
             {/* ── RESULTS BAR ── */}
@@ -165,7 +165,7 @@ function ChatbotsPage() {
                 <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                     {results.map((r, i) => (
                         <motion.div key={r.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-                            <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">{r.metric}</div>
+                            <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-brand-cyan to-brand-blue bg-clip-text text-transparent">{r.metric}</div>
                             <div className="mt-2 text-sm text-muted-foreground leading-snug">{r.label}</div>
                         </motion.div>
                     ))}
@@ -176,7 +176,7 @@ function ChatbotsPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Reality</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">The Reality</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Most chatbots are expensive FAQ pages.</h2>
                         <div className="space-y-4 text-muted-foreground leading-relaxed">
                             <p>Rule-based chatbots fail the moment a customer asks anything slightly outside the script. The result: frustrated users, poor CSAT, and your team still buried in tickets.</p>
@@ -184,8 +184,8 @@ function ChatbotsPage() {
                             <p>We build agents — systems that understand intent, use your data, call your APIs, and complete real tasks from start to finish.</p>
                         </div>
                     </motion.div>
-                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 p-8 backdrop-blur">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-4">Our Approach</div>
+                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-brand-cyan/20 bg-gradient-to-br from-brand-cyan/5 to-brand-blue/5 p-8 backdrop-blur">
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-cyan mb-4">Our Approach</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Agents that understand, decide, and act.</h2>
                         <div className="space-y-3">
                             {[
@@ -196,7 +196,7 @@ function ChatbotsPage() {
                                 "Shadow mode testing before any live traffic is handled",
                             ].map((item) => (
                                 <div key={item} className="flex items-start gap-3">
-                                    <CheckCircle2 className="h-5 w-5 text-cyan-400 mt-0.5 shrink-0" />
+                                    <CheckCircle2 className="h-5 w-5 text-brand-cyan mt-0.5 shrink-0" />
                                     <span className="text-muted-foreground">{item}</span>
                                 </div>
                             ))}
@@ -209,7 +209,7 @@ function ChatbotsPage() {
             <section id="services" className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-3">What We Build</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-cyan mb-3">What We Build</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Three agent types. Every use case.</h2>
                         <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">Support, sales, and operations — each agent purpose-built for the outcomes your business needs most.</p>
                     </motion.div>
@@ -229,7 +229,7 @@ function ChatbotsPage() {
                                     <ul className="space-y-2">
                                         {s.items.map((item) => (
                                             <li key={item} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                                                <CheckCircle2 className="h-4 w-4 text-cyan-400 mt-0.5 shrink-0" />{item}
+                                                <CheckCircle2 className="h-4 w-4 text-brand-cyan mt-0.5 shrink-0" />{item}
                                             </li>
                                         ))}
                                     </ul>
@@ -244,7 +244,7 @@ function ChatbotsPage() {
             <section className="relative z-10 py-20 px-4 border-y border-border/50">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3">Every Deployment Includes</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-3">Every Deployment Includes</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">One build. Every channel your customers use.</h2>
                     </motion.div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -252,9 +252,9 @@ function ChatbotsPage() {
                             const Icon = d.icon;
                             return (
                                 <motion.div key={d.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                                    className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-cyan-500/30 transition-colors">
-                                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
-                                        <Icon className="h-5 w-5 text-cyan-400" />
+                                    className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-brand-cyan/30 transition-colors">
+                                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-brand-cyan/20 to-brand-blue/20 flex items-center justify-center">
+                                        <Icon className="h-5 w-5 text-brand-cyan" />
                                     </div>
                                     <span className="text-sm font-medium leading-snug">{d.label}</span>
                                 </motion.div>
@@ -268,14 +268,14 @@ function ChatbotsPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-3">How It Works</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-cyan mb-3">How It Works</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Kick-off to live agent in four weeks.</h2>
                     </motion.div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {process.map((p, i) => (
                             <motion.div key={p.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                                 className="relative rounded-2xl border border-border bg-card/50 backdrop-blur p-7 hover:border-white/20 transition-colors group">
-                                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-cyan-500/30 to-blue-500/30 bg-clip-text mb-4 select-none group-hover:from-cyan-500/60 group-hover:to-blue-500/60 transition-all">{p.step}</div>
+                                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-brand-cyan/30 to-brand-blue/30 bg-clip-text mb-4 select-none group-hover:from-brand-cyan/60 group-hover:to-brand-blue/60 transition-all">{p.step}</div>
                                 <h3 className="text-lg font-bold mb-2">{p.title}</h3>
                                 <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
                             </motion.div>
@@ -288,7 +288,7 @@ function ChatbotsPage() {
             <section className="relative z-10 py-24 px-4 border-t border-border/50">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-3">Why ClickTake</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-cyan mb-3">Why ClickTake</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">We build agents that earn their keep.</h2>
                     </motion.div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -296,9 +296,9 @@ function ChatbotsPage() {
                             const Icon = d.icon;
                             return (
                                 <motion.div key={d.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                                    className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-cyan-500/30 transition-colors group">
-                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-border flex items-center justify-center group-hover:border-cyan-500/30 transition-colors">
-                                        <Icon className="h-5 w-5 text-cyan-400" />
+                                    className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-brand-cyan/30 transition-colors group">
+                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-brand-cyan/10 to-brand-blue/10 border border-border flex items-center justify-center group-hover:border-brand-cyan/30 transition-colors">
+                                        <Icon className="h-5 w-5 text-brand-cyan" />
                                     </div>
                                     <div>
                                         <div className="font-semibold mb-1">{d.title}</div>
@@ -315,16 +315,16 @@ function ChatbotsPage() {
             <CtaSection>
                 <div className="max-w-3xl mx-auto text-center">
                     <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-4">Ready to automate?</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-cyan mb-4">Ready to automate?</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
                             Your customers want answers now.<br />
-                            <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Give them an agent that never sleeps.</span>
+                            <span className="bg-gradient-to-r from-brand-cyan to-brand-blue bg-clip-text text-transparent">Give them an agent that never sleeps.</span>
                         </h2>
                         <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
                             Book a free 30-minute agent scoping call. We'll map your highest-volume workflows and show you exactly what can be automated in 30 days.
                         </p>
                         <div className="flex flex-wrap gap-3 justify-center">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-blue px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
                                 Book a free scoping call <ArrowUpRight className="h-5 w-5" />
                             </a>
                             <Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-8 py-4 font-semibold backdrop-blur hover:bg-secondary transition-colors text-base">

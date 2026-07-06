@@ -35,8 +35,8 @@ const services = [
     {
         icon: Camera,
         title: "Computer Vision",
-        color: "from-rose-500 to-pink-600",
-        glow: "rgba(244,63,94,0.15)",
+        color: "from-brand-pink to-brand-pink",
+        glow: "color-mix(in oklab, var(--brand-pink) 15%, transparent)",
         desc: "Make your systems see. We build vision pipelines that classify, detect, segment, and extract information from images and video at production scale.",
         items: [
             "Object detection and classification (YOLO, DETR, SAM)",
@@ -51,8 +51,8 @@ const services = [
     {
         icon: FileSearch,
         title: "Document Intelligence",
-        color: "from-indigo-500 to-violet-600",
-        glow: "rgba(99,102,241,0.15)",
+        color: "from-brand-blue to-brand-magenta",
+        glow: "color-mix(in oklab, var(--brand-blue) 15%, transparent)",
         desc: "Turn unstructured documents into structured data. We extract, classify, and route information from any document format — at scale, with high accuracy.",
         items: [
             "Invoice, contract, and form data extraction",
@@ -133,13 +133,13 @@ function CvNlpPage() {
                             <Link to="/services" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5">
                                 <ArrowLeft className="h-4 w-4" /> Back to Services
                             </Link>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-rose-400">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-brand-pink/30 bg-brand-pink/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-pink">
                                 AI & Machine Learning
                             </div>
                         </motion.div>
                         <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
                             AI that reads images and{" "}
-                            <span className="bg-linear-to-r from-rose-400 via-pink-400 to-violet-400 bg-clip-text text-transparent">
+                            <span className="bg-linear-to-r from-brand-pink via-brand-pink to-brand-magenta bg-clip-text text-transparent">
                                 understands language.
                             </span>
                         </motion.h1>
@@ -147,7 +147,7 @@ function CvNlpPage() {
                             Vast amounts of business value are locked in unstructured data — images, documents, text. We build computer vision and NLP pipelines that extract that value at production scale.
                         </motion.p>
                         <motion.div variants={fadeUp} custom={2} className="mt-8 flex flex-wrap gap-3">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-rose-500 to-pink-600 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-brand-pink to-brand-pink px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
                                 Discuss your pipeline <ArrowUpRight className="h-4 w-4" />
                             </a>
                             <a href="#services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-7 py-3.5 font-semibold backdrop-blur hover:bg-secondary transition-colors">
@@ -156,8 +156,8 @@ function CvNlpPage() {
                         </motion.div>
                     </motion.div>
                 </div>
-                <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-rose-500/10 blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
+                <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-brand-pink/10 blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-brand-magenta/10 blur-3xl" />
             </section>
 
             {/* ── RESULTS BAR ── */}
@@ -165,7 +165,7 @@ function CvNlpPage() {
                 <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                     {results.map((r, i) => (
                         <motion.div key={r.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-                            <div className="text-4xl sm:text-5xl font-bold bg-linear-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">{r.metric}</div>
+                            <div className="text-4xl sm:text-5xl font-bold bg-linear-to-r from-brand-pink to-brand-pink bg-clip-text text-transparent">{r.metric}</div>
                             <div className="mt-2 text-sm text-muted-foreground leading-snug">{r.label}</div>
                         </motion.div>
                     ))}
@@ -176,7 +176,7 @@ function CvNlpPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Problem</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">The Problem</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Unstructured data is your biggest untapped asset.</h2>
                         <div className="space-y-4 text-muted-foreground leading-relaxed">
                             <p>80% of enterprise data is unstructured — images, PDFs, emails, contracts, support tickets. Most of it sits untouched because extracting signal from it manually doesn't scale.</p>
@@ -184,8 +184,8 @@ function CvNlpPage() {
                             <p>Custom-trained vision and NLP models process your exact data formats with accuracy general solutions can't approach — and cost a fraction of manual processing at scale.</p>
                         </div>
                     </motion.div>
-                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-rose-500/20 bg-linear-to-br from-rose-500/5 to-violet-500/5 p-8 backdrop-blur">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">Our Approach</div>
+                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-brand-pink/20 bg-linear-to-br from-brand-pink/5 to-brand-magenta/5 p-8 backdrop-blur">
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">Our Approach</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Purpose-built pipelines. Production accuracy.</h2>
                         <div className="space-y-3">
                             {[
@@ -196,7 +196,7 @@ function CvNlpPage() {
                                 "Monitoring and retraining pipelines included for sustained accuracy",
                             ].map((item) => (
                                 <div key={item} className="flex items-start gap-3">
-                                    <CheckCircle2 className="h-5 w-5 text-rose-400 mt-0.5 shrink-0" />
+                                    <CheckCircle2 className="h-5 w-5 text-brand-pink mt-0.5 shrink-0" />
                                     <span className="text-muted-foreground">{item}</span>
                                 </div>
                             ))}
@@ -209,7 +209,7 @@ function CvNlpPage() {
             <section id="services" className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-3">What We Build</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3">What We Build</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Vision. Documents. Language. All at scale.</h2>
                         <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">Three pipeline categories that cover every major unstructured data challenge your business faces.</p>
                     </motion.div>
@@ -229,7 +229,7 @@ function CvNlpPage() {
                                     <ul className="space-y-2">
                                         {s.items.map((item) => (
                                             <li key={item} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                                                <CheckCircle2 className="h-4 w-4 text-rose-400 mt-0.5 shrink-0" />{item}
+                                                <CheckCircle2 className="h-4 w-4 text-brand-pink mt-0.5 shrink-0" />{item}
                                             </li>
                                         ))}
                                     </ul>
@@ -244,7 +244,7 @@ function CvNlpPage() {
             <section className="relative z-10 py-20 px-4 border-y border-border/50">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-pink-400 mb-3">Every Pipeline Includes</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3">Every Pipeline Includes</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Everything to run in production from day one.</h2>
                     </motion.div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -252,9 +252,9 @@ function CvNlpPage() {
                             const Icon = d.icon;
                             return (
                                 <motion.div key={d.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                                    className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-rose-500/30 transition-colors">
-                                    <div className="h-10 w-10 rounded-lg bg-linear-to-br from-rose-500/20 to-pink-500/20 flex items-center justify-center">
-                                        <Icon className="h-5 w-5 text-rose-400" />
+                                    className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-brand-pink/30 transition-colors">
+                                    <div className="h-10 w-10 rounded-lg bg-linear-to-br from-brand-pink/20 to-brand-pink/20 flex items-center justify-center">
+                                        <Icon className="h-5 w-5 text-brand-pink" />
                                     </div>
                                     <span className="text-sm font-medium leading-snug">{d.label}</span>
                                 </motion.div>
@@ -268,14 +268,14 @@ function CvNlpPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-3">How It Works</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3">How It Works</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Data in. Structured intelligence out.</h2>
                     </motion.div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {process.map((p, i) => (
                             <motion.div key={p.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                                 className="relative rounded-2xl border border-border bg-card/50 backdrop-blur p-7 hover:border-white/20 transition-colors group">
-                                <div className="text-5xl font-black text-transparent bg-linear-to-br from-rose-500/30 to-pink-500/30 bg-clip-text mb-4 select-none group-hover:from-rose-500/60 group-hover:to-pink-500/60 transition-all">{p.step}</div>
+                                <div className="text-5xl font-black text-transparent bg-linear-to-br from-brand-pink/30 to-brand-pink/30 bg-clip-text mb-4 select-none group-hover:from-brand-pink/60 group-hover:to-brand-pink/60 transition-all">{p.step}</div>
                                 <h3 className="text-lg font-bold mb-2">{p.title}</h3>
                                 <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
                             </motion.div>
@@ -288,7 +288,7 @@ function CvNlpPage() {
             <section className="relative z-10 py-24 px-4 border-t border-border/50">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-3">Why ClickTake</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3">Why ClickTake</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">We build for accuracy, not demos.</h2>
                     </motion.div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -296,9 +296,9 @@ function CvNlpPage() {
                             const Icon = d.icon;
                             return (
                                 <motion.div key={d.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                                    className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-rose-500/30 transition-colors group">
-                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-linear-to-br from-rose-500/10 to-pink-500/10 border border-border flex items-center justify-center group-hover:border-rose-500/30 transition-colors">
-                                        <Icon className="h-5 w-5 text-rose-400" />
+                                    className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-brand-pink/30 transition-colors group">
+                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-linear-to-br from-brand-pink/10 to-brand-pink/10 border border-border flex items-center justify-center group-hover:border-brand-pink/30 transition-colors">
+                                        <Icon className="h-5 w-5 text-brand-pink" />
                                     </div>
                                     <div>
                                         <div className="font-semibold mb-1">{d.title}</div>
@@ -315,16 +315,16 @@ function CvNlpPage() {
             <CtaSection>
                 <div className="max-w-3xl mx-auto text-center">
                     <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">Ready to unlock your data?</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">Ready to unlock your data?</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
                             Your unstructured data is valuable.<br />
-                            <span className="bg-linear-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">Let's extract that value.</span>
+                            <span className="bg-linear-to-r from-brand-pink to-brand-pink bg-clip-text text-transparent">Let's extract that value.</span>
                         </h2>
                         <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
                             Book a free 30-minute data audit. We'll review your unstructured data sources and show you what's extractable, at what accuracy, and at what cost.
                         </p>
                         <div className="flex flex-wrap gap-3 justify-center">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-rose-500 to-pink-600 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-brand-pink to-brand-pink px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
                                 Book a free data audit <ArrowUpRight className="h-5 w-5" />
                             </a>
                             <Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-8 py-4 font-semibold backdrop-blur hover:bg-secondary transition-colors text-base">

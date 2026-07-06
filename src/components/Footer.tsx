@@ -90,8 +90,8 @@ export function Footer() {
 
       {!footerBg && (
         <>
-          <div className="absolute left-0 top-0 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-fuchsia-500/10 blur-3xl" />
+          <div className="absolute left-0 top-0 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-brand-magenta/10 blur-3xl" />
         </>
       )}
 
@@ -118,7 +118,7 @@ export function Footer() {
           )}
           {/* glow (hidden when CTA bg active) */}
           {!ctaBg && <><div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" /></>}
+          <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-brand-cyan/10 blur-3xl" /></>}
 
           <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">

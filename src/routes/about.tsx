@@ -55,7 +55,7 @@ const team: TeamMember[] = [
     role: "Co-Founder & Technical Lead",
     bio: "Full-stack solutions architect specializing in headless commerce, Next.js storefronts, and cloud database optimization. Over 8 years of engineering experience.",
     skills: ["Headless E-Com", "Shopify API", "React/Node", "System Architecture"],
-    gradient: "from-cyan-500 to-blue-600",
+    gradient: "from-brand-cyan to-brand-blue",
     avatarInitials: "ZP",
   },
   {
@@ -63,7 +63,7 @@ const team: TeamMember[] = [
     role: "Co-Founder & Director of Operations",
     bio: "Orchestrates delivery pipelines across UK and Pakistan offices. Expert in AI chatbot workflows, LLM fine-tuning, and operational process design.",
     skills: ["LLM Workflows", "n8n Automation", "Client Relations", "Agile Sprints"],
-    gradient: "from-violet-500 to-indigo-600",
+    gradient: "from-brand-magenta to-brand-blue",
     avatarInitials: "AK",
   },
   {
@@ -71,7 +71,7 @@ const team: TeamMember[] = [
     role: "Lead UI/UX Designer",
     bio: "Crafts premium, motion-rich user experiences and cohesive brand identities. Passionate about interactive transitions and clean, accessibility-focused design.",
     skills: ["UI/UX Prototyping", "Framer Motion", "Figma", "Brand Guidelines"],
-    gradient: "from-fuchsia-500 to-pink-600",
+    gradient: "from-brand-magenta to-brand-pink",
     avatarInitials: "MQ",
   },
   {
@@ -89,13 +89,13 @@ const values = [
     icon: Zap,
     title: "Speed & Execution",
     desc: "We focus on fast feedback loops, structured milestone-driven sprints, and rapid shipping.",
-    color: "from-cyan-400 to-blue-500",
+    color: "from-brand-cyan to-brand-blue",
   },
   {
     icon: Award,
     title: "KPI & ROI Alignment",
     desc: "Every line of code and marketing spend is optimized for customer acquisition and revenue growth.",
-    color: "from-violet-400 to-fuchsia-500",
+    color: "from-brand-magenta to-brand-magenta",
   },
   {
     icon: Globe,
@@ -151,7 +151,7 @@ function AboutPage() {
             if (member.full_name) {
               initials = member.full_name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
             }
-            const gradients = ["from-cyan-500 to-blue-600", "from-violet-500 to-indigo-600", "from-fuchsia-500 to-pink-600", "from-emerald-500 to-teal-600", "from-amber-500 to-orange-600"];
+            const gradients = ["from-brand-cyan to-brand-blue", "from-brand-magenta to-brand-blue", "from-brand-magenta to-brand-pink", "from-emerald-500 to-teal-600", "from-amber-500 to-orange-600"];
             return {
               name: member.full_name || "",
               role: member.role_title || "",
@@ -246,8 +246,8 @@ function AboutPage() {
         {/* HERO SECTION */}
         <section className="relative overflow-hidden py-16 lg:py-24">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-violet-500/10 blur-[130px]" />
-            <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[130px]" />
+            <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-brand-magenta/10 blur-[130px]" />
+            <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[130px]" />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-4 text-center">
@@ -280,7 +280,7 @@ function AboutPage() {
               transition={{ duration: 0.6 }}
               className="space-y-6"
             >
-              <div className="text-xs font-bold uppercase tracking-wider text-cyan-400">Our Origin Story</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-brand-cyan">Our Origin Story</div>
               <h2 className="text-3xl sm:text-4xl font-bold font-display leading-tight">
                 Empowering businesses with custom software and SEO.
               </h2>
@@ -327,7 +327,7 @@ function AboutPage() {
         <section className="mx-auto max-w-7xl px-4 py-20 border-t border-white/5">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-card/60 px-4 py-1 text-xs backdrop-blur-xl mb-4">
-              <Users className="h-3 w-3 text-cyan-400" />
+              <Users className="h-3 w-3 text-brand-cyan" />
               Meet the Leads
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold font-display">Our Leadership Team</h2>
@@ -353,7 +353,7 @@ function AboutPage() {
                     <div className="absolute inset-0 bg-black/10 rounded-xl" />
                   </div>
                   <h3 className="font-display text-lg font-bold">{member.name}</h3>
-                  <div className="text-xs text-cyan-400 font-semibold mb-3">{member.role}</div>
+                  <div className="text-xs text-brand-cyan font-semibold mb-3">{member.role}</div>
                   <p className="text-xs leading-5 text-muted-foreground mb-5">{member.bio}</p>
                 </div>
 
@@ -394,7 +394,7 @@ function AboutPage() {
         <section className="mx-auto max-w-7xl px-4 py-20 border-t border-white/5">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-card/60 px-4 py-1 text-xs backdrop-blur-xl mb-4">
-              <Briefcase className="h-3 w-3 text-violet-400" />
+              <Briefcase className="h-3 w-3 text-brand-magenta" />
               Careers at ClickTake
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold font-display">Grow with Us</h2>
@@ -429,7 +429,7 @@ function AboutPage() {
                   </span>
                   <button
                     onClick={() => setSelectedJob(job)}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:scale-105 transition-transform"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-magenta to-brand-magenta px-4 py-2 text-xs font-semibold text-white shadow-md hover:scale-105 transition-transform"
                   >
                     Apply Now <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>
@@ -468,7 +468,7 @@ function AboutPage() {
 
               {!appSuccess ? (
                 <div>
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow mb-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-magenta to-brand-magenta text-white shadow mb-4">
                     <Briefcase className="h-5 w-5" />
                   </div>
 
@@ -481,8 +481,8 @@ function AboutPage() {
 
                   {/* Multi-step progress bar */}
                   <div className="mt-5 flex items-center gap-2 mb-6">
-                    <div className={`h-1.5 flex-1 rounded-full ${appStep >= 1 ? "bg-gradient-to-r from-cyan-500 to-violet-600" : "bg-white/10"}`} />
-                    <div className={`h-1.5 flex-1 rounded-full ${appStep >= 2 ? "bg-gradient-to-r from-violet-500 to-fuchsia-600" : "bg-white/10"}`} />
+                    <div className={`h-1.5 flex-1 rounded-full ${appStep >= 1 ? "bg-gradient-to-r from-brand-cyan to-brand-magenta" : "bg-white/10"}`} />
+                    <div className={`h-1.5 flex-1 rounded-full ${appStep >= 2 ? "bg-gradient-to-r from-brand-magenta to-brand-magenta" : "bg-white/10"}`} />
                   </div>
 
                   <form onSubmit={handleApplySubmit} className="space-y-4">
@@ -528,7 +528,7 @@ function AboutPage() {
                         <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest border-b border-white/5 pb-2 mb-2">Step 2: Experience & Motivation</div>
                         
                         <div className="bg-white/5 border border-white/5 rounded-xl p-3 mb-2">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 mb-2">Core Requirements:</div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-brand-cyan mb-2">Core Requirements:</div>
                           <ul className="space-y-1">
                             {selectedJob.requirements.map((req, i) => (
                               <li key={i} className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
@@ -554,7 +554,7 @@ function AboutPage() {
                     )}
 
                     {appError && (
-                      <div className="text-xs text-rose-400 flex items-center gap-1.5">
+                      <div className="text-xs text-brand-pink flex items-center gap-1.5">
                         <span>{appError}</span>
                       </div>
                     )}
@@ -571,7 +571,7 @@ function AboutPage() {
                       )}
                       <button
                         type="submit"
-                        className="flex-1 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 py-3 text-xs font-semibold text-white shadow-lg hover:scale-[1.02] transition-transform"
+                        className="flex-1 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-magenta py-3 text-xs font-semibold text-white shadow-lg hover:scale-[1.02] transition-transform"
                       >
                         {appStep === 1 ? "Next Step" : submittingApp ? "Sending..." : "Submit Application"}
                       </button>
@@ -599,7 +599,7 @@ function AboutPage() {
                   <div className="mt-8 flex flex-col gap-3">
                     <button
                       onClick={closeAppModal}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-3 text-sm font-semibold text-white hover:scale-105 transition-transform"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-magenta px-5 py-3 text-sm font-semibold text-white hover:scale-105 transition-transform"
                     >
                       Browse Open Roles
                     </button>

@@ -62,7 +62,7 @@ export function AdminForgotPassword() {
       <CustomCursor />
 
       {/* Decorative glows */}
-      <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-brand-purple/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/4 right-1/4 w-80 h-80 bg-brand-magenta/5 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-brand-blue/5 rounded-full blur-[100px] pointer-events-none" />
 
       <motion.div
@@ -72,7 +72,7 @@ export function AdminForgotPassword() {
         className="w-full max-w-md relative z-10"
       >
         {/* Border glow wrap */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-pink via-brand-purple to-brand-blue rounded-3xl blur opacity-25" />
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-blue rounded-3xl blur opacity-25" />
 
         {/* Card */}
         <div className="relative bg-[#070018]/85 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-2xl">
@@ -141,7 +141,7 @@ export function AdminForgotPassword() {
                   />
                 </div>
                 {emailError && (
-                  <p className="text-[10px] text-rose-400 font-medium">{emailError}</p>
+                  <p className="text-[10px] text-brand-pink font-medium">{emailError}</p>
                 )}
               </div>
 
@@ -151,7 +151,7 @@ export function AdminForgotPassword() {
                 disabled={isLoading}
                 className="w-full relative overflow-hidden rounded-xl p-0.5 font-bold transition-transform hover:scale-[1.01]"
               >
-                <span className="absolute inset-0 bg-gradient-to-r from-brand-pink via-brand-purple to-brand-blue" />
+                <span className="absolute inset-0 bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-blue" />
                 <span className="relative flex h-11 items-center justify-center rounded-[10px] bg-[#070018]/90 text-white hover:bg-transparent transition-all duration-300 text-xs">
                   {isLoading ? (
                     <span className="flex items-center gap-2">

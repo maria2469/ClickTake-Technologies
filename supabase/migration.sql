@@ -994,7 +994,7 @@ DROP POLICY IF EXISTS "anon_insert" ON leads; CREATE POLICY "anon_insert" ON lea
 DO $$
 DECLARE
   tbl TEXT;
-  tables_to_add TEXT[] := ARRAY['pages', 'cms_media', 'cms_blogs', 'cms_backgrounds', 'cms_nav_links', 'cms_typography', 'cms_font_presets'];
+  tables_to_add TEXT[] := ARRAY['pages', 'cms_media', 'cms_blogs', 'cms_backgrounds', 'cms_nav_links', 'cms_typography', 'cms_font_presets', 'cms_themes', 'cms_theme_presets'];
 BEGIN
   FOREACH tbl IN ARRAY tables_to_add
   LOOP
@@ -1059,6 +1059,9 @@ CREATE TRIGGER update_security_settings_updated_at BEFORE UPDATE ON security_set
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 DROP TRIGGER IF EXISTS update_cms_typography_updated_at ON cms_typography;
 CREATE TRIGGER update_cms_typography_updated_at BEFORE UPDATE ON cms_typography
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_cms_themes_updated_at ON cms_themes;
+CREATE TRIGGER update_cms_themes_updated_at BEFORE UPDATE ON cms_themes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================================================
@@ -1149,3 +1152,262 @@ INSERT INTO cms_font_presets (name, description, config, is_builtin) VALUES
   ('Elegant Serif', 'Sophisticated serif for headings, clean sans for body', '{"heading_h1":{"font_family":"Playfair Display","font_weight":"700"},"heading_h2":{"font_family":"Playfair Display","font_weight":"600"},"body":{"font_family":"Lato","font_weight":"400"},"nav":{"font_family":"Lato","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"button":{"font_family":"Lato","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"quote":{"font_family":"Playfair Display","font_weight":"400","font_style":"italic"}}', true),
   ('Bold Agency', 'Bold impactful headings with clean body', '{"heading_h1":{"font_family":"Montserrat","font_weight":"900"},"heading_h2":{"font_family":"Montserrat","font_weight":"800"},"body":{"font_family":"Open Sans","font_weight":"400"},"nav":{"font_family":"Montserrat","font_weight":"600","text_transform":"uppercase","letter_spacing":"0.05"},"button":{"font_family":"Montserrat","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"quote":{"font_family":"Playfair Display","font_weight":"400","font_style":"italic"}}', true),
   ('Minimal Tech', 'Clean modern tech-startup aesthetic', '{"heading_h1":{"font_family":"DM Sans","font_weight":"700"},"heading_h2":{"font_family":"DM Sans","font_weight":"500"},"body":{"font_family":"DM Sans","font_weight":"400"},"nav":{"font_family":"DM Sans","font_weight":"500","text_transform":"uppercase","letter_spacing":"0.08"},"button":{"font_family":"DM Sans","font_weight":"700","text_transform":"uppercase","letter_spacing":"0.05"},"quote":{"font_family":"DM Serif Display","font_weight":"400","font_style":"italic"}}', true);
+
+-- ============================================================================
+-- GLOBAL THEME ENGINE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS cms_themes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  description TEXT DEFAULT '',
+  thumbnail_url TEXT DEFAULT '',
+  is_active BOOLEAN DEFAULT false,
+  is_default BOOLEAN DEFAULT false,
+  parent_theme_id UUID REFERENCES cms_themes(id) ON DELETE SET NULL,
+  config JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS slug TEXT;
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS thumbnail_url TEXT DEFAULT '';
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT false;
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT false;
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS parent_theme_id UUID;
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS config JSONB DEFAULT '{}';
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE cms_themes ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+-- Note: UNIQUE constraint on slug is already created by CREATE TABLE (slug TEXT NOT NULL UNIQUE)
+
+-- Per-page theme override
+ALTER TABLE pages ADD COLUMN IF NOT EXISTS theme_id UUID REFERENCES cms_themes(id) ON DELETE SET NULL;
+
+-- Theme presets
+CREATE TABLE IF NOT EXISTS cms_theme_presets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  config JSONB NOT NULL,
+  thumbnail_url TEXT DEFAULT '',
+  is_builtin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE cms_theme_presets ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE cms_theme_presets ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+ALTER TABLE cms_theme_presets ADD COLUMN IF NOT EXISTS config JSONB DEFAULT '{}';
+ALTER TABLE cms_theme_presets ADD COLUMN IF NOT EXISTS thumbnail_url TEXT DEFAULT '';
+ALTER TABLE cms_theme_presets ADD COLUMN IF NOT EXISTS is_builtin BOOLEAN DEFAULT false;
+ALTER TABLE cms_theme_presets ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+
+-- Theme Inheritance: ensure only one active/default theme at a time via partial unique indexes
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cms_themes_active ON cms_themes(is_active) WHERE is_active = true;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cms_themes_default ON cms_themes(is_default) WHERE is_default = true;
+
+-- Seed default theme (Website Existing Theme)
+INSERT INTO cms_themes (name, slug, description, is_active, is_default, config) VALUES
+  ('Website Existing Theme', 'default', 'The original ClickTake design — dark glassmorphism with brand magenta/blue accents.', true, true, '{
+    "display_name": "ClickTake Original",
+    "colors": {},
+    "layout_density": "normal",
+    "component_style": {
+      "border_radius": "rounded",
+      "shadow": "glow",
+      "button_style": "glass",
+      "card_style": "glass"
+    },
+    "spacing": {
+      "section_padding": "py-24 md:py-32",
+      "container_max_width": "max-w-7xl",
+      "gap": "gap-8"
+    }
+  }'::jsonb)
+ON CONFLICT (slug) DO NOTHING;
+
+-- Seed Tech Noir
+INSERT INTO cms_themes (name, slug, description, is_active, is_default, config) VALUES
+  ('Tech Noir', 'tech-noir', 'Dark mode, neon cyan/magenta accents, glassmorphism, cyber/tech vibe.', false, false, '{
+    "display_name": "Tech Noir",
+    "colors": {
+      "background": "oklch(0.04 0.02 280)",
+      "foreground": "oklch(0.98 0.01 280)",
+      "card": "oklch(0.08 0.03 280)",
+      "card_foreground": "oklch(0.98 0.01 280)",
+      "popover": "oklch(0.08 0.03 280)",
+      "popover_foreground": "oklch(0.98 0.01 280)",
+      "primary": "oklch(0.75 0.2 180)",
+      "primary_foreground": "oklch(0.05 0.02 280)",
+      "secondary": "oklch(0.12 0.04 280)",
+      "secondary_foreground": "oklch(0.98 0.01 280)",
+      "muted": "oklch(0.1 0.03 280)",
+      "muted_foreground": "oklch(0.6 0.03 280)",
+      "accent": "oklch(0.75 0.25 330)",
+      "accent_foreground": "oklch(0.05 0.02 280)",
+      "destructive": "oklch(0.7 0.2 20)",
+      "destructive_foreground": "oklch(0.98 0 0)",
+      "border": "oklch(0.2 0.05 280)",
+      "input": "oklch(0.15 0.04 280)",
+      "ring": "oklch(0.75 0.2 180)",
+      "brand_pink": "oklch(0.7 0.22 0)",
+      "brand_magenta": "oklch(0.75 0.28 330)",
+      "brand_blue": "oklch(0.7 0.22 270)",
+      "brand_cyan": "oklch(0.85 0.15 180)",
+      "glow": "oklch(0.75 0.2 180 / 0.5)"
+    },
+    "gradients": {
+      "brand": "linear-gradient(135deg, oklch(0.75 0.2 180) 0%, oklch(0.75 0.25 330) 50%, oklch(0.7 0.22 270) 100%)",
+      "mesh": "radial-gradient(at 20% 0%, oklch(0.75 0.2 180 / 0.2) 0px, transparent 50%), radial-gradient(at 80% 30%, oklch(0.7 0.22 270 / 0.3) 0px, transparent 50%), radial-gradient(at 50% 100%, oklch(0.75 0.25 330 / 0.2) 0px, transparent 50%)"
+    },
+    "shadows": {
+      "glow": "0 20px 80px -20px oklch(0.75 0.2 180 / 0.6)",
+      "elegant": "0 30px 80px -30px oklch(0 0 0 / 0.8)"
+    },
+    "layout_density": "compact",
+    "component_style": {
+      "border_radius": "sharp",
+      "shadow": "glow",
+      "button_style": "glass",
+      "card_style": "glass"
+    },
+    "spacing": {
+      "section_padding": "py-16 md:py-24",
+      "container_max_width": "max-w-7xl",
+      "gap": "gap-6"
+    },
+    "typography": {
+      "heading_font": "Space Grotesk",
+      "body_font": "Inter"
+    }
+  }'::jsonb)
+ON CONFLICT (slug) DO NOTHING;
+
+-- Seed Corporate Clean
+INSERT INTO cms_themes (name, slug, description, is_active, is_default, config) VALUES
+  ('Corporate Clean', 'corporate-clean', 'Light mode, lots of whitespace, subtle shadows, professional SaaS vibe.', false, false, '{
+    "display_name": "Corporate Clean",
+    "colors": {
+      "background": "oklch(0.99 0.005 240)",
+      "foreground": "oklch(0.12 0.02 240)",
+      "card": "oklch(1 0 0)",
+      "card_foreground": "oklch(0.12 0.02 240)",
+      "popover": "oklch(1 0 0)",
+      "popover_foreground": "oklch(0.12 0.02 240)",
+      "primary": "oklch(0.45 0.18 260)",
+      "primary_foreground": "oklch(0.99 0 0)",
+      "secondary": "oklch(0.95 0.01 240)",
+      "secondary_foreground": "oklch(0.12 0.02 240)",
+      "muted": "oklch(0.95 0.01 240)",
+      "muted_foreground": "oklch(0.5 0.02 240)",
+      "accent": "oklch(0.55 0.15 260)",
+      "accent_foreground": "oklch(0.99 0 0)",
+      "destructive": "oklch(0.577 0.245 27.325)",
+      "destructive_foreground": "oklch(0.99 0 0)",
+      "border": "oklch(0.9 0.01 240)",
+      "input": "oklch(0.92 0.01 240)",
+      "ring": "oklch(0.45 0.18 260)",
+      "brand_pink": "oklch(0.3 0.12 0)",
+      "brand_magenta": "oklch(0.45 0.18 260)",
+      "brand_blue": "oklch(0.5 0.15 250)",
+      "brand_cyan": "oklch(0.65 0.1 220)",
+      "glow": "oklch(0.45 0.18 260 / 0.3)"
+    },
+    "gradients": {
+      "brand": "linear-gradient(135deg, oklch(0.45 0.18 260) 0%, oklch(0.5 0.15 250) 100%)",
+      "mesh": "radial-gradient(at 20% 0%, oklch(0.45 0.18 260 / 0.08) 0px, transparent 50%)"
+    },
+    "shadows": {
+      "glow": "0 4px 20px oklch(0.45 0.18 260 / 0.1)",
+      "elegant": "0 10px 40px -10px oklch(0.12 0.02 240 / 0.1)"
+    },
+    "layout_density": "airy",
+    "component_style": {
+      "border_radius": "rounded",
+      "shadow": "soft",
+      "button_style": "filled",
+      "card_style": "elevated"
+    },
+    "spacing": {
+      "section_padding": "py-32 md:py-40",
+      "container_max_width": "max-w-7xl",
+      "gap": "gap-10"
+    },
+    "typography": {
+      "heading_font": "Inter",
+      "body_font": "Inter"
+    }
+  }'::jsonb)
+ON CONFLICT (slug) DO NOTHING;
+
+-- Seed Bold Agency
+INSERT INTO cms_themes (name, slug, description, is_active, is_default, config) VALUES
+  ('Bold Agency', 'bold-agency', 'Asymmetrical layouts, massive typography, vibrant colors, creative agency vibe.', false, false, '{
+    "display_name": "Bold Agency",
+    "colors": {
+      "background": "oklch(0.07 0.03 30)",
+      "foreground": "oklch(0.98 0.01 30)",
+      "card": "oklch(0.11 0.04 30)",
+      "card_foreground": "oklch(0.98 0.01 30)",
+      "popover": "oklch(0.11 0.04 30)",
+      "popover_foreground": "oklch(0.98 0.01 30)",
+      "primary": "oklch(0.7 0.25 50)",
+      "primary_foreground": "oklch(0.05 0.02 30)",
+      "secondary": "oklch(0.15 0.05 30)",
+      "secondary_foreground": "oklch(0.98 0.01 30)",
+      "muted": "oklch(0.15 0.05 30)",
+      "muted_foreground": "oklch(0.65 0.03 30)",
+      "accent": "oklch(0.75 0.25 350)",
+      "accent_foreground": "oklch(0.05 0.02 30)",
+      "destructive": "oklch(0.7 0.2 20)",
+      "destructive_foreground": "oklch(0.98 0 0)",
+      "border": "oklch(0.25 0.06 30)",
+      "input": "oklch(0.2 0.05 30)",
+      "ring": "oklch(0.7 0.25 50)",
+      "brand_pink": "oklch(0.75 0.22 350)",
+      "brand_magenta": "oklch(0.7 0.25 50)",
+      "brand_blue": "oklch(0.65 0.2 250)",
+      "brand_cyan": "oklch(0.8 0.15 220)",
+      "glow": "oklch(0.7 0.25 50 / 0.5)"
+    },
+    "gradients": {
+      "brand": "linear-gradient(135deg, oklch(0.7 0.25 50) 0%, oklch(0.75 0.25 350) 50%, oklch(0.65 0.2 250) 100%)",
+      "mesh": "radial-gradient(at 80% 0%, oklch(0.75 0.25 350 / 0.25) 0px, transparent 50%), radial-gradient(at 20% 100%, oklch(0.7 0.25 50 / 0.2) 0px, transparent 50%)"
+    },
+    "shadows": {
+      "glow": "0 20px 80px -20px oklch(0.7 0.25 50 / 0.6)",
+      "elegant": "0 30px 80px -30px oklch(0 0 0 / 0.7)"
+    },
+    "layout_density": "airy",
+    "component_style": {
+      "border_radius": "sharp",
+      "shadow": "hard",
+      "button_style": "filled",
+      "card_style": "flat"
+    },
+    "spacing": {
+      "section_padding": "py-32 md:py-44",
+      "container_max_width": "max-w-full",
+      "gap": "gap-12"
+    },
+    "typography": {
+      "heading_font": "Space Grotesk",
+      "body_font": "Inter"
+    }
+  }'::jsonb)
+ON CONFLICT (slug) DO NOTHING;
+
+-- RLS for cms_themes
+ALTER TABLE cms_themes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "authenticated_all" ON cms_themes;
+CREATE POLICY "authenticated_all" ON cms_themes FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "anon_select" ON cms_themes;
+CREATE POLICY "anon_select" ON cms_themes FOR SELECT TO anon USING (true);
+
+-- RLS for cms_theme_presets
+ALTER TABLE cms_theme_presets ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "authenticated_all" ON cms_theme_presets;
+CREATE POLICY "authenticated_all" ON cms_theme_presets FOR ALL TO authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "anon_select" ON cms_theme_presets;
+CREATE POLICY "anon_select" ON cms_theme_presets FOR SELECT TO anon USING (true);

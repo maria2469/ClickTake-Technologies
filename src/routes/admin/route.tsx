@@ -18,6 +18,7 @@ import {
   LogOut,
   Loader2,
   Type,
+  Palette,
 } from "lucide-react";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
   { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard, permission: "manageRBAC" },
   { to: "/admin/cms", label: "CMS Management", icon: FileText, permission: "readCMS" },
   { to: "/admin/typography", label: "Typography Engine", icon: Type, permission: "readCMS" },
+  { to: "/admin/theme", label: "Theme Engine", icon: Palette, permission: "readCMS" },
   { to: "/admin/crm", label: "Lead CRM", icon: Users, permission: "readLeads" },
   { to: "/admin/roles", label: "User Roles (RBAC)", icon: Shield, permission: "manageRBAC" },
   { to: "/admin/email", label: "Email Center", icon: Mail, permission: "readLeads" },
@@ -45,6 +47,7 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin/": "manageRBAC",
   "/admin/cms": "readCMS",
   "/admin/typography": "readCMS",
+  "/admin/theme": "readCMS",
   "/admin/crm": "readLeads",
   "/admin/roles": "manageRBAC",
   "/admin/email": "readLeads",
@@ -250,7 +253,15 @@ function AdminLayout() {
               ? "from-brand-pink to-brand-magenta"
               : themeAccent === "cyan"
                   ? "from-brand-cyan to-brand-blue"
-                  : "from-brand-pink to-brand-cyan";
+                  : themeAccent === "emerald"
+                      ? "from-emerald-400 to-teal-500"
+                      : themeAccent === "amber"
+                          ? "from-amber-400 to-orange-500"
+                          : themeAccent === "violet"
+                              ? "from-violet-500 to-purple-600"
+                              : themeAccent === "rose"
+                                  ? "from-rose-400 to-red-500"
+                                  : "from-brand-pink to-brand-cyan";
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden transition-colors duration-300">
@@ -331,7 +342,7 @@ function AdminLayout() {
                   ) : (
                     notifications.map(n => (
                       <div key={n.id} className={`text-[11px] leading-normal ${!n.is_read ? 'bg-white/5 p-2 rounded-md border border-white/10' : 'border-t border-border/40 pt-2'}`}>
-                        <span className={`font-semibold ${n.type === 'lead' ? 'text-brand-magenta' : n.type === 'security' ? 'text-rose-500' : 'text-brand-blue'}`}>
+                        <span className={`font-semibold ${n.type === 'lead' ? 'text-brand-magenta' : n.type === 'security' ? 'text-brand-pink' : 'text-brand-blue'}`}>
                           {n.title}:
                         </span> {n.message}
                         <div className="text-[9px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</div>
@@ -353,7 +364,7 @@ function AdminLayout() {
               </div>
               <button
                 onClick={handleLogout}
-                className="ml-2 rounded-lg p-1.5 text-muted-foreground hover:text-rose-400 hover:bg-white/5 transition-colors"
+                className="ml-2 rounded-lg p-1.5 text-muted-foreground hover:text-brand-pink hover:bg-white/5 transition-colors"
                 title="Sign Out"
               >
                 <LogOut className="h-4 w-4" />

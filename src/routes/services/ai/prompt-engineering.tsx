@@ -51,8 +51,8 @@ const services = [
     {
         icon: TestTube,
         title: "Evaluation & Benchmarking",
-        color: "from-violet-500 to-purple-700",
-        glow: "rgba(139,92,246,0.15)",
+        color: "from-brand-magenta to-brand-magenta",
+        glow: "color-mix(in oklab, var(--brand-magenta) 15%, transparent)",
         desc: "You can't improve what you don't measure. We build eval frameworks that quantify prompt performance and make optimisation systematic, not guesswork.",
         items: [
             "Custom eval datasets reflecting your real workload",
@@ -176,7 +176,7 @@ function PromptEngineeringPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Problem</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">The Problem</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Ad-hoc prompts break in production.</h2>
                         <div className="space-y-4 text-muted-foreground leading-relaxed">
                             <p>Teams spend weeks crafting prompts that work in demos, then watch them degrade under real workloads — inconsistent outputs, hallucinations on edge cases, and no way to tell when things get worse.</p>

@@ -43,7 +43,7 @@ const services = [
   {
     icon: FlaskConical,
     title: "A/B Testing & Experimentation",
-    color: "from-teal-500 to-cyan-600",
+    color: "from-teal-500 to-brand-cyan",
     glow: "rgba(20,184,166,0.15)",
     desc: "Every change we recommend is tested — never deployed based on opinion. Our structured experimentation programme builds a compounding bank of conversion learnings.",
     items: [
@@ -56,8 +56,8 @@ const services = [
   {
     icon: LayoutTemplate,
     title: "Landing Page & Funnel Design",
-    color: "from-cyan-500 to-blue-600",
-    glow: "rgba(6,182,212,0.15)",
+    color: "from-brand-cyan to-brand-blue",
+    glow: "color-mix(in oklab, var(--brand-cyan) 15%, transparent)",
     desc: "Sometimes the fastest path to better conversions isn't testing — it's rebuilding. We design high-converting pages and funnels from the ground up.",
     items: [
       "Lead generation pages — optimised for form completions with minimal friction",
@@ -126,7 +126,7 @@ function CroPage() {
 
             <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
               More revenue from the{" "}
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-brand-cyan bg-clip-text text-transparent">
                 traffic you already have.
               </span>
             </motion.h1>
@@ -136,7 +136,7 @@ function CroPage() {
             </motion.p>
 
             <motion.div variants={fadeUp} custom={2} className="mt-8 flex flex-wrap gap-3">
-              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
+              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-brand-cyan px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
                 Start your CRO programme <ArrowUpRight className="h-4 w-4" />
               </a>
               <a href="#services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-7 py-3.5 font-semibold backdrop-blur hover:bg-secondary transition-colors">
@@ -146,7 +146,7 @@ function CroPage() {
           </motion.div>
         </div>
         <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-brand-cyan/10 blur-3xl" />
       </section>
 
       {/* ── RESULTS BAR ── */}
@@ -154,7 +154,7 @@ function CroPage() {
         <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
           {results.map((r, i) => (
             <motion.div key={r.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">{r.metric}</div>
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-brand-cyan bg-clip-text text-transparent">{r.metric}</div>
               <div className="mt-2 text-sm text-muted-foreground leading-snug">{r.label}</div>
             </motion.div>
           ))}
@@ -165,7 +165,7 @@ function CroPage() {
       <section className="relative z-10 py-24 px-4">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Problem</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">The Problem</div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Most sites convert 1–3% of visitors. That's 97% walking away.</h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>The average website converts between 1–3% of visitors. Every business that isn't actively working to improve that number is silently leaving the majority of its ad spend, SEO effort, and brand investment on the table.</p>
@@ -174,7 +174,7 @@ function CroPage() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5 p-8 backdrop-blur">
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-brand-cyan/5 p-8 backdrop-blur">
             <div className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-4">Our Approach</div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Evidence first. Test everything. Implement wins.</h2>
             <div className="space-y-3">
@@ -243,7 +243,7 @@ function CroPage() {
               return (
                 <motion.div key={d.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
                   className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-emerald-500/30 transition-colors">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-brand-cyan/20 flex items-center justify-center">
                     <Icon className="h-5 w-5 text-emerald-400" />
                   </div>
                   <span className="text-sm font-medium leading-snug">{d.label}</span>
@@ -268,7 +268,7 @@ function CroPage() {
             {process.map((p, i) => (
               <motion.div key={p.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                 className="relative rounded-2xl border border-border bg-card/50 backdrop-blur p-7 hover:border-white/20 transition-colors group">
-                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 bg-clip-text mb-4 select-none group-hover:from-emerald-500/60 group-hover:to-cyan-500/60 transition-all">{p.step}</div>
+                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-emerald-500/30 to-brand-cyan/30 bg-clip-text mb-4 select-none group-hover:from-emerald-500/60 group-hover:to-brand-cyan/60 transition-all">{p.step}</div>
                 <h3 className="text-lg font-bold mb-2">{p.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
               </motion.div>
@@ -290,7 +290,7 @@ function CroPage() {
               return (
                 <motion.div key={d.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                   className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-emerald-500/30 transition-colors group">
-                  <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-border flex items-center justify-center group-hover:border-emerald-500/30 transition-colors">
+                  <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-emerald-500/10 to-brand-cyan/10 border border-border flex items-center justify-center group-hover:border-emerald-500/30 transition-colors">
                     <Icon className="h-5 w-5 text-emerald-400" />
                   </div>
                   <div>
@@ -338,8 +338,8 @@ function CroPage() {
                   <div className="text-lg font-bold mb-1">CRO Audit & Quick-Win Sprint</div>
                   <div className="text-sm text-muted-foreground">A focused 4-week audit delivering a full friction analysis, prioritised test backlog, and immediate quick-win implementations.</div>
                 </div>
-                <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-6">
-                  <div className="text-sm font-semibold text-cyan-400 mb-1">One-off</div>
+                <div className="rounded-2xl border border-brand-cyan/20 bg-brand-cyan/5 p-6">
+                  <div className="text-sm font-semibold text-brand-cyan mb-1">One-off</div>
                   <div className="text-lg font-bold mb-1">Landing Page Rebuild</div>
                   <div className="text-sm text-muted-foreground">A single conversion-optimised landing page designed and built from scratch using proven frameworks — scoped and priced per project.</div>
                 </div>
@@ -356,13 +356,13 @@ function CroPage() {
             <div className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-4">Ready to stop leaving money on the table?</div>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
               Your traffic is valuable.<br />
-              <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Start converting more of it.</span>
+              <span className="bg-gradient-to-r from-emerald-400 to-brand-cyan bg-clip-text text-transparent">Start converting more of it.</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
               Book a free 30-minute CRO audit call. We'll review your funnel, identify your biggest conversion leaks, and show you exactly what we'd fix first.
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
+              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-brand-cyan px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
                 Book a free CRO audit <ArrowUpRight className="h-5 w-5" />
               </a>
               <Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-8 py-4 font-semibold backdrop-blur hover:bg-secondary transition-colors text-base">

@@ -56,6 +56,7 @@ function AdminSettingsPage() {
         gsc_verification_code: "",
         favicon_url: "",
         theme_accent: "magenta",
+        cursor_type: "aperture",
     });
 
     useEffect(() => {
@@ -171,7 +172,7 @@ function AdminSettingsPage() {
                                 </div>
                                 <button
                                     onClick={handleRemoveLogo}
-                                    className="text-muted-foreground hover:text-rose-400 p-1.5 shrink-0 hover:bg-white/5 rounded-lg"
+                                    className="text-muted-foreground hover:text-brand-pink p-1.5 shrink-0 hover:bg-white/5 rounded-lg"
                                     aria-label="Remove logo"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -205,10 +206,15 @@ function AdminSettingsPage() {
                         </label>
                         <div className="grid grid-cols-2 gap-2">
                             {[
+                                { id: "default", label: "Default (Theme)", color: "bg-white/20" },
                                 { id: "magenta", label: "Brand Magenta", color: "bg-brand-magenta" },
                                 { id: "pink", label: "Deep Pink", color: "bg-brand-pink" },
                                 { id: "cyan", label: "Cool Cyan", color: "bg-brand-cyan" },
                                 { id: "blue", label: "Slate Blue", color: "bg-brand-blue" },
+                                { id: "emerald", label: "Emerald Green", color: "bg-emerald-500" },
+                                { id: "amber", label: "Sunset Orange", color: "bg-amber-500" },
+                                { id: "violet", label: "Royal Purple", color: "bg-violet-500" },
+                                { id: "rose", label: "Crimson Red", color: "bg-rose-500" },
                             ].map((theme) => (
                                 <button
                                     key={theme.id}
@@ -219,6 +225,34 @@ function AdminSettingsPage() {
                                     <span className={`h-3 w-3 rounded-full ${theme.color} shrink-0`} />
                                     <span className="truncate">{theme.label}</span>
                                     {settings.theme_accent === theme.id && <Check className="h-3 w-3 text-brand-magenta ml-auto shrink-0" />}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Cursor Type picker */}
+                    <div className="border-t border-white/5 pt-4">
+                        <label className="block text-[10px] text-muted-foreground mb-2 uppercase font-semibold">
+                            Cursor Style
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {[
+                                { id: "aperture", label: "Aperture (Default)" },
+                                { id: "dot", label: "Simple Dot" },
+                                { id: "ring", label: "Hollow Ring" },
+                                { id: "crosshair", label: "Crosshair" },
+                                { id: "trail_only", label: "Comet Trail Only" },
+                                { id: "glow_only", label: "Soft Glow Only" },
+                                { id: "none", label: "System Default" },
+                            ].map((cursor) => (
+                                <button
+                                    key={cursor.id}
+                                    onClick={() => handleChange("cursor_type", cursor.id)}
+                                    className={`flex items-center gap-2 rounded-xl border p-2.5 text-[11px] font-bold transition ${settings.cursor_type === cursor.id ? "border-brand-magenta bg-white/5" : "border-white/5 hover:border-white/15"
+                                        }`}
+                                >
+                                    <span className="truncate">{cursor.label}</span>
+                                    {settings.cursor_type === cursor.id && <Check className="h-3 w-3 text-brand-magenta ml-auto shrink-0" />}
                                 </button>
                             ))}
                         </div>

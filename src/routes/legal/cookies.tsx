@@ -76,7 +76,7 @@ function CookiesPage() {
             >
               <div className="p-6 rounded-2xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
                 <h2 className="text-lg font-display font-bold text-foreground mb-3 flex items-center gap-2">
-                  <Info className="h-4 w-4 text-cyan-400" /> What are Cookies?
+                  <Info className="h-4 w-4 text-brand-cyan" /> What are Cookies?
                 </h2>
                 <p>
                   Cookies are small text files placed on your device to store data that can be recalled by a web server in the domain that placed the cookie. We use cookies and similar technologies for storing and respecting your preferences and settings, analyzing how our site performs, and targeting promotional campaigns.
@@ -86,15 +86,15 @@ function CookiesPage() {
               <div className="p-6 rounded-2xl border border-border bg-card/40 backdrop-blur-md shadow-sm">
                 <h2 className="text-lg font-display font-bold text-foreground mb-4">How We Classify Our Cookies</h2>
                 <div className="space-y-4">
-                  <div className="border-l-2 border-cyan-500 pl-4 py-1">
+                  <div className="border-l-2 border-brand-cyan pl-4 py-1">
                     <strong className="text-foreground block mb-1">Essential Cookies</strong>
                     Required to enable core site functionality such as secure login authentication, routing systems, and contact form submissions. These cannot be disabled.
                   </div>
-                  <div className="border-l-2 border-violet-500 pl-4 py-1">
+                  <div className="border-l-2 border-brand-magenta pl-4 py-1">
                     <strong className="text-foreground block mb-1">Analytical Cookies</strong>
                     Help us gather anonymous traffic patterns, monitor loading speeds, and observe user interaction statistics via Google Analytics.
                   </div>
-                  <div className="border-l-2 border-fuchsia-500 pl-4 py-1">
+                  <div className="border-l-2 border-brand-magenta pl-4 py-1">
                     <strong className="text-foreground block mb-1">Marketing & Advertising Cookies</strong>
                     Used to track ad conversion performance and serve relevant ClickTake banners on social media networks (e.g. LinkedIn, Meta).
                   </div>
@@ -110,17 +110,17 @@ function CookiesPage() {
             >
               <form onSubmit={handleSave} className="rounded-2xl border border-border bg-card/60 p-6 backdrop-blur-xl shadow-elegant space-y-5 sticky top-32">
                 <div className="flex items-center gap-2 border-b border-border/50 pb-3">
-                  <Settings className="h-4 w-4 text-violet-400" />
+                  <Settings className="h-4 w-4 text-brand-magenta" />
                   <h3 className="font-display font-bold text-sm text-foreground">Preferences Control</h3>
                 </div>
 
                 {/* Essential Switch */}
                 <div className="flex items-center justify-between text-xs group">
                   <div>
-                    <div className="font-bold text-foreground group-hover:text-cyan-400 transition-colors">Essential Cookies</div>
+                    <div className="font-bold text-foreground group-hover:text-brand-cyan transition-colors">Essential Cookies</div>
                     <div className="text-muted-foreground text-[10px]">Always active</div>
                   </div>
-                  <div className="relative inline-flex h-5 w-9 items-center rounded-full bg-cyan-500/50 cursor-not-allowed">
+                  <div className="relative inline-flex h-5 w-9 items-center rounded-full bg-brand-cyan/50 cursor-not-allowed">
                     <span className="translate-x-5 inline-block h-3.5 w-3.5 transform rounded-full bg-white transition" />
                   </div>
                 </div>
@@ -128,14 +128,14 @@ function CookiesPage() {
                 {/* Analytics Switch */}
                 <div className="flex items-center justify-between text-xs group">
                   <div>
-                    <div className="font-bold text-foreground group-hover:text-violet-400 transition-colors">Analytics Tracker</div>
+                    <div className="font-bold text-foreground group-hover:text-brand-magenta transition-colors">Analytics Tracker</div>
                     <div className="text-muted-foreground text-[10px]">Measure traffic stats</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setAnalytics(!analytics)}
                     className={`${
-                      analytics ? 'bg-violet-500' : 'bg-muted'
+                      analytics ? 'bg-brand-magenta' : 'bg-muted'
                     } relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-background`}
                   >
                     <span className={`${analytics ? 'translate-x-5' : 'translate-x-1'} inline-block h-3.5 w-3.5 transform rounded-full bg-white transition`} />
@@ -145,14 +145,14 @@ function CookiesPage() {
                 {/* Marketing Switch */}
                 <div className="flex items-center justify-between text-xs group">
                   <div>
-                    <div className="font-bold text-foreground group-hover:text-fuchsia-400 transition-colors">Marketing Pixel</div>
+                    <div className="font-bold text-foreground group-hover:text-brand-magenta transition-colors">Marketing Pixel</div>
                     <div className="text-muted-foreground text-[10px]">Ad retargeting tags</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setMarketing(!marketing)}
                     className={`${
-                      marketing ? 'bg-fuchsia-500' : 'bg-muted'
+                      marketing ? 'bg-brand-magenta' : 'bg-muted'
                     } relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:ring-offset-2 focus:ring-offset-background`}
                   >
                     <span className={`${marketing ? 'translate-x-5' : 'translate-x-1'} inline-block h-3.5 w-3.5 transform rounded-full bg-white transition`} />

@@ -336,7 +336,7 @@ function TypographyManager() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     <button onClick={handleResetAll} disabled={saving}
-                        className="flex items-center gap-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-2 text-[10px] font-bold hover:bg-rose-500/20 hover:border-rose-500/30 transition-all duration-200 cursor-pointer disabled:opacity-50">
+                        className="flex items-center gap-1.5 rounded-lg bg-brand-pink/10 text-brand-pink border border-brand-pink/20 px-3 py-2 text-[10px] font-bold hover:bg-rose-500/20 hover:border-brand-pink/30 transition-all duration-200 cursor-pointer disabled:opacity-50">
                         <RotateCcw className="h-3.5 w-3.5" /> Reset All
                     </button>
                     <button onClick={saveAll} disabled={saving}

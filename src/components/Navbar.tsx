@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabaseClient";
 const servicesMenu = [
   {
     group: "AI & Machine Learning",
-    accentColor: "text-violet-400",
+    accentColor: "text-brand-magenta",
     items: [
       { label: "Custom LLM Development", desc: "Fine-tuned models on your data", to: "/services/ai/llm" },
       { label: "AI Chatbots & Agents", desc: "Autonomous support & ops agents", to: "/services/ai/chatbots" },
@@ -22,7 +22,7 @@ const servicesMenu = [
   },
   {
     group: "Web Development",
-    accentColor: "text-cyan-400",
+    accentColor: "text-brand-cyan",
     items: [
       { label: "Python Backend Development", desc: "FastAPI, Django & async Python", to: "/services/web/python-backend" },
       { label: "Full-Stack Applications", desc: "React + Node/Python, end-to-end", to: "/services/web/full-stack" },
@@ -42,7 +42,7 @@ const servicesMenu = [
   },
   {
     group: "Creative Services",
-    accentColor: "text-pink-400",
+    accentColor: "text-brand-pink",
     items: [
       { label: "Graphic Design", desc: "Branding, UI/UX, Marketing", to: "/services/creative/graphic-design" },
       { label: "Video Production", desc: "Explainer, Social, Corporate", to: "/services/creative/video-production" },
@@ -151,7 +151,7 @@ export function Navbar() {
                       className="group relative rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-white transition whitespace-nowrap flex items-center"
                     >
                       {l.label}
-                      <span className="absolute bottom-1 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-gradient-to-r from-cyan-400 to-violet-500 transition-all group-hover:w-8" />
+                      <span className="absolute bottom-1 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-gradient-to-r from-brand-cyan to-brand-magenta transition-all group-hover:w-8" />
                       {l.mega && (
                         <ChevronDown className={`ml-1 inline h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : ""}`} />
                       )}
@@ -195,13 +195,13 @@ export function Navbar() {
                             <Link
                               to="/services/starter-kit"
                               onClick={() => setMegaOpen(false)}
-                              className="mt-5 flex items-center justify-between rounded-xl bg-gradient-to-r from-amber-500/15 to-pink-500/15 border border-amber-500/30 p-4 hover:from-amber-500/25 hover:to-pink-500/25 transition"
+                              className="mt-5 flex items-center justify-between rounded-xl bg-gradient-to-r from-amber-500/15 to-brand-pink/15 border border-amber-500/30 p-4 hover:from-amber-500/25 hover:to-brand-pink/25 transition"
                             >
                               <div>
                                 <div className="flex items-center gap-2 text-sm font-bold">
                                   <Sparkles className="h-4 w-4 text-amber-400" />
                                   Business Development Starter Kit
-                                  <span className="text-[10px] rounded-full bg-gradient-to-r from-amber-500 to-pink-500 px-2 py-0.5 text-white">
+                                  <span className="text-[10px] rounded-full bg-gradient-to-r from-amber-500 to-brand-pink px-2 py-0.5 text-white">
                                     FLAGSHIP
                                   </span>
                                 </div>
@@ -237,7 +237,7 @@ export function Navbar() {
             <ThemeToggle />
             <button
               onClick={() => handleSectionClick("#contact")}
-              className="hidden lg:inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:scale-105 transition whitespace-nowrap"
+              className="hidden lg:inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:scale-105 transition whitespace-nowrap"
             >
               Book a Call <ArrowUpRight className="h-4 w-4" />
             </button>
@@ -297,7 +297,7 @@ export function Navbar() {
 
               <button
                 onClick={() => handleSectionClick("#contact")}
-                className="mt-3 w-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 py-3 font-semibold text-white text-sm"
+                className="mt-3 w-full rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta py-3 font-semibold text-white text-sm"
               >
                 Book a Call
               </button>

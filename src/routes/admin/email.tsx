@@ -578,7 +578,7 @@ function AdminEmail() {
                     <div>
                         <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block">Relay Status</span>
                         <span className={`text-sm font-bold mt-1 block flex items-center gap-1.5 ${
-                            smtpStatus === "Connected" ? "text-emerald-400" : smtpStatus === "Testing" ? "text-brand-cyan" : "text-rose-400"
+                            smtpStatus === "Connected" ? "text-emerald-400" : smtpStatus === "Testing" ? "text-brand-cyan" : "text-brand-pink"
                         }`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${
                                 smtpStatus === "Connected" ? "bg-emerald-400 shadow-glow" : smtpStatus === "Testing" ? "bg-brand-cyan animate-ping" : "bg-rose-500"
@@ -606,24 +606,24 @@ function AdminEmail() {
                 <div className="rounded-2xl border border-white/10 bg-card/30 p-4 backdrop-blur-xl flex items-center justify-between shadow-sm hover:border-white/20 transition-colors">
                     <div>
                         <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block">Pending Threads</span>
-                        <span className="text-2xl font-display font-bold mt-1 block text-cyan-400">
+                        <span className="text-2xl font-display font-bold mt-1 block text-brand-cyan">
                             {inbox.filter(m => m.status === "unanswered").length} Threads
                         </span>
                     </div>
-                    <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-                        <Mail className="h-5 w-5 text-cyan-400" />
+                    <div className="h-10 w-10 rounded-xl bg-brand-cyan/10 flex items-center justify-center border border-brand-cyan/20">
+                        <Mail className="h-5 w-5 text-brand-cyan" />
                     </div>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-card/30 p-4 backdrop-blur-xl flex items-center justify-between shadow-sm hover:border-white/20 transition-colors">
                     <div>
                         <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block">Average Reply Time</span>
-                        <span className="text-2xl font-display font-bold mt-1 block text-violet-400">
+                        <span className="text-2xl font-display font-bold mt-1 block text-brand-magenta">
                             12.4 Mins
                         </span>
                     </div>
-                    <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
-                        <Clock className="h-5 w-5 text-violet-400" />
+                    <div className="h-10 w-10 rounded-xl bg-brand-magenta/10 flex items-center justify-center border border-brand-magenta/20">
+                        <Clock className="h-5 w-5 text-brand-magenta" />
                     </div>
                 </div>
             </div>
@@ -767,7 +767,7 @@ function AdminEmail() {
                                                 <div className="font-bold text-xs truncate max-w-[130px]">{msg.sender}</div>
                                                 <span className={`text-[8px] font-mono uppercase px-1.5 py-0.5 rounded ${
                                                     hasUnanswered 
-                                                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/10 animate-pulse" 
+                                                        ? "bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/10 animate-pulse" 
                                                         : "bg-white/5 text-muted-foreground"
                                                 }`}>
                                                     {msg.status}
@@ -907,7 +907,7 @@ function AdminEmail() {
                     {smtpLogs.map((log) => {
                         let iconColor = "text-brand-blue";
                         if (log.type === "dispatch") iconColor = "text-brand-magenta";
-                        if (log.type === "error") iconColor = "text-rose-500 animate-pulse";
+                        if (log.type === "error") iconColor = "text-brand-pink animate-pulse";
                         if (log.type === "config") iconColor = "text-brand-cyan";
                         
                         return (

@@ -249,10 +249,10 @@ function AdminCrmPage() {
   // Stable gradient selector based on string sum
   const getAvatarGradient = (id: string) => {
     const gradients = [
-      "from-cyan-500 to-blue-600",
-      "from-violet-500 to-fuchsia-600",
+      "from-brand-cyan to-brand-blue",
+      "from-brand-magenta to-brand-magenta",
       "from-emerald-500 to-teal-600",
-      "from-rose-500 to-orange-600",
+      "from-brand-pink to-orange-600",
       "from-amber-500 to-yellow-600"
     ];
     let sum = 0;
@@ -326,20 +326,20 @@ function AdminCrmPage() {
         <div className="rounded-2xl border border-white/10 bg-card/30 p-4 backdrop-blur-xl flex items-center justify-between shadow-sm hover:border-white/20 transition-colors">
           <div>
             <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block">Unprocessed (New)</span>
-            <span className="text-2xl font-display font-bold mt-1 block text-cyan-400">{analytics.newCount}</span>
+            <span className="text-2xl font-display font-bold mt-1 block text-brand-cyan">{analytics.newCount}</span>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-            <Activity className="h-5 w-5 text-cyan-400 animate-pulse" />
+          <div className="h-10 w-10 rounded-xl bg-brand-cyan/10 flex items-center justify-center border border-brand-cyan/20">
+            <Activity className="h-5 w-5 text-brand-cyan animate-pulse" />
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-card/30 p-4 backdrop-blur-xl flex items-center justify-between shadow-sm hover:border-white/20 transition-colors">
           <div>
             <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block">Active Pipelines</span>
-            <span className="text-2xl font-display font-bold mt-1 block text-violet-400">{analytics.activeCount}</span>
+            <span className="text-2xl font-display font-bold mt-1 block text-brand-magenta">{analytics.activeCount}</span>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
-            <Clock className="h-5 w-5 text-violet-400" />
+          <div className="h-10 w-10 rounded-xl bg-brand-magenta/10 flex items-center justify-center border border-brand-magenta/20">
+            <Clock className="h-5 w-5 text-brand-magenta" />
           </div>
         </div>
 
@@ -448,14 +448,14 @@ function AdminCrmPage() {
                           onChange={(e) => handleStatusChange(lead.id, e.target.value as any)}
                           onClick={(e) => e.stopPropagation()}
                           className={`rounded-lg px-2 py-1 text-[10px] font-bold focus:outline-none border border-transparent cursor-pointer ${lead.status === "New"
-                            ? "bg-cyan-500/10 text-cyan-400"
+                            ? "bg-brand-cyan/10 text-brand-cyan"
                             : lead.status === "Contacted"
-                              ? "bg-blue-500/10 text-blue-400"
+                              ? "bg-brand-blue/10 text-brand-blue"
                               : lead.status === "In Progress"
-                                ? "bg-violet-500/10 text-violet-400"
+                                ? "bg-brand-magenta/10 text-brand-magenta"
                                 : lead.status === "Converted"
                                   ? "bg-emerald-500/10 text-emerald-400"
-                                  : "bg-rose-500/10 text-rose-400"
+                                  : "bg-brand-pink/10 text-brand-pink"
                             }`}
                         >
                           <option value="New">New</option>
@@ -492,7 +492,7 @@ function AdminCrmPage() {
                 </div>
                 <button
                   onClick={() => handleDeleteLead(selectedLead.id)}
-                  className="text-muted-foreground hover:text-rose-400 p-1.5 rounded-lg hover:bg-white/5 transition cursor-pointer"
+                  className="text-muted-foreground hover:text-brand-pink p-1.5 rounded-lg hover:bg-white/5 transition cursor-pointer"
                   title="Delete Lead"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -540,7 +540,7 @@ function AdminCrmPage() {
                             <span className="text-foreground">{note}</span>
                             <button
                               onClick={() => handleDeleteNote(index)}
-                              className="opacity-0 group-hover/note:opacity-100 text-muted-foreground hover:text-rose-400 p-0.5 rounded transition shrink-0 cursor-pointer"
+                              className="opacity-0 group-hover/note:opacity-100 text-muted-foreground hover:text-brand-pink p-0.5 rounded transition shrink-0 cursor-pointer"
                               title="Delete Comment"
                             >
                               <Trash2 className="h-3 w-3" />

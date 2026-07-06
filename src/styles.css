@@ -136,6 +136,10 @@
     cursor: none;
   }
 
+  html[data-cursor-type="none"] body {
+    cursor: auto;
+  }
+
   /* Global smooth transitions & premium focus states */
   a, button {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -270,3 +274,136 @@
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
 .animate-marquee { animation: marquee 30s linear infinite; }
 .animate-gradient { background-size: 200% 200%; animation: gradient-shift 6s ease infinite; }
+
+/* ═══════════════════════════════════════════════
+   THEME ENGINE — CSS Custom Property Overrides
+   ═══════════════════════════════════════════════ */
+
+/* ── Tech Noir — Dark · Neon · Cyan/Magenta ── */
+[data-theme="tech-noir"] {
+  --primary: #e026c9;
+  --accent: #22e5c8;
+  --ring: #22e5c8;
+  --brand-pink: #22e5c8;
+  --brand-magenta: #e026c9;
+  --brand-blue: #22e5c8;
+  --brand-cyan: #22e5c8;
+  --glow: #22e5c8;
+  --gradient-brand: linear-gradient(135deg, #e026c9 0%, #22e5c8 100%);
+  --gradient-mesh: radial-gradient(at 20% 0%, rgba(34, 229, 200, 0.25) 0px, transparent 50%),
+                   radial-gradient(at 80% 30%, rgba(34, 229, 200, 0.15) 0px, transparent 50%),
+                   radial-gradient(at 50% 100%, rgba(224, 38, 201, 0.12) 0px, transparent 50%);
+  --shadow-glow: 0 20px 80px -20px #e026c9;
+}
+
+/* ── Corporate Clean — Light · Professional · Blue ── */
+[data-theme="corporate-clean"] {
+  --primary: #3b5bdb;
+  --accent: #60a5fa;
+  --ring: #3b5bdb;
+  --brand-pink: #3b5bdb;
+  --brand-magenta: #3b5bdb;
+  --brand-blue: #60a5fa;
+  --brand-cyan: #60a5fa;
+  --glow: #3b5bdb;
+  --gradient-brand: linear-gradient(135deg, #3b5bdb 0%, #60a5fa 100%);
+  --gradient-mesh: radial-gradient(at 20% 0%, rgba(59, 91, 219, 0.10) 0px, transparent 50%),
+                   radial-gradient(at 80% 30%, rgba(96, 165, 250, 0.08) 0px, transparent 50%),
+                   radial-gradient(at 50% 100%, rgba(59, 91, 219, 0.06) 0px, transparent 50%);
+  --shadow-glow: 0 4px 24px #3b5bdb;
+}
+
+/* ── Bold Agency — Vibrant · Creative · Orange/Gold ── */
+[data-theme="bold-agency"] {
+  --primary: #ff5f1f;
+  --accent: #ffb800;
+  --ring: #7b2d3b;
+  --brand-pink: #7b2d3b;
+  --brand-magenta: #7b2d3b;
+  --brand-blue: #a0522d;
+  --brand-cyan: #a0522d;
+  --glow: #7b2d3b;
+  --gradient-brand: linear-gradient(135deg, #ff5f1f 0%, #ffb800 100%);
+  --gradient-mesh: radial-gradient(at 80% 0%, rgba(255, 95, 31, 0.20) 0px, transparent 50%),
+                   radial-gradient(at 20% 100%, rgba(255, 184, 0, 0.15) 0px, transparent 50%),
+                   radial-gradient(at 50% 50%, rgba(255, 95, 31, 0.10) 0px, transparent 50%);
+  --shadow-glow: 0 20px 80px -20px #ff5f1f;
+}
+
+/* ═══════════════════════════════════════════════
+   THEME CONFIG — Data-Attribute-Driven Overrides
+   ═══════════════════════════════════════════════ */
+
+/* ── Layout Density ── */
+[data-density="compact"] {
+  --density-py: 4rem;
+  --density-py-md: 6rem;
+  --density-container: 64rem;
+  --density-gap: 0.75rem;
+}
+[data-density="normal"] {
+  --density-py: 6rem;
+  --density-py-md: 8rem;
+  --density-container: 80rem;
+  --density-gap: 1.5rem;
+}
+[data-density="airy"] {
+  --density-py: 8rem;
+  --density-py-md: 10rem;
+  --density-container: 90rem;
+  --density-gap: 2.5rem;
+}
+
+/* ── Border Radius ── */
+[data-radius="sharp"] { --radius: 0px; }
+[data-radius="rounded"] { --radius: 1rem; }
+[data-radius="pill"] { --radius: 2rem; }
+
+/* ── Shadow Style ── */
+[data-shadow="hard"] {
+  --shadow-glow: 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-elegant: 0 8px 24px rgba(0,0,0,0.3);
+}
+[data-shadow="soft"] {
+  --shadow-glow: 0 8px 32px rgba(0,0,0,0.08);
+  --shadow-elegant: 0 16px 48px -12px rgba(0,0,0,0.15);
+}
+
+/* ── Button Style ── */
+[data-button-style="outline"] button:not([class*="admin"]):not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *),
+[data-button-style="outline"] a[role="button"]:not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *),
+[data-button-style="outline"] .btn:not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *) {
+  background: transparent !important;
+  border: 1px solid var(--primary) !important;
+  color: var(--primary) !important;
+  box-shadow: none !important;
+}
+[data-button-style="outline"] button:not([class*="admin"]):not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *):hover,
+[data-button-style="outline"] a[role="button"]:not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *):hover,
+[data-button-style="outline"] .btn:not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *):hover {
+  background: color-mix(in oklab, var(--primary) 12%, transparent) !important;
+}
+[data-button-style="glass"] button:not([class*="admin"]):not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *),
+[data-button-style="glass"] a[role="button"]:not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *),
+[data-button-style="glass"] .btn:not([class*="bg-gradient"]):not([class*="from-brand"]):not(header *):not(nav *) {
+  background: color-mix(in oklab, var(--primary) 15%, transparent) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid color-mix(in oklab, var(--primary) 25%, transparent) !important;
+  color: var(--primary) !important;
+  box-shadow: none !important;
+}
+
+/* ── Card Style ── */
+[data-card-style="flat"] div[class*="rounded-"][class*="border"][class*="bg-card"]:not([class*="admin"]) {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+[data-card-style="elevated"] div[class*="rounded-"][class*="border"][class*="bg-card"]:not([class*="admin"]) {
+  box-shadow: var(--shadow-elegant) !important;
+  border: 1px solid var(--border) !important;
+  backdrop-filter: none !important;
+}
+
+

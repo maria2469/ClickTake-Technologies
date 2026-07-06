@@ -419,7 +419,7 @@ function AdminRoles() {
         const gradients = [
             "from-brand-pink to-brand-magenta",
             "from-brand-blue to-brand-cyan",
-            "from-violet-500 to-brand-magenta",
+            "from-brand-magenta to-brand-magenta",
             "from-emerald-500 to-teal-600",
             "from-amber-500 to-brand-pink",
         ];
@@ -507,10 +507,10 @@ function AdminRoles() {
                 <div className="rounded-2xl border border-white/10 bg-card/30 p-4 backdrop-blur-xl flex items-center justify-between shadow-sm hover:border-white/20 transition-colors">
                     <div>
                         <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider block">Suspended Directory</span>
-                        <span className="text-2xl font-display font-bold mt-1 block text-rose-400">{inactiveStaffCount}</span>
+                        <span className="text-2xl font-display font-bold mt-1 block text-brand-pink">{inactiveStaffCount}</span>
                     </div>
-                    <div className="h-10 w-10 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-                        <ShieldAlert className="h-5 w-5 text-rose-400" />
+                    <div className="h-10 w-10 rounded-xl bg-brand-pink/10 flex items-center justify-center border border-brand-pink/20">
+                        <ShieldAlert className="h-5 w-5 text-brand-pink" />
                     </div>
                 </div>
 
@@ -782,7 +782,7 @@ function AdminRoles() {
                                                         <div className="font-bold text-xs text-foreground truncate flex items-center gap-1.5">
                                                             {u.name}
                                                             {isSuspended && (
-                                                                <span className="text-[7px] uppercase font-bold bg-rose-500/15 text-rose-400 px-1 py-0.5 rounded">
+                                                                <span className="text-[7px] uppercase font-bold bg-rose-500/15 text-brand-pink px-1 py-0.5 rounded">
                                                                     suspended
                                                                 </span>
                                                             )}
@@ -800,7 +800,7 @@ function AdminRoles() {
                                                         <button
                                                             onClick={() => handleToggleUserStatus(u.id)}
                                                             className={`flex items-center gap-1 text-[9px] font-bold transition px-1.5 py-0.5 rounded hover:bg-white/5 ${
-                                                                u.status === "Active" ? "text-emerald-400" : "text-rose-400"
+                                                                u.status === "Active" ? "text-emerald-400" : "text-brand-pink"
                                                             }`}
                                                             title="Toggle administrative status"
                                                         >
@@ -826,7 +826,7 @@ function AdminRoles() {
                                                                 setDeletingUser(u);
                                                                 setIsDeleteConfirmOpen(true);
                                                             }}
-                                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-400 hover:bg-white/5 transition cursor-pointer"
+                                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-brand-pink hover:bg-white/5 transition cursor-pointer"
                                                             title="De-register staff"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
@@ -866,7 +866,7 @@ function AdminRoles() {
                         let logColor = "text-brand-blue";
                         if (log.type === "permission") logColor = "text-brand-magenta";
                         if (log.type === "create") logColor = "text-emerald-400";
-                        if (log.type === "delete") logColor = "text-rose-400";
+                        if (log.type === "delete") logColor = "text-brand-pink";
                         if (log.type === "role") logColor = "text-brand-cyan";
                         
                         return (
@@ -1152,9 +1152,9 @@ function AdminRoles() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-card border border-rose-500/20 rounded-2xl p-6 max-w-sm w-full shadow-elegant space-y-4 text-foreground animate-pulse-glow"
+                            className="bg-card border border-brand-pink/20 rounded-2xl p-6 max-w-sm w-full shadow-elegant space-y-4 text-foreground animate-pulse-glow"
                         >
-                            <div className="flex items-center gap-2.5 text-rose-400 border-b border-white/5 pb-3">
+                            <div className="flex items-center gap-2.5 text-brand-pink border-b border-white/5 pb-3">
                                 <AlertTriangle className="h-5 w-5 shrink-0" />
                                 <h3 className="font-display font-bold text-sm tracking-tight">De-register Staff Member?</h3>
                             </div>

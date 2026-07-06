@@ -98,7 +98,7 @@ function AdminServices() {
           eyebrow: selected.eyebrow || '',
           description: selected.description || '',
           detailed_description: selected.detailed_description || '',
-          gradient: selected.gradient || 'from-cyan-400 via-blue-500 to-violet-600',
+          gradient: selected.gradient || 'from-brand-cyan via-brand-blue to-brand-magenta',
           glow: selected.glow || 'rgba(6,182,212,0.15)',
           icon_name: selected.icon_name || 'Sparkles',
           display_order: selected.display_order ?? 0
@@ -221,7 +221,7 @@ function AdminServices() {
         title: newServiceTitle.trim(),
         category: newServiceCategory,
         category_label: newServiceCatLabel,
-        gradient: "from-cyan-400 via-blue-500 to-violet-600",
+        gradient: "from-brand-cyan via-brand-blue to-brand-magenta",
         glow: "rgba(6,182,212,0.15)",
         eyebrow: newServiceCatLabel,
         description: "New custom service offering managed from the admin panel.",
@@ -326,7 +326,7 @@ function AdminServices() {
         </div>
         <button
           onClick={() => setIsAddServiceOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 font-semibold text-white shadow-lg hover:scale-[1.02] active:scale-95 transition-transform"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue px-5 py-2.5 font-semibold text-white shadow-lg hover:scale-[1.02] active:scale-95 transition-transform"
         >
           <Plus className="h-4 w-4" /> Create Service
         </button>
@@ -354,7 +354,7 @@ function AdminServices() {
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${s.gradient || "from-cyan-500 to-blue-500"} flex items-center justify-center text-white text-xs font-bold`}>
+                    <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${s.gradient || "from-brand-cyan to-brand-blue"} flex items-center justify-center text-white text-xs font-bold`}>
                       {(s.slug || '??').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -498,7 +498,7 @@ function AdminServices() {
                             value={editGeneral.gradient || ""}
                             onChange={(e) => setEditGeneral({ ...editGeneral, gradient: e.target.value })}
                             className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
-                            placeholder="from-cyan-500 to-blue-500"
+                            placeholder="from-brand-cyan to-brand-blue"
                           />
                         </div>
                         <div className="space-y-2">
@@ -751,7 +751,7 @@ function AdminServices() {
                   <button
                     onClick={handleSaveAll}
                     disabled={saving}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-2.5 font-semibold text-white shadow-lg disabled:opacity-40 hover:scale-[1.02] active:scale-95 transition-transform"
+                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue px-6 py-2.5 font-semibold text-white shadow-lg disabled:opacity-40 hover:scale-[1.02] active:scale-95 transition-transform"
                   >
                     {saving ? (
                       <>
@@ -788,7 +788,7 @@ function AdminServices() {
               <form onSubmit={handleAddService}>
                 <div className="p-6 border-b border-border bg-card/60 flex justify-between items-center">
                   <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-cyan-400" /> Create Custom Service
+                    <Sparkles className="h-5 w-5 text-brand-cyan" /> Create Custom Service
                   </h3>
                   <button
                     type="button"
@@ -871,7 +871,7 @@ function AdminServices() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-semibold text-white shadow-lg hover:scale-102 active:scale-95 transition-transform"
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue font-semibold text-white shadow-lg hover:scale-102 active:scale-95 transition-transform"
                   >
                     Create
                   </button>

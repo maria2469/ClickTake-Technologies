@@ -40,10 +40,23 @@ export function CustomCursor() {
     { x: t5x, y: t5y },
   ];
 
-  const colors = ["#ff3d8b", "#c026d3", "#8b5cf6", "#3b82f6", "#22d3ee", "#a3e635"];
+  const colors = ["var(--brand-pink)", "var(--brand-magenta)", "var(--brand-magenta)", "var(--brand-blue)", "var(--brand-cyan)", "#a3e635"];
 
   const [hover, setHover] = useState(false);
   const [click, setClick] = useState(false);
+  const [cursorType, setCursorType] = useState(() => document.documentElement.getAttribute("data-cursor-type") || "aperture");
+
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "data-cursor-type") {
+          setCursorType(document.documentElement.getAttribute("data-cursor-type") || "aperture");
+        }
+      });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const move = (e: MouseEvent) => {
@@ -64,109 +77,152 @@ export function CustomCursor() {
     };
   }, [x, y]);
 
+  if (cursorType === "none") return null;
+
   return (
     <>
-      {/* Particle trail */}
-      {trail.map((t, i) => (
-        <motion.div
-          key={i}
-          className="custom-cursor pointer-events-none fixed left-0 top-0 z-[9990]"
-          style={{ x: t.x, y: t.y }}
-        >
-          <div
-            className="-translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              width: `${10 - i * 1.2}px`,
-              height: `${10 - i * 1.2}px`,
-              background: colors[i],
-              opacity: 0.55 - i * 0.07,
-              filter: `blur(${i * 0.6}px)`,
-              boxShadow: `0 0 ${14 - i}px ${colors[i]}`,
-            }}
-          />
-        </motion.div>
-      ))}
+      {(cursorType === "aperture" || cursorType === "trail_only") && (
+        <>
+          {/* Particle trail */}
+          {trail.map((t, i) => (
+            <motion.div
+              key={i}
+              className="custom-cursor pointer-events-none fixed left-0 top-0 z-[9990]"
+              style={{ x: t.x, y: t.y }}
+            >
+              <div
+                className="-translate-x-1/2 -translate-y-1/2 rounded-full"
+                style={{
+                  width: `${10 - i * 1.2}px`,
+                  height: `${10 - i * 1.2}px`,
+                  background: colors[i],
+                  opacity: 0.55 - i * 0.07,
+                  filter: `blur(${i * 0.6}px)`,
+                  boxShadow: `0 0 ${14 - i}px ${colors[i]}`,
+                }}
+              />
+            </motion.div>
+          ))}
+        </>
+      )}
 
-      {/* Soft glow halo */}
-      <motion.div
-        className="custom-cursor pointer-events-none fixed left-0 top-0 z-[9996]"
-        style={{ x: haloX, y: haloY }}
-      >
-        <motion.div
-          animate={{ scale: hover ? 2.2 : 1, opacity: hover ? 0.9 : 0.5 }}
-          transition={{ type: "spring", damping: 18 }}
-          className="-translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(192,38,211,0.55) 0%, rgba(255,61,139,0.25) 40%, transparent 70%)",
-            filter: "blur(8px)",
-          }}
-        />
-      </motion.div>
-
-      {/* Aperture cursor — 4 rotating blades */}
-      <motion.div
-        className="custom-cursor pointer-events-none fixed left-0 top-0 z-[9999]"
-        style={{ x: tipX, y: tipY }}
-      >
-        <motion.div
-          animate={{
-            rotate: hover ? 0 : 360,
-            scale: click ? 0.7 : hover ? 1.6 : 1,
-          }}
-          transition={{
-            rotate: { duration: 6, ease: "linear", repeat: Infinity },
-            scale: { type: "spring", damping: 18 },
-          }}
-          className="-translate-x-1/2 -translate-y-1/2"
-          style={{ width: 28, height: 28 }}
-        >
-          <svg viewBox="0 0 32 32" width="28" height="28" style={{ overflow: "visible" }}>
-            <defs>
-              <linearGradient id="cursorGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#ff3d8b" />
-                <stop offset="50%" stopColor="#c026d3" />
-                <stop offset="100%" stopColor="#22d3ee" />
-              </linearGradient>
-              <filter id="cursorGlow">
-                <feGaussianBlur stdDeviation="1.2" result="b" />
-                <feMerge>
-                  <feMergeNode in="b" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* outer ring */}
-            <motion.circle
-              cx="16"
-              cy="16"
-              r={hover ? 13 : 10}
-              fill="none"
-              stroke="url(#cursorGrad)"
-              strokeWidth="1.4"
-              strokeDasharray="3 3"
-              filter="url(#cursorGlow)"
+      {(cursorType === "aperture" || cursorType === "glow_only") && (
+        <>
+          {/* Soft glow halo */}
+          <motion.div
+            className="custom-cursor pointer-events-none fixed left-0 top-0 z-[9996]"
+            style={{ x: haloX, y: haloY }}
+          >
+            <motion.div
+              animate={{ scale: hover ? 2.2 : 1, opacity: hover ? 0.9 : 0.5 }}
+              transition={{ type: "spring", damping: 18 }}
+              className="-translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(circle, color-mix(in oklab, var(--brand-magenta) 55%, transparent) 0%, color-mix(in oklab, var(--brand-pink) 25%, transparent) 40%, transparent 70%)",
+                filter: "blur(8px)",
+              }}
             />
+          </motion.div>
+        </>
+      )}
 
-            {/* 4 aperture blades */}
-            {[0, 90, 180, 270].map((deg) => (
-              <g key={deg} transform={`rotate(${deg} 16 16)`}>
-                <path
-                  d={hover ? "M16 16 L24 8" : "M16 16 L22 16"}
+      {/* Main cursor tip */}
+      {cursorType !== "trail_only" && cursorType !== "glow_only" && (
+        <motion.div
+          className="custom-cursor pointer-events-none fixed left-0 top-0 z-[9999]"
+          style={{ x: tipX, y: tipY }}
+        >
+          <motion.div
+            animate={{
+              rotate: cursorType === "aperture" || cursorType === "crosshair" ? (hover ? 0 : 360) : 0,
+              scale: click ? 0.7 : hover ? (cursorType === "dot" ? 2 : cursorType === "ring" ? 1.5 : 1.6) : 1,
+            }}
+            transition={{
+              rotate: { duration: 6, ease: "linear", repeat: Infinity },
+              scale: { type: "spring", damping: 18 },
+            }}
+            className="-translate-x-1/2 -translate-y-1/2"
+            style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            {cursorType === "aperture" && (
+              <svg viewBox="0 0 32 32" width="28" height="28" style={{ overflow: "visible" }}>
+                <defs>
+                  <linearGradient id="cursorGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="var(--brand-pink)" />
+                    <stop offset="50%" stopColor="var(--brand-magenta)" />
+                    <stop offset="100%" stopColor="var(--brand-cyan)" />
+                  </linearGradient>
+                  <filter id="cursorGlow">
+                    <feGaussianBlur stdDeviation="1.2" result="b" />
+                    <feMerge>
+                      <feMergeNode in="b" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                {/* outer ring */}
+                <motion.circle
+                  cx="16"
+                  cy="16"
+                  r={hover ? 13 : 10}
+                  fill="none"
                   stroke="url(#cursorGrad)"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
+                  strokeWidth="1.4"
+                  strokeDasharray="3 3"
                   filter="url(#cursorGlow)"
                 />
-              </g>
-            ))}
 
-            {/* center dot */}
-            <circle cx="16" cy="16" r={hover ? 3 : 1.6} fill="url(#cursorGrad)" filter="url(#cursorGlow)" />
-          </svg>
+                {/* 4 aperture blades */}
+                {[0, 90, 180, 270].map((deg) => (
+                  <g key={deg} transform={`rotate(${deg} 16 16)`}>
+                    <path
+                      d={hover ? "M16 16 L24 8" : "M16 16 L22 16"}
+                      stroke="url(#cursorGrad)"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      filter="url(#cursorGlow)"
+                    />
+                  </g>
+                ))}
+
+                {/* center dot */}
+                <circle cx="16" cy="16" r={hover ? 3 : 1.6} fill="url(#cursorGrad)" filter="url(#cursorGlow)" />
+              </svg>
+            )}
+
+            {cursorType === "dot" && (
+              <div className="h-3 w-3 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
+            )}
+
+            {cursorType === "ring" && (
+              <div className="h-6 w-6 rounded-full border-2 border-primary shadow-[0_0_10px_var(--primary)]" />
+            )}
+
+            {cursorType === "crosshair" && (
+              <svg viewBox="0 0 32 32" width="28" height="28" style={{ overflow: "visible" }}>
+                <defs>
+                  <linearGradient id="cursorGrad2" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="var(--brand-pink)" />
+                    <stop offset="50%" stopColor="var(--brand-magenta)" />
+                    <stop offset="100%" stopColor="var(--brand-cyan)" />
+                  </linearGradient>
+                  <filter id="cursorGlow2">
+                    <feGaussianBlur stdDeviation="1" result="b" />
+                    <feMerge>
+                      <feMergeNode in="b" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <circle cx="16" cy="16" r="2" fill="url(#cursorGrad2)" filter="url(#cursorGlow2)" />
+                <path d="M16 2 L16 10 M16 22 L16 30 M2 16 L10 16 M22 16 L30 16" stroke="url(#cursorGrad2)" strokeWidth="1.5" strokeLinecap="round" filter="url(#cursorGlow2)" />
+              </svg>
+            )}
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </>
   );
 }

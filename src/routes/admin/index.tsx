@@ -153,9 +153,9 @@ function AdminDashboard() {
               {card.status === "up" ? (
                 <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
               ) : (
-                <TrendingDown className="h-3.5 w-3.5 text-rose-400" />
+                <TrendingDown className="h-3.5 w-3.5 text-brand-pink" />
               )}
-              <span className={card.status === "up" ? "text-emerald-400" : "text-rose-400"}>
+              <span className={card.status === "up" ? "text-emerald-400" : "text-brand-pink"}>
                 {card.trend}
               </span>
               <span className="text-muted-foreground font-normal">vs last month</span>
@@ -188,8 +188,8 @@ function AdminDashboard() {
                   <ChartTooltip
                     contentStyle={{ background: "rgba(20,20,20,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "11px" }}
                   />
-                  <Line type="monotone" dataKey="leads" stroke="oklch(0.55 0.28 330)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} />
-                  <Line type="monotone" dataKey="queries" stroke="oklch(0.75 0.15 220)" strokeWidth={2} strokeDasharray="4 4" dot={false} />
+                  <Line type="monotone" dataKey="leads" stroke="var(--brand-magenta)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="queries" stroke="var(--brand-cyan)" strokeWidth={2} strokeDasharray="4 4" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (

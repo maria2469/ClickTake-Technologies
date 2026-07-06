@@ -66,14 +66,14 @@ const PACKAGE_STYLES = {
     glow: "rgba(148,163,184,0.1)",
   },
   Standard: {
-    badge: "bg-cyan-500/15 border-cyan-500/30 text-cyan-300",
-    accent: "from-cyan-500 to-blue-600",
-    glow: "rgba(6,182,212,0.14)",
+    badge: "bg-brand-cyan/15 border-brand-cyan/30 text-brand-cyan",
+    accent: "from-brand-cyan to-brand-blue",
+    glow: "color-mix(in oklab, var(--brand-cyan) 14%, transparent)",
   },
   Premium: {
-    badge: "bg-violet-500/15 border-violet-500/30 text-violet-300",
-    accent: "from-violet-500 to-indigo-600",
-    glow: "rgba(139,92,246,0.14)",
+    badge: "bg-brand-magenta/15 border-brand-magenta/30 text-brand-magenta",
+    accent: "from-brand-magenta to-brand-blue",
+    glow: "color-mix(in oklab, var(--brand-magenta) 14%, transparent)",
   },
 };
 
@@ -145,7 +145,7 @@ function DynamicServicePage() {
         <BackgroundScene />
         <Navbar />
         <div className="flex flex-col items-center gap-4 z-10">
-          <div className="h-12 w-12 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin" />
+          <div className="h-12 w-12 rounded-full border-2 border-brand-cyan border-t-transparent animate-spin" />
           <p className="text-muted-foreground text-sm">Loading service details…</p>
         </div>
       </div>
@@ -167,7 +167,7 @@ function DynamicServicePage() {
           </p>
           <Link
             to="/services"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-6 py-3 font-semibold text-white shadow-lg hover:scale-105 transition-transform"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-6 py-3 font-semibold text-white shadow-lg hover:scale-105 transition-transform"
           >
             <ArrowLeft className="h-4 w-4" /> View All Services
           </Link>
@@ -210,7 +210,7 @@ function DynamicServicePage() {
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Services
               </Link>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-400">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-cyan">
                 {service.eyebrow || service.category_label}
               </div>
             </motion.div>
@@ -221,7 +221,7 @@ function DynamicServicePage() {
               className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl"
             >
               <span
-                className={`bg-gradient-to-r ${service.gradient || "from-cyan-400 via-violet-400 to-pink-400"} bg-clip-text text-transparent`}
+                className={`bg-gradient-to-r ${service.gradient || "from-brand-cyan via-brand-magenta to-brand-pink"} bg-clip-text text-transparent`}
               >
                 {service.title}
               </span>
@@ -242,7 +242,7 @@ function DynamicServicePage() {
             >
               <a
                 href="/contact"
-                className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${service.gradient || "from-cyan-500 to-violet-600"} px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform`}
+                className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${service.gradient || "from-brand-cyan to-brand-magenta"} px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform`}
               >
                 Get started <ArrowUpRight className="h-4 w-4" />
               </a>
@@ -273,7 +273,7 @@ function DynamicServicePage() {
                 className="text-center"
               >
                 <div
-                  className={`text-3xl sm:text-4xl font-bold bg-gradient-to-r ${service.gradient || "from-cyan-400 to-violet-400"} bg-clip-text text-transparent`}
+                  className={`text-3xl sm:text-4xl font-bold bg-gradient-to-r ${service.gradient || "from-brand-cyan to-brand-magenta"} bg-clip-text text-transparent`}
                 >
                   {r.metric}
                 </div>
@@ -296,7 +296,7 @@ function DynamicServicePage() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-3">What's Included</div>
+              <div className="text-xs font-bold uppercase tracking-widest text-brand-cyan mb-3">What's Included</div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
                 Service capabilities
               </h2>
@@ -310,14 +310,14 @@ function DynamicServicePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08, duration: 0.5 }}
-                  className="group relative rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-6 hover:border-cyan-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)] transition-all duration-300"
+                  className="group relative rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-6 hover:border-brand-cyan/40 hover:shadow-glow transition-all duration-300"
                 >
                   <div
-                    className={`h-0.5 w-10 rounded-full bg-gradient-to-r ${service.gradient || "from-cyan-500 to-violet-600"} mb-5 group-hover:w-16 transition-all duration-300`}
+                    className={`h-0.5 w-10 rounded-full bg-gradient-to-r ${service.gradient || "from-brand-cyan to-brand-magenta"} mb-5 group-hover:w-16 transition-all duration-300`}
                   />
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="h-10 w-10 grid place-items-center rounded-xl bg-cyan-500/10 border border-cyan-500/30">
-                      <ServiceIcon name={item.icon_name || "Sparkles"} className="h-5 w-5 text-cyan-400" />
+                    <div className="h-10 w-10 grid place-items-center rounded-xl bg-brand-cyan/10 border border-brand-cyan/30">
+                      <ServiceIcon name={item.icon_name || "Sparkles"} className="h-5 w-5 text-brand-cyan" />
                     </div>
                     <h3 className="font-bold text-base leading-snug">{item.title}</h3>
                   </div>
@@ -326,7 +326,7 @@ function DynamicServicePage() {
                     <ul className="space-y-1.5">
                       {item.features.map((feat: string, fi: number) => (
                         <li key={fi} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-brand-cyan shrink-0 mt-0.5" />
                           <span>{feat}</span>
                         </li>
                       ))}
@@ -349,7 +349,7 @@ function DynamicServicePage() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-3">How We Work</div>
+              <div className="text-xs font-bold uppercase tracking-widest text-brand-cyan mb-3">How We Work</div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Our delivery process</h2>
             </motion.div>
 
@@ -361,10 +361,10 @@ function DynamicServicePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08, duration: 0.5 }}
-                  className="relative rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-6 hover:border-cyan-500/30 transition-all duration-300"
+                  className="relative rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-6 hover:border-brand-cyan/30 transition-all duration-300"
                 >
                   <div
-                    className={`text-4xl font-bold bg-gradient-to-r ${service.gradient || "from-cyan-500 to-violet-600"} bg-clip-text text-transparent mb-4 font-mono`}
+                    className={`text-4xl font-bold bg-gradient-to-r ${service.gradient || "from-brand-cyan to-brand-magenta"} bg-clip-text text-transparent mb-4 font-mono`}
                   >
                     {String(step.step_number).padStart(2, "0")}
                   </div>
@@ -387,7 +387,7 @@ function DynamicServicePage() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-3">Why Choose Us</div>
+              <div className="text-xs font-bold uppercase tracking-widest text-brand-cyan mb-3">Why Choose Us</div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">What makes us different</h2>
             </motion.div>
 
@@ -399,10 +399,10 @@ function DynamicServicePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.07, duration: 0.5 }}
-                  className="flex gap-4 rounded-2xl border border-border bg-card/40 p-5 hover:border-cyan-500/30 transition-all duration-300"
+                  className="flex gap-4 rounded-2xl border border-border bg-card/40 p-5 hover:border-brand-cyan/30 transition-all duration-300"
                 >
-                  <div className="h-10 w-10 shrink-0 grid place-items-center rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-                    <ServiceIcon name={d.icon_name || "Sparkles"} className="h-5 w-5 text-cyan-400" />
+                  <div className="h-10 w-10 shrink-0 grid place-items-center rounded-xl bg-brand-cyan/10 border border-brand-cyan/20">
+                    <ServiceIcon name={d.icon_name || "Sparkles"} className="h-5 w-5 text-brand-cyan" />
                   </div>
                   <div>
                     <div className="font-bold text-sm mb-1">{d.title}</div>
@@ -419,7 +419,7 @@ function DynamicServicePage() {
       {deliverables.length > 0 && (
         <section className="relative py-16 px-4 bg-card/10">
           <div className="max-w-6xl mx-auto text-center">
-            <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-3">What You Receive</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-brand-cyan mb-3">What You Receive</div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8">Included deliverables</h2>
             <div className="flex flex-wrap gap-3 justify-center">
               {deliverables.map((d: any, i: number) => (
@@ -431,7 +431,7 @@ function DynamicServicePage() {
                   transition={{ delay: i * 0.05 }}
                   className="flex items-center gap-2 rounded-full border border-border bg-card/60 px-4 py-2 text-sm font-semibold backdrop-blur"
                 >
-                  <ServiceIcon name={d.icon_name || "CheckCircle2"} className="h-4 w-4 text-cyan-400" />
+                  <ServiceIcon name={d.icon_name || "CheckCircle2"} className="h-4 w-4 text-brand-cyan" />
                   {d.label}
                 </motion.div>
               ))}
@@ -450,7 +450,7 @@ function DynamicServicePage() {
               viewport={{ once: true }}
               className="text-center mb-14"
             >
-              <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-3">Pricing</div>
+              <div className="text-xs font-bold uppercase tracking-widest text-brand-cyan mb-3">Pricing</div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
                 Transparent, fixed-scope packages
               </h2>
@@ -474,12 +474,12 @@ function DynamicServicePage() {
                     transition={{ duration: 0.55 }}
                     whileHover={{ y: -4, boxShadow: `0 0 50px ${style.glow}` }}
                     className={`relative flex flex-col rounded-2xl border border-border bg-card/60 backdrop-blur-xl p-7 hover:border-opacity-60 transition-all duration-300 ${
-                      level === "Standard" ? "ring-1 ring-cyan-500/40" : ""
+                      level === "Standard" ? "ring-1 ring-brand-cyan/40" : ""
                     }`}
                   >
                     {level === "Standard" && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className="rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">
+                        <span className="rounded-full bg-gradient-to-r from-brand-cyan to-brand-blue px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">
                           Most Popular
                         </span>
                       </div>
@@ -508,7 +508,7 @@ function DynamicServicePage() {
                     <ul className="space-y-2.5 flex-1 mb-7">
                       {(Array.isArray(pkg.features) ? pkg.features : []).map((feat: string, fi: number) => (
                         <li key={fi} className="flex items-start gap-2.5 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 text-brand-cyan shrink-0 mt-0.5" />
                           <span>{feat}</span>
                         </li>
                       ))}
@@ -538,14 +538,14 @@ function DynamicServicePage() {
             className="rounded-3xl border border-border bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl p-12 relative overflow-hidden"
           >
             <div className="pointer-events-none absolute inset-0">
-              <div className="absolute top-0 left-1/4 h-48 w-48 bg-cyan-500/10 blur-3xl rounded-full" />
-              <div className="absolute bottom-0 right-1/4 h-48 w-48 bg-violet-500/10 blur-3xl rounded-full" />
+              <div className="absolute top-0 left-1/4 h-48 w-48 bg-brand-cyan/10 blur-3xl rounded-full" />
+              <div className="absolute bottom-0 right-1/4 h-48 w-48 bg-brand-magenta/10 blur-3xl rounded-full" />
             </div>
             <div className="relative">
-              <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-4">Ready to get started?</div>
+              <div className="text-xs font-bold uppercase tracking-widest text-brand-cyan mb-4">Ready to get started?</div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
                 Let's build something{" "}
-                <span className="bg-gradient-to-r from-cyan-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-brand-cyan via-brand-magenta to-brand-pink bg-clip-text text-transparent">
                   exceptional together.
                 </span>
               </h2>
@@ -554,7 +554,7 @@ function DynamicServicePage() {
               </p>
               <a
                 href="/contact"
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform"
               >
                 Book a discovery call <ArrowUpRight className="h-5 w-5" />
               </a>

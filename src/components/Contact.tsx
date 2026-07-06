@@ -25,14 +25,14 @@ const contactMethods = [
     label: "WhatsApp · United Kingdom",
     value: "+44 7391 653377",
     href: "https://wa.me/447391653377",
-    glow: "from-cyan-400 to-blue-500",
+    glow: "from-brand-cyan to-brand-blue",
   },
   {
     icon: Mail,
     label: "Email Address",
     value: "info@clicktaketech.com",
     href: "mailto:info@clicktaketech.com",
-    glow: "from-fuchsia-500 to-violet-500",
+    glow: "from-brand-magenta to-brand-magenta",
   },
 ];
 
@@ -75,8 +75,8 @@ export function Contact() {
       </div>
 
       {/* GLOW ORBS */}
-      <div className="absolute left-0 top-0 h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-3xl" />
-      <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-fuchsia-500/10 blur-3xl" />
+      <div className="absolute left-0 top-0 h-[500px] w-[500px] rounded-full bg-brand-cyan/10 blur-3xl" />
+      <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-brand-magenta/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-4">
         {/* HEADER */}
@@ -111,8 +111,8 @@ export function Contact() {
         {/* MAIN CARD */}
         <div className="relative mt-16 overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/70 shadow-[0_20px_80px_rgba(0,0,0,0.25)] backdrop-blur-2xl">
           {/* animated glow */}
-          <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
-          <div className="absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-brand-cyan/20 blur-3xl" />
+          <div className="absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-brand-magenta/20 blur-3xl" />
 
           <div className="relative grid gap-12 p-6 lg:grid-cols-[1fr_0.95fr] lg:p-14">
             {/* LEFT SIDE */}

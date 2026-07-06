@@ -29,8 +29,8 @@ const services = [
     {
         icon: Play,
         title: "Explainer Videos",
-        color: "from-violet-500 to-indigo-600",
-        glow: "rgba(139,92,246,0.15)",
+        color: "from-brand-magenta to-brand-blue",
+        glow: "color-mix(in oklab, var(--brand-magenta) 15%, transparent)",
         desc: "Turn complex products into clear, compelling stories. Explainer videos increase landing page conversions by up to 80% — ours are built specifically to rank, share, and sell.",
         items: [
             "Animated 2D/3D explainers with custom motion graphics",
@@ -45,8 +45,8 @@ const services = [
     {
         icon: Smartphone,
         title: "Social Video",
-        color: "from-pink-500 to-rose-600",
-        glow: "rgba(236,72,153,0.15)",
+        color: "from-brand-pink to-brand-pink",
+        glow: "color-mix(in oklab, var(--brand-pink) 15%, transparent)",
         desc: "Platform-native short-form content built for each feed's culture — not repurposed long-form chopped into vertical.",
         items: [
             "Instagram Reels & TikTok — hook-driven, trend-aware",
@@ -61,8 +61,8 @@ const services = [
     {
         icon: Building2,
         title: "Corporate Video",
-        color: "from-cyan-500 to-blue-600",
-        glow: "rgba(6,182,212,0.15)",
+        color: "from-brand-cyan to-brand-blue",
+        glow: "color-mix(in oklab, var(--brand-cyan) 15%, transparent)",
         desc: "Build credibility at scale. Corporate video creates powerful impressions with clients, investors, and talent — without needing to be in the room.",
         items: [
             "Cinematic brand films — who you are and why you exist",
@@ -127,13 +127,13 @@ export default function VideoProductionPage() {
                             <Link to="/services" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5">
                                 <ArrowLeft className="h-4 w-4" /> Back to Services
                             </Link>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-violet-400">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-brand-magenta/30 bg-brand-magenta/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-magenta">
                                 Creative Services
                             </div>
                         </motion.div>
                         <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
                             Video that makes people{" "}
-                            <span className="bg-gradient-to-r from-violet-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-brand-magenta via-brand-pink to-brand-cyan bg-clip-text text-transparent">
                                 watch and act.
                             </span>
                         </motion.h1>
@@ -141,7 +141,7 @@ export default function VideoProductionPage() {
                             Video is the highest-converting content format on the internet. We produce story-led videos that stop the scroll, communicate your value in seconds, and move viewers to act.
                         </motion.p>
                         <motion.div variants={fadeUp} custom={2} className="mt-8 flex flex-wrap gap-3">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-magenta to-brand-pink px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
                                 Start your video project <ArrowUpRight className="h-4 w-4" />
                             </a>
                             <a href="#services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-7 py-3.5 font-semibold backdrop-blur hover:bg-secondary transition-colors">
@@ -150,8 +150,8 @@ export default function VideoProductionPage() {
                         </motion.div>
                     </motion.div>
                 </div>
-                <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-pink-500/10 blur-3xl" />
+                <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-brand-magenta/10 blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-brand-pink/10 blur-3xl" />
             </section>
 
             {/* ── RESULTS BAR ── */}
@@ -159,7 +159,7 @@ export default function VideoProductionPage() {
                 <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                     {results.map((r, i) => (
                         <motion.div key={r.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-                            <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">{r.metric}</div>
+                            <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-brand-magenta to-brand-pink bg-clip-text text-transparent">{r.metric}</div>
                             <div className="mt-2 text-sm text-muted-foreground leading-snug">{r.label}</div>
                         </motion.div>
                     ))}
@@ -170,7 +170,7 @@ export default function VideoProductionPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Reality</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">The Reality</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">People skip ads. They don't skip good stories.</h2>
                         <div className="space-y-4 text-muted-foreground leading-relaxed">
                             <p>Audiences skip ads in 5 seconds, ignore banners, and skim blog posts. But they watch video — if it's built to hold their attention from the first frame.</p>
@@ -178,8 +178,8 @@ export default function VideoProductionPage() {
                             <p>We start with message, audience, and goal. Production is the last step — and it shows in the results.</p>
                         </div>
                     </motion.div>
-                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/5 to-pink-500/5 p-8 backdrop-blur">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-4">Our Approach</div>
+                    <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-brand-magenta/5 to-brand-pink/5 p-8 backdrop-blur">
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-magenta mb-4">Our Approach</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Story first. Production second.</h2>
                         <div className="space-y-3">
                             {[
@@ -190,7 +190,7 @@ export default function VideoProductionPage() {
                                 "Fast turnarounds — social edits in 48hrs, explainers in 3 weeks",
                             ].map((item) => (
                                 <div key={item} className="flex items-start gap-3">
-                                    <CheckCircle2 className="h-5 w-5 text-violet-400 mt-0.5 shrink-0" />
+                                    <CheckCircle2 className="h-5 w-5 text-brand-magenta mt-0.5 shrink-0" />
                                     <span className="text-muted-foreground">{item}</span>
                                 </div>
                             ))}
@@ -203,7 +203,7 @@ export default function VideoProductionPage() {
             <section id="services" className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3">What We Produce</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-magenta mb-3">What We Produce</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Three formats. Every platform. One team.</h2>
                         <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">Explainers, social video, and corporate production — each built for a specific audience and conversion goal.</p>
                     </motion.div>
@@ -223,7 +223,7 @@ export default function VideoProductionPage() {
                                     <ul className="space-y-2">
                                         {s.items.map((item) => (
                                             <li key={item} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                                                <CheckCircle2 className="h-4 w-4 text-violet-400 mt-0.5 shrink-0" />{item}
+                                                <CheckCircle2 className="h-4 w-4 text-brand-magenta mt-0.5 shrink-0" />{item}
                                             </li>
                                         ))}
                                     </ul>
@@ -238,7 +238,7 @@ export default function VideoProductionPage() {
             <section className="relative z-10 py-20 px-4 border-y border-border/50">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-pink-400 mb-3">Every Project Includes</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3">Every Project Includes</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Everything you need to publish, nothing you don't.</h2>
                     </motion.div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -246,9 +246,9 @@ export default function VideoProductionPage() {
                             const Icon = d.icon;
                             return (
                                 <motion.div key={d.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                                    className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-violet-500/30 transition-colors">
-                                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-pink-500/20 flex items-center justify-center">
-                                        <Icon className="h-5 w-5 text-violet-400" />
+                                    className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-brand-magenta/30 transition-colors">
+                                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-brand-magenta/20 to-brand-pink/20 flex items-center justify-center">
+                                        <Icon className="h-5 w-5 text-brand-magenta" />
                                     </div>
                                     <span className="text-sm font-medium leading-snug">{d.label}</span>
                                 </motion.div>
@@ -262,14 +262,14 @@ export default function VideoProductionPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3">How It Works</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-magenta mb-3">How It Works</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Brief to published in three weeks.</h2>
                     </motion.div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {process.map((p, i) => (
                             <motion.div key={p.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                                 className="relative rounded-2xl border border-border bg-card/50 backdrop-blur p-7 hover:border-white/20 transition-colors group">
-                                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-violet-500/30 to-pink-500/30 bg-clip-text mb-4 select-none group-hover:from-violet-500/60 group-hover:to-pink-500/60 transition-all">{p.step}</div>
+                                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-brand-magenta/30 to-brand-pink/30 bg-clip-text mb-4 select-none group-hover:from-brand-magenta/60 group-hover:to-brand-pink/60 transition-all">{p.step}</div>
                                 <h3 className="text-lg font-bold mb-2">{p.title}</h3>
                                 <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
                             </motion.div>
@@ -282,7 +282,7 @@ export default function VideoProductionPage() {
             <section className="relative z-10 py-24 px-4 border-t border-border/50">
                 <div className="max-w-6xl mx-auto">
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-                        <div className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-3">Why ClickTake</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-magenta mb-3">Why ClickTake</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">We don't just shoot. We engineer results.</h2>
                     </motion.div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -290,9 +290,9 @@ export default function VideoProductionPage() {
                             const Icon = d.icon;
                             return (
                                 <motion.div key={d.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                                    className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-violet-500/30 transition-colors group">
-                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-500/10 border border-border flex items-center justify-center group-hover:border-violet-500/30 transition-colors">
-                                        <Icon className="h-5 w-5 text-violet-400" />
+                                    className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-brand-magenta/30 transition-colors group">
+                                    <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-brand-magenta/10 to-brand-pink/10 border border-border flex items-center justify-center group-hover:border-brand-magenta/30 transition-colors">
+                                        <Icon className="h-5 w-5 text-brand-magenta" />
                                     </div>
                                     <div>
                                         <div className="font-semibold mb-1">{d.title}</div>
@@ -309,16 +309,16 @@ export default function VideoProductionPage() {
             <CtaSection>
                 <div className="max-w-3xl mx-auto text-center">
                     <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-violet-400 mb-4">Ready to roll?</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-magenta mb-4">Ready to roll?</div>
                         <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
                             Your audience is watching video.<br />
-                            <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">Is yours worth watching?</span>
+                            <span className="bg-gradient-to-r from-brand-magenta to-brand-pink bg-clip-text text-transparent">Is yours worth watching?</span>
                         </h2>
                         <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
                             Book a free 30-minute video strategy call. We'll discuss your goals, recommend the right format, and give you a clear brief for your first video.
                         </p>
                         <div className="flex flex-wrap gap-3 justify-center">
-                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
+                            <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-magenta to-brand-pink px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
                                 Book a free strategy call <ArrowUpRight className="h-5 w-5" />
                             </a>
                             <Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-8 py-4 font-semibold backdrop-blur hover:bg-secondary transition-colors text-base">

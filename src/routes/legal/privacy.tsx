@@ -38,7 +38,7 @@ function PrivacyPage() {
             className="border-b border-border/50 pb-8 mb-8 text-center sm:text-left relative"
           >
             {/* Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-32 h-32 bg-cyan-500/20 blur-[50px] -z-10 rounded-full" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-32 h-32 bg-brand-cyan/20 blur-[50px] -z-10 rounded-full" />
             
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-brand text-white shadow-glow mb-4">
               <ShieldCheck className="h-6 w-6" />

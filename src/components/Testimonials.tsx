@@ -77,10 +77,10 @@ export function Testimonials() {
       {/* BACKGROUND */}
       <div className="absolute inset-0">
         {/* top glow */}
-        <div className="absolute left-0 top-0 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[120px]" />
+        <div className="absolute left-0 top-0 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[120px]" />
 
         {/* bottom glow */}
-        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-violet-500/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-brand-magenta/10 blur-[120px]" />
 
         {/* subtle grid */}
         <div
@@ -134,7 +134,7 @@ export function Testimonials() {
               className="group relative overflow-hidden rounded-[30px] border border-white/10 bg-card/60 p-8 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:border-primary/20 hover:shadow-2xl hover:shadow-cyan-500/10"
             >
               {/* ambient glow */}
-              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl transition-all duration-700 group-hover:scale-125 group-hover:bg-violet-500/10" />
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-cyan/10 blur-3xl transition-all duration-700 group-hover:scale-125 group-hover:bg-brand-magenta/10" />
 
               {/* subtle inner border */}
               <div className="absolute inset-[1px] rounded-[29px] border border-white/5" />
@@ -147,7 +147,7 @@ export function Testimonials() {
                 {[...Array(t.rating)].map((_, idx) => (
                   <Star
                     key={idx}
-                    className="h-4 w-4 fill-cyan-400 text-cyan-400"
+                    className="h-4 w-4 fill-brand-cyan text-brand-cyan"
                   />
                 ))}
               </div>
@@ -167,13 +167,13 @@ export function Testimonials() {
                   {t.role}
                 </div>
 
-                <div className="mt-3 inline-flex items-center rounded-full border border-cyan-500/15 bg-cyan-500/5 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-cyan-300">
+                <div className="mt-3 inline-flex items-center rounded-full border border-brand-cyan/15 bg-brand-cyan/5 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-brand-cyan/80">
                   {t.location}
                 </div>
               </div>
 
               {/* hover glow border */}
-              <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-gradient-to-br from-cyan-500/0 via-transparent to-violet-500/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-gradient-to-br from-brand-cyan/0 via-transparent to-brand-magenta/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
             </motion.div>
           ))}
         </div>

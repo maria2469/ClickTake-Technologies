@@ -48,8 +48,8 @@ const services = [
     {
         icon: CreditCard,
         title: "Billing & Subscription Engine",
-        color: "from-violet-500 to-indigo-600",
-        glow: "rgba(139,92,246,0.15)",
+        color: "from-brand-magenta to-brand-blue",
+        glow: "color-mix(in oklab, var(--brand-magenta) 15%, transparent)",
         desc: "Stripe-powered billing that maximises revenue and minimises churn — from free trials to enterprise invoicing, usage-based pricing to annual contracts.",
         items: [
             "Tiered plans with feature gates and seat limits",
@@ -64,8 +64,8 @@ const services = [
     {
         icon: Rocket,
         title: "Growth Infrastructure",
-        color: "from-pink-500 to-rose-600",
-        glow: "rgba(236,72,153,0.15)",
+        color: "from-brand-pink to-brand-pink",
+        glow: "color-mix(in oklab, var(--brand-pink) 15%, transparent)",
         desc: "Onboarding, analytics, integrations, and automation built in from the start — the features that turn signups into activated, retained, expanding customers.",
         items: [
             "Activation-focused onboarding with progress tracking",
@@ -136,7 +136,7 @@ function SaaSPage() {
                         </motion.div>
                         <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
                             SaaS platforms built to{" "}
-                            <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-pink-400 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-brand-pink bg-clip-text text-transparent">
                                 grow from day one.
                             </span>
                         </motion.h1>
@@ -173,7 +173,7 @@ function SaaSPage() {
             <section className="relative z-10 py-24 px-4">
                 <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                        <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Reality</div>
+                        <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">The Reality</div>
                         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Most SaaS products die in the plumbing, not the product.</h2>
                         <div className="space-y-4 text-muted-foreground leading-relaxed">
                             <p>Teams spend months building auth, billing, and multi-tenancy before they write a single line of differentiated product code. By the time they launch, they've run out of runway.</p>

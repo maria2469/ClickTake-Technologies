@@ -11,10 +11,10 @@ import { useBackgroundsContext, getSectionBackground, bgToStyle, videoStyle, ove
 /* ─── DATA ────────────────────────────────────────────────────── */
 
 const stats = [
-    { val: "120+", label: "Projects Shipped", icon: Code2, color: "from-cyan-500 to-blue-500" },
-    { val: "80+", label: "Happy Clients", icon: Users, color: "from-violet-500 to-fuchsia-500" },
+    { val: "120+", label: "Projects Shipped", icon: Code2, color: "from-brand-cyan to-brand-blue" },
+    { val: "80+", label: "Happy Clients", icon: Users, color: "from-brand-magenta to-brand-magenta" },
     { val: "5.0", label: "Average Rating", icon: Star, color: "from-amber-400 to-orange-500" },
-    { val: "6+", label: "Years Active", icon: TrendingUp, color: "from-teal-400 to-cyan-500" },
+    { val: "6+", label: "Years Active", icon: TrendingUp, color: "from-teal-400 to-brand-cyan" },
 ];
 
 const values = [
@@ -29,15 +29,15 @@ const values = [
         icon: Award,
         title: "Results-First Mindset",
         desc: "Every decision we make is tied to your KPIs — traffic, leads, conversions, revenue.",
-        color: "from-violet-500 to-fuchsia-500",
-        glowRaw: "rgba(139,92,246,0.2)",
+        color: "from-brand-magenta to-brand-magenta",
+        glowRaw: "color-mix(in oklab, var(--brand-magenta) 20%, transparent)",
     },
     {
         icon: Globe,
         title: "Global Delivery",
         desc: "Dual-continent teams in the UK and Pakistan, built for worldwide digital reach.",
-        color: "from-cyan-500 to-blue-500",
-        glowRaw: "rgba(0,200,255,0.2)",
+        color: "from-brand-cyan to-brand-blue",
+        glowRaw: "color-mix(in oklab, var(--brand-cyan) 20%, transparent)",
     },
     {
         icon: Users,
@@ -69,8 +69,8 @@ const offices: Office[] = [
         city: "Birmingham",
         address: "123 Innovation Street, Birmingham, B1 1AA, UK",
         phone: "+44 123 456 7890",
-        color: "from-blue-500 to-cyan-500",
-        glow: "rgba(0,200,255,0.3)",
+        color: "from-brand-blue to-brand-cyan",
+        glow: "color-mix(in oklab, var(--brand-cyan) 30%, transparent)",
     },
     {
         flag: "🇵🇰",
@@ -87,7 +87,7 @@ const offices: Office[] = [
 
 function TiltCard({
     children,
-    glowColor = "rgba(0,200,255,0.2)",
+    glowColor = "color-mix(in oklab, var(--brand-cyan) 20%, transparent)",
     className = "",
 }: {
     children: React.ReactNode;
@@ -151,7 +151,7 @@ function StatCard({ s, i }: { s: typeof stats[0]; i: number }) {
             />
             <motion.div
                 className={`mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${s.color} shadow-lg mb-3`}
-                animate={{ boxShadow: ["0 0 0 0 transparent", "0 0 20px -4px rgba(0,200,255,0.4)", "0 0 0 0 transparent"] }}
+                animate={{ boxShadow: ["0 0 0 0 transparent", "0 0 20px -4px color-mix(in oklab, var(--brand-cyan) 40%, transparent)", "0 0 0 0 transparent"] }}
                 transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
             >
                 <Icon className="h-5 w-5 text-white" />
@@ -277,8 +277,8 @@ export function About() {
 
             {/* ── BACKGROUND ── */}
             <div className="absolute inset-0">
-                <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-violet-500/10 blur-[140px]" />
-                <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[120px]" />
+                <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-brand-magenta/10 blur-[140px]" />
+                <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[120px]" />
                 <div className="absolute top-1/2 left-0 h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-teal-500/8 blur-[100px]" />
                 {/* Grid */}
                 <div
@@ -335,7 +335,7 @@ export function About() {
                         {/* Story block */}
                         <div className="relative -mt-12 rounded-[28px] border border-white/10 bg-card/50 p-8 backdrop-blur-xl">
                             <motion.div
-                                className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-cyan-500 to-violet-600 opacity-15 blur-3xl"
+                                className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-brand-cyan to-brand-magenta opacity-15 blur-3xl"
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ duration: 5, repeat: Infinity }}
                             />
@@ -343,9 +343,9 @@ export function About() {
 
                             <div className="relative z-10 space-y-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-px flex-1 bg-gradient-to-r from-cyan-500/40 to-transparent" />
+                                    <div className="h-px flex-1 bg-gradient-to-r from-brand-cyan/40 to-transparent" />
                                     <span className="text-xs uppercase tracking-[0.3em] text-primary">Est. Digital Growth Partner</span>
-                                    <div className="h-px flex-1 bg-gradient-to-l from-violet-500/40 to-transparent" />
+                                    <div className="h-px flex-1 bg-gradient-to-l from-brand-magenta/40 to-transparent" />
                                 </div>
 
                                 <p className="text-sm leading-8 text-muted-foreground">
@@ -409,10 +409,10 @@ export function About() {
                         {/* Positioning statement */}
                         <motion.div
                             whileHover={{ scale: 1.02 }}
-                            className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-violet-600/10 p-6 backdrop-blur-xl text-center"
+                            className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-brand-cyan/10 to-brand-magenta/10 p-6 backdrop-blur-xl text-center"
                         >
                             <motion.div
-                                className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-600/5"
+                                className="absolute inset-0 bg-gradient-to-br from-brand-cyan/5 to-brand-magenta/5"
                                 animate={{ opacity: [0.5, 1, 0.5] }}
                                 transition={{ duration: 3, repeat: Infinity }}
                             />
@@ -469,7 +469,7 @@ export function About() {
                         className="mb-12 text-center"
                     >
                         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-card/60 px-4 py-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground backdrop-blur-xl mb-4">
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-violet-400" />
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-magenta" />
                             What Drives Us
                         </div>
                         <h3 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
@@ -506,7 +506,7 @@ export function About() {
                         <div className="absolute left-0 right-0 top-1/2 hidden lg:block overflow-hidden -z-0">
                             <div className="h-px w-full bg-white/5" />
                             <motion.div
-                                className="absolute inset-0 h-px bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500"
+                                className="absolute inset-0 h-px bg-gradient-to-r from-teal-500 via-brand-cyan to-brand-blue"
                                 initial={{ scaleX: 0, originX: 0 }}
                                 whileInView={{ scaleX: 1 }}
                                 viewport={{ once: true }}
@@ -514,8 +514,8 @@ export function About() {
                                 style={{ opacity: 0.6, filter: "blur(0.5px)" }}
                             />
                             <motion.div
-                                className="absolute top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-cyan-400"
-                                style={{ boxShadow: "0 0 8px 2px rgba(0,200,255,0.8)" }}
+                                className="absolute top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-brand-cyan"
+                                style={{ boxShadow: "0 0 8px 2px color-mix(in oklab, var(--brand-cyan) 80%, transparent)" }}
                                 animate={{ left: ["0%", "100%", "0%"] }}
                                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                             />
@@ -541,7 +541,7 @@ export function About() {
                                 href="mailto:info@clicktaketech.com"
                                 className="group flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                             >
-                                <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border border-white/10">
+                                <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-cyan/20 to-brand-blue/10 border border-white/10">
                                     <Mail className="h-3.5 w-3.5 text-primary" />
                                 </div>
                                 info@clicktaketech.com
@@ -554,7 +554,7 @@ export function About() {
                                 rel="noopener noreferrer"
                                 className="group flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                             >
-                                <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 border border-white/10">
+                                <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-magenta/20 to-brand-magenta/10 border border-white/10">
                                     <Globe className="h-3.5 w-3.5 text-primary" />
                                 </div>
                                 www.clicktaketech.com

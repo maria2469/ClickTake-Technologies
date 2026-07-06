@@ -42,14 +42,14 @@ const officeAddresses = [
     address: "Flat 312, Kitts Green Road, Birmingham B33 9SB",
     phone: "+44 7391 653377",
     hours: "Mon-Sat: 09:30 AM - 09:00 PM GMT",
-    color: "from-cyan-500 to-blue-600",
+    color: "from-brand-cyan to-brand-blue",
   },
   {
     city: "Multan, Pakistan (HQ)",
     address: "Office #12, B.C.G Chowk, Paracha Street, Multan 60600",
     phone: "+92 306 9753003",
     hours: "Mon-Sat: 09:30 AM - 09:00 PM PKT",
-    color: "from-violet-500 to-indigo-600",
+    color: "from-brand-magenta to-brand-blue",
   },
   {
     city: "Multan, Pakistan (Dev)",
@@ -179,8 +179,8 @@ function ContactPage() {
 
         <section className="relative overflow-hidden py-12 lg:py-16">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-violet-500/10 blur-[130px]" />
-            <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[130px]" />
+            <div className="absolute left-1/4 top-0 h-[450px] w-[450px] rounded-full bg-brand-magenta/10 blur-[130px]" />
+            <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[130px]" />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-4 text-center">
@@ -228,7 +228,7 @@ function ContactPage() {
                       <input
                         {...registerInquiry("name")}
                         placeholder="John Doe"
-                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-brand-cyan/50 focus:outline-none"
                       />
                       {inquiryErrors.name && (
                         <FieldError message={inquiryErrors.name.message} />
@@ -240,7 +240,7 @@ function ContactPage() {
                         {...registerInquiry("email")}
                         type="email"
                         placeholder="john@company.com"
-                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-brand-cyan/50 focus:outline-none"
                       />
                       {inquiryErrors.email && (
                         <FieldError message={inquiryErrors.email.message} />
@@ -254,7 +254,7 @@ function ContactPage() {
                       <input
                         {...registerInquiry("company")}
                         placeholder="Acme Corp"
-                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-brand-cyan/50 focus:outline-none"
                       />
                       {inquiryErrors.company && (
                         <FieldError message={inquiryErrors.company.message} />
@@ -264,7 +264,7 @@ function ContactPage() {
                       <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Primary Goal</label>
                       <select
                         {...registerInquiry("service")}
-                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-brand-cyan/50 focus:outline-none"
                       >
                         <option value="Web Dev">Web & Headless Development</option>
                         <option value="AI Solutions">AI Chatbots & Prompt Engineering</option>
@@ -279,7 +279,7 @@ function ContactPage() {
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Budget Bracket</label>
                     <select
                       {...registerInquiry("budget")}
-                      className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-brand-cyan/50 focus:outline-none"
                     >
                       <option value="Under £5,000">Under £5,000</option>
                       <option value="£5,000 - £10,000">£5,000 - £10,000</option>
@@ -294,7 +294,7 @@ function ContactPage() {
                       {...registerInquiry("message")}
                       rows={5}
                       placeholder="Outline your requirements, timelines, and technical integration goals..."
-                      className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-3 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none resize-none"
+                      className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-3 text-xs text-foreground focus:border-brand-cyan/50 focus:outline-none resize-none"
                     />
                     {inquiryErrors.message && (
                       <FieldError message={inquiryErrors.message.message} />
@@ -315,7 +315,7 @@ function ContactPage() {
                   <button
                     type="submit"
                     disabled={inquirySubmitting}
-                    className="w-full rounded-xl bg-linear-to-r from-cyan-500 to-blue-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl bg-linear-to-r from-brand-cyan to-brand-blue py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {inquirySubmitting ? "Sending Inquiry..." : "Submit Strategic Inquiry"}
                   </button>
@@ -369,7 +369,7 @@ function ContactPage() {
                             setBookingValue("date", `${d.day}, ${d.num} ${d.month}`, { shouldValidate: true });
                           }}
                           className={`rounded-xl p-2.5 text-center transition-all ${selectedDateIdx === i
-                            ? "bg-linear-to-r from-violet-500 to-fuchsia-600 border-none text-white shadow-md"
+                            ? "bg-linear-to-r from-brand-magenta to-brand-magenta border-none text-white shadow-md"
                             : "border border-white/10 bg-background/50 text-muted-foreground hover:border-white/20"
                             }`}
                         >
@@ -390,7 +390,7 @@ function ContactPage() {
                           type="button"
                           onClick={() => setBookingValue("time", time, { shouldValidate: true })}
                           className={`rounded-lg py-2 text-center text-xs font-semibold transition-all ${selectedTime === time
-                            ? "bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow"
+                            ? "bg-linear-to-r from-brand-cyan to-brand-blue text-white shadow"
                             : "border border-white/5 bg-background/40 text-muted-foreground hover:bg-white/5"
                             }`}
                         >
@@ -409,7 +409,7 @@ function ContactPage() {
                       <input
                         {...registerBooking("name")}
                         placeholder="John Doe"
-                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-violet-500/50 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-brand-magenta/50 focus:outline-none"
                       />
                       {bookingErrors.name && (
                         <FieldError message={bookingErrors.name.message} />
@@ -421,7 +421,7 @@ function ContactPage() {
                         {...registerBooking("email")}
                         type="email"
                         placeholder="john@company.com"
-                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-violet-500/50 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-background/50 px-4 py-2.5 text-xs text-foreground focus:border-brand-magenta/50 focus:outline-none"
                       />
                       {bookingErrors.email && (
                         <FieldError message={bookingErrors.email.message} />
@@ -443,19 +443,19 @@ function ContactPage() {
                   <button
                     type="submit"
                     disabled={bookingSubmitting}
-                    className="w-full rounded-xl bg-linear-to-r from-violet-500 to-fuchsia-600 py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl bg-linear-to-r from-brand-magenta to-brand-magenta py-3 text-xs font-semibold text-white shadow hover:scale-[1.01] transition-transform disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {bookingSubmitting ? "Booking call..." : "Schedule Call"}
                   </button>
                   {bookingSubmitting && (
-                    <p className="text-xs text-cyan-400 mt-2 text-center">
+                    <p className="text-xs text-brand-cyan mt-2 text-center">
                       Scheduling your call...
                     </p>
                   )}
                 </form>
               ) : (
                 <div className="text-center py-16 space-y-4">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-400">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-magenta/10 border border-brand-magenta/30 text-brand-magenta">
                     <CheckCircle2 className="h-8 w-8 animate-bounce" />
                   </div>
                   <h3 className="font-display text-xl font-bold">Call Scheduled!</h3>
@@ -494,7 +494,7 @@ function ContactPage() {
               >
                 <div className={`absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r ${o.color}`} />
                 <div className="flex items-start gap-4 mt-2">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/5 border border-white/10 text-cyan-400">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/5 border border-white/10 text-brand-cyan">
                     <MapPin className="h-4 w-4" />
                   </div>
                   <div>
@@ -503,11 +503,11 @@ function ContactPage() {
 
                     <div className="mt-4 pt-4 border-t border-white/5 space-y-2 text-[10px] text-muted-foreground">
                       <div className="flex items-center gap-1.5">
-                        <Phone className="h-3 w-3 text-cyan-400" />
+                        <Phone className="h-3 w-3 text-brand-cyan" />
                         <span>{o.phone}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 text-cyan-400" />
+                        <Clock className="h-3 w-3 text-brand-cyan" />
                         <span>{o.hours}</span>
                       </div>
                     </div>
@@ -528,7 +528,7 @@ function ContactPage() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="absolute bottom-16 right-0 w-80 rounded-2xl border border-white/15 bg-card shadow-2xl overflow-hidden flex flex-col justify-between z-50"
             >
-              <div className="bg-linear-to-r from-cyan-500 to-violet-600 p-4 flex items-center justify-between text-white">
+              <div className="bg-linear-to-r from-brand-cyan to-brand-magenta p-4 flex items-center justify-between text-white">
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-400 ring-2 ring-white" />
@@ -551,7 +551,7 @@ function ContactPage() {
                 {chatMessages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[75%] rounded-xl px-3 py-2 text-xs leading-relaxed ${msg.sender === "user"
-                      ? "bg-cyan-500 text-white"
+                      ? "bg-brand-cyan text-white"
                       : "bg-white/5 border border-white/5 text-muted-foreground"
                       }`}>
                       {msg.text}
@@ -565,11 +565,11 @@ function ContactPage() {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 rounded-xl border border-white/10 bg-background/50 px-3 py-1.5 text-xs text-foreground focus:border-cyan-500/50 focus:outline-none"
+                  className="flex-1 rounded-xl border border-white/10 bg-background/50 px-3 py-1.5 text-xs text-foreground focus:border-brand-cyan/50 focus:outline-none"
                 />
                 <button
                   type="submit"
-                  className="rounded-xl bg-linear-to-r from-cyan-500 to-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow"
+                  className="rounded-xl bg-linear-to-r from-brand-cyan to-brand-magenta px-3 py-1.5 text-xs font-semibold text-white shadow"
                 >
                   Send
                 </button>
@@ -582,7 +582,7 @@ function ContactPage() {
           onClick={() => setChatOpen(!chatOpen)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="h-12 w-12 rounded-full bg-linear-to-r from-cyan-500 to-violet-600 text-white flex items-center justify-center shadow-lg hover:shadow-cyan-500/20 transition-all border border-white/10 relative"
+          className="h-12 w-12 rounded-full bg-linear-to-r from-brand-cyan to-brand-magenta text-white flex items-center justify-center shadow-lg hover:shadow-cyan-500/20 transition-all border border-white/10 relative"
         >
           <MessageSquare className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 block h-3 w-3 rounded-full bg-green-400 ring-2 ring-background animate-pulse" />
@@ -597,7 +597,7 @@ function ContactPage() {
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p className="mt-1 flex items-center gap-1 text-[10px] text-rose-400">
+    <p className="mt-1 flex items-center gap-1 text-[10px] text-brand-pink">
       <AlertCircle className="h-3 w-3" />
       {message}
     </p>

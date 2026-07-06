@@ -79,7 +79,7 @@ const caseStudies: CaseStudy[] = [
     metricLabel: "Revenue",
     tags: ["Shopify", "Next.js", "AI Recs", "Headless"],
     glow: "shadow-cyan-500/20",
-    gradient: "from-cyan-500 to-blue-600",
+    gradient: "from-brand-cyan to-brand-blue",
     image: "from-cyan-900 via-blue-900 to-slate-900",
     url: "https://clicktaketechnologies.com",
     featured: true,
@@ -108,7 +108,7 @@ const caseStudies: CaseStudy[] = [
     metricLabel: "MAU",
     tags: ["React", "Node.js", "OpenAI", "Kafka"],
     glow: "shadow-indigo-500/20",
-    gradient: "from-violet-500 to-indigo-600",
+    gradient: "from-brand-magenta to-brand-blue",
     image: "from-violet-900 via-indigo-900 to-slate-900",
     url: "https://clicktaketechnologies.com",
     featured: true,
@@ -137,7 +137,7 @@ const caseStudies: CaseStudy[] = [
     metricLabel: "PageSpeed",
     tags: ["Branding", "Webflow", "Maps API", "SEO"],
     glow: "shadow-violet-500/20",
-    gradient: "from-fuchsia-500 to-violet-600",
+    gradient: "from-brand-magenta to-brand-magenta",
     image: "from-fuchsia-900 via-purple-900 to-slate-900",
     url: "https://clicktaketechnologies.com",
     testimonial: "The property map search is fast, clean, and has already doubled our organic WhatsApp lead inquiries.",
@@ -165,7 +165,7 @@ const caseStudies: CaseStudy[] = [
     metricLabel: "ROAS",
     tags: ["Meta Ads", "Google", "CRO", "Funnels"],
     glow: "shadow-fuchsia-500/20",
-    gradient: "from-pink-500 to-rose-600",
+    gradient: "from-brand-pink to-brand-pink",
     image: "from-rose-900 via-pink-900 to-slate-900",
     url: "https://clicktaketechnologies.com",
     testimonial: "ClickTake's paid media optimization strategy and landing page CRO scaled our ROAS to heights we didn't think were possible.",
@@ -193,7 +193,7 @@ const caseStudies: CaseStudy[] = [
     metricLabel: "Admin saved",
     tags: ["GPT-4", "WhatsApp API", "n8n", "Automation"],
     glow: "shadow-teal-500/20",
-    gradient: "from-teal-500 to-cyan-600",
+    gradient: "from-teal-500 to-brand-cyan",
     image: "from-teal-900 via-cyan-900 to-slate-900",
     url: "https://clicktaketechnologies.com",
     testimonial: "We saved 30+ hours per week of manual data entry within weeks of deploying the WhatsApp symptom chatbot. Highly recommend.",
@@ -298,13 +298,13 @@ function CaseStudyCard({ cs, featured }: { cs: CaseStudy; featured?: boolean }) 
                 
                 {/* Challenge */}
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-1">Challenge</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-brand-cyan mb-1">Challenge</div>
                   <p className="text-sm leading-6 text-muted-foreground">{cs.challenge}</p>
                 </div>
 
                 {/* Solution */}
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-violet-400 mb-1">Solution & Build</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-brand-magenta mb-1">Solution & Build</div>
                   <p className="text-sm leading-6 text-muted-foreground">{cs.solution}</p>
                 </div>
 
@@ -329,7 +329,7 @@ function CaseStudyCard({ cs, featured }: { cs: CaseStudy; featured?: boolean }) 
                       "{cs.testimonial}"
                     </p>
                     <div className="flex items-center gap-1.5">
-                      <span className="h-1 w-5 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500" />
+                      <span className="h-1 w-5 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta" />
                       <div className="text-[10px] font-bold text-foreground">
                         {cs.clientName} <span className="text-muted-foreground font-normal">({cs.clientRole})</span>
                       </div>
@@ -427,15 +427,15 @@ function InteractiveROICalculator() {
   return (
     <section className="mx-auto max-w-7xl px-4 mt-24">
       <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-card/60 p-8 sm:p-10 backdrop-blur-xl">
-        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute -left-24 -bottom-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-magenta/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-24 -bottom-24 h-72 w-72 rounded-full bg-brand-cyan/10 blur-3xl pointer-events-none" />
 
         <div className="relative flex flex-col lg:flex-row gap-10 items-stretch">
           
           {/* Controls */}
           <div className="flex-1 space-y-6">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-widest text-cyan-400 mb-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-widest text-brand-cyan mb-3">
                 <Calculator className="h-3 w-3" /> Growth Estimator
               </div>
               <h3 className="font-display text-2xl font-bold tracking-tight">
@@ -454,7 +454,7 @@ function InteractiveROICalculator() {
                   onClick={() => setSelectedFocus(focus)}
                   className={`rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${
                     selectedFocus === focus
-                      ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow"
+                      ? "bg-gradient-to-r from-brand-cyan to-brand-magenta text-white shadow"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   }`}
                 >
@@ -468,7 +468,7 @@ function InteractiveROICalculator() {
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Monthly Website Traffic</span>
-                  <span className="text-cyan-400 font-mono font-bold">{traffic.toLocaleString()} visitors</span>
+                  <span className="text-brand-cyan font-mono font-bold">{traffic.toLocaleString()} visitors</span>
                 </div>
                 <input
                   type="range"
@@ -484,7 +484,7 @@ function InteractiveROICalculator() {
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Current Conversion Rate</span>
-                  <span className="text-violet-400 font-mono font-bold">{convRate}%</span>
+                  <span className="text-brand-magenta font-mono font-bold">{convRate}%</span>
                 </div>
                 <input
                   type="range"
@@ -500,7 +500,7 @@ function InteractiveROICalculator() {
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-muted-foreground">Average Order Value (AOV)</span>
-                  <span className="text-fuchsia-400 font-mono font-bold">£{aov}</span>
+                  <span className="text-brand-magenta font-mono font-bold">£{aov}</span>
                 </div>
                 <input
                   type="range"
@@ -515,7 +515,7 @@ function InteractiveROICalculator() {
             </div>
 
             <div className="text-[11px] text-muted-foreground leading-relaxed italic bg-white/5 rounded-xl p-3 border border-white/5 flex items-start gap-2">
-              <Flame className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+              <Flame className="h-4 w-4 text-brand-cyan shrink-0 mt-0.5" />
               <span>{calcResults.description}</span>
             </div>
           </div>
@@ -532,7 +532,7 @@ function InteractiveROICalculator() {
                 <div className="flex items-baseline gap-2">
                   <div className="text-2xl font-black text-foreground">{convRate}%</div>
                   <div className="text-xs text-muted-foreground">to</div>
-                  <div className="text-3xl font-black text-cyan-400">{calcResults.projectedConvRate}%</div>
+                  <div className="text-3xl font-black text-brand-cyan">{calcResults.projectedConvRate}%</div>
                 </div>
               </div>
 
@@ -540,7 +540,7 @@ function InteractiveROICalculator() {
 
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 font-bold mb-1">Est. Revenue Uplift</div>
-                <div className="text-4xl font-black bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+                <div className="text-4xl font-black bg-gradient-to-r from-brand-cyan to-emerald-400 bg-clip-text text-transparent">
                   +£{calcResults.monthlyUplift.toLocaleString()}
                   <span className="text-xs text-muted-foreground font-semibold inline-block ml-1">/ month</span>
                 </div>
@@ -561,7 +561,7 @@ function InteractiveROICalculator() {
               </div>
               <a
                 href="/#contact"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow hover:scale-105 transition-transform"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-magenta px-4 py-2.5 text-xs font-bold text-white shadow hover:scale-105 transition-transform"
               >
                 Discuss Plan <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
@@ -604,8 +604,8 @@ function PortfolioPage() {
         {/* HERO */}
         <section className="relative overflow-hidden py-16 lg:py-24">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute left-1/3 top-0 h-[500px] w-[500px] rounded-full bg-violet-500/10 blur-[130px]" />
-            <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[130px]" />
+            <div className="absolute left-1/3 top-0 h-[500px] w-[500px] rounded-full bg-brand-magenta/10 blur-[130px]" />
+            <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[130px]" />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-4 text-center">
@@ -674,7 +674,7 @@ function PortfolioPage() {
                     onClick={() => setIndustry(ind)}
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                       industry === ind
-                        ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-md"
+                        ? "bg-gradient-to-r from-brand-cyan to-brand-magenta text-white shadow-md"
                         : "border border-white/10 bg-white/5 text-muted-foreground hover:border-white/20 hover:text-foreground"
                     }`}
                   >
@@ -691,7 +691,7 @@ function PortfolioPage() {
                     onClick={() => setService(svc)}
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                       service === svc
-                        ? "bg-gradient-to-r from-fuchsia-500 to-violet-600 text-white shadow-md"
+                        ? "bg-gradient-to-r from-brand-magenta to-brand-magenta text-white shadow-md"
                         : "border border-white/10 bg-white/5 text-muted-foreground hover:border-white/20 hover:text-foreground"
                     }`}
                   >
@@ -754,7 +754,7 @@ function PortfolioPage() {
                 src={ctaBg.video_desktop || ctaBg.video_tablet || ctaBg.video_mobile || undefined} />
             )}
             {ctaBg?.overlay_color && <div style={overlayStyle(ctaBg)} />}
-            {!ctaBg?.bg_type && <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-fuchsia-500/5" />}
+            {!ctaBg?.bg_type && <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/5 via-brand-magenta/5 to-brand-magenta/5" />}
             <div className="relative z-10">
               <h3 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
                 Ready for compounding growth?
@@ -765,7 +765,7 @@ function PortfolioPage() {
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <a
                   href="/#contact"
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform"
                 >
                   Book a Free Call <ArrowUpRight className="h-4 w-4" />
                 </a>

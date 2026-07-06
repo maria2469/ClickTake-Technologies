@@ -84,7 +84,7 @@ export function ScrollProgressBar() {
                 scaleX,
                 transformOrigin: "0%",
             }}
-            className="fixed top-0 left-0 right-0 z-[999] h-[3px] bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500"
+            className="fixed top-0 left-0 right-0 z-[999] h-[3px] bg-gradient-to-r from-brand-cyan via-brand-magenta to-brand-magenta"
         />
     );
 }

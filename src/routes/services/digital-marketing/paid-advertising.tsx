@@ -29,8 +29,8 @@ const services = [
   {
     icon: Search,
     title: "Google Ads",
-    color: "from-blue-500 to-indigo-600",
-    glow: "rgba(59,130,246,0.15)",
+    color: "from-brand-blue to-brand-blue",
+    glow: "color-mix(in oklab, var(--brand-blue) 15%, transparent)",
     desc: "Capture demand from people actively searching for what you sell. Google Ads done right is the fastest path to qualified pipeline — we build campaigns for the lowest possible cost per conversion.",
     items: [
       "Search campaigns — high-intent keyword targeting with tight match types & negative keywords",
@@ -43,8 +43,8 @@ const services = [
   {
     icon: Instagram,
     title: "Meta Ads (Facebook & Instagram)",
-    color: "from-pink-500 to-rose-600",
-    glow: "rgba(236,72,153,0.15)",
+    color: "from-brand-pink to-brand-pink",
+    glow: "color-mix(in oklab, var(--brand-pink) 15%, transparent)",
     desc: "Meta's platform reaches 3.2 billion people. With the right creative and targeting, it's where brands are built — and where purchases are driven at scale.",
     items: [
       "Prospecting campaigns — cold audience targeting using interest, behaviour, and lookalike signals",
@@ -57,8 +57,8 @@ const services = [
   {
     icon: Linkedin,
     title: "LinkedIn Ads",
-    color: "from-sky-500 to-blue-700",
-    glow: "rgba(14,165,233,0.15)",
+    color: "from-brand-cyan to-brand-blue",
+    glow: "color-mix(in oklab, var(--brand-cyan) 15%, transparent)",
     desc: "For B2B businesses, LinkedIn is unmatched. We target by job title, company size, industry, and seniority — putting your message in front of exact decision-makers with budget and authority.",
     items: [
       "Sponsored content — single image, carousel, and video ads in the LinkedIn feed",
@@ -120,14 +120,14 @@ function PaidAdvertisingPage() {
               <Link to="/services" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5">
                 <ArrowLeft className="h-4 w-4" /> Back to Services
               </Link>
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-blue-400">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-blue/30 bg-brand-blue/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-blue">
                 Digital Marketing
               </div>
             </motion.div>
 
             <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] max-w-4xl">
               Every pound you spend on ads{" "}
-              <span className="bg-gradient-to-r from-blue-400 via-pink-400 to-sky-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-brand-blue via-brand-pink to-brand-cyan bg-clip-text text-transparent">
                 should return more.
               </span>
             </motion.h1>
@@ -137,7 +137,7 @@ function PaidAdvertisingPage() {
             </motion.p>
 
             <motion.div variants={fadeUp} custom={2} className="mt-8 flex flex-wrap gap-3">
-              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-pink-500 px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
+              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-blue to-brand-pink px-7 py-3.5 font-semibold text-white shadow-lg hover:scale-105 transition-transform">
                 Audit my ad accounts <ArrowUpRight className="h-4 w-4" />
               </a>
               <a href="#services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-7 py-3.5 font-semibold backdrop-blur hover:bg-secondary transition-colors">
@@ -146,8 +146,8 @@ function PaidAdvertisingPage() {
             </motion.div>
           </motion.div>
         </div>
-        <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-pink-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute top-20 left-1/4 h-72 w-72 rounded-full bg-brand-blue/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-brand-pink/10 blur-3xl" />
       </section>
 
       {/* ── RESULTS BAR ── */}
@@ -155,7 +155,7 @@ function PaidAdvertisingPage() {
         <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
           {results.map((r, i) => (
             <motion.div key={r.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-400 to-pink-400 bg-clip-text text-transparent">{r.metric}</div>
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-brand-blue to-brand-pink bg-clip-text text-transparent">{r.metric}</div>
               <div className="mt-2 text-sm text-muted-foreground leading-snug">{r.label}</div>
             </motion.div>
           ))}
@@ -166,7 +166,7 @@ function PaidAdvertisingPage() {
       <section className="relative z-10 py-24 px-4">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">The Problem</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-4">The Problem</div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Most ad accounts waste 40–60% of their budget.</h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>Wrong audiences, wrong bidding strategies, and stale creative. The majority of ad accounts have structural problems that bleed budget silently — and the platforms aren't incentivised to tell you.</p>
@@ -175,8 +175,8 @@ function PaidAdvertisingPage() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-pink-500/5 p-8 backdrop-blur">
-            <div className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-4">Our Approach</div>
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="rounded-2xl border border-brand-blue/20 bg-gradient-to-br from-brand-blue/5 to-brand-pink/5 p-8 backdrop-blur">
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-4">Our Approach</div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Rebuild, optimise, report, repeat.</h2>
             <div className="space-y-3">
               {[
@@ -187,7 +187,7 @@ function PaidAdvertisingPage() {
                 "Monthly reporting in ROAS and CPA — the metrics that matter to your business",
               ].map((item) => (
                 <div key={item} className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-blue-400 mt-0.5 shrink-0" />
+                  <CheckCircle2 className="h-5 w-5 text-brand-blue mt-0.5 shrink-0" />
                   <span className="text-muted-foreground">{item}</span>
                 </div>
               ))}
@@ -200,7 +200,7 @@ function PaidAdvertisingPage() {
       <section id="services" className="relative z-10 py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <div className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3">What We Manage</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-3">What We Manage</div>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">Three platforms. One unified strategy.</h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">Google, Meta, and LinkedIn — each with a distinct role in your funnel, managed as a single joined-up system.</p>
           </motion.div>
@@ -220,7 +220,7 @@ function PaidAdvertisingPage() {
                   <ul className="space-y-2">
                     {s.items.map((item) => (
                       <li key={item} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-blue-400 mt-0.5 shrink-0" />{item}
+                        <CheckCircle2 className="h-4 w-4 text-brand-blue mt-0.5 shrink-0" />{item}
                       </li>
                     ))}
                   </ul>
@@ -235,7 +235,7 @@ function PaidAdvertisingPage() {
       <section className="relative z-10 py-20 px-4 border-y border-border/50">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <div className="text-xs font-semibold uppercase tracking-widest text-pink-400 mb-3">Every Engagement Includes</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-3">Every Engagement Includes</div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Managed accounts, not managed promises.</h2>
           </motion.div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -243,9 +243,9 @@ function PaidAdvertisingPage() {
               const Icon = d.icon;
               return (
                 <motion.div key={d.label} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
-                  className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-blue-500/30 transition-colors">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-pink-500/20 flex items-center justify-center">
-                    <Icon className="h-5 w-5 text-blue-400" />
+                  className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card/40 backdrop-blur p-5 text-center hover:border-brand-blue/30 transition-colors">
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-brand-blue/20 to-brand-pink/20 flex items-center justify-center">
+                    <Icon className="h-5 w-5 text-brand-blue" />
                   </div>
                   <span className="text-sm font-medium leading-snug">{d.label}</span>
                 </motion.div>
@@ -259,7 +259,7 @@ function PaidAdvertisingPage() {
       <section className="relative z-10 py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <div className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3">How It Works</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-3">How It Works</div>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">From audit to optimised pipeline.</h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
               A clear process so you always know what's happening, what we're changing, and why.
@@ -269,7 +269,7 @@ function PaidAdvertisingPage() {
             {process.map((p, i) => (
               <motion.div key={p.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                 className="relative rounded-2xl border border-border bg-card/50 backdrop-blur p-7 hover:border-white/20 transition-colors group">
-                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-blue-500/30 to-pink-500/30 bg-clip-text mb-4 select-none group-hover:from-blue-500/60 group-hover:to-pink-500/60 transition-all">{p.step}</div>
+                <div className="text-5xl font-black text-transparent bg-gradient-to-br from-brand-blue/30 to-brand-pink/30 bg-clip-text mb-4 select-none group-hover:from-brand-blue/60 group-hover:to-brand-pink/60 transition-all">{p.step}</div>
                 <h3 className="text-lg font-bold mb-2">{p.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
               </motion.div>
@@ -282,7 +282,7 @@ function PaidAdvertisingPage() {
       <section className="relative z-10 py-24 px-4 border-t border-border/50">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <div className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3">Why ClickTake</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-3">Why ClickTake</div>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">We manage spend like it's our own money.</h2>
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -290,9 +290,9 @@ function PaidAdvertisingPage() {
               const Icon = d.icon;
               return (
                 <motion.div key={d.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                  className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-blue-500/30 transition-colors group">
-                  <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-blue-500/10 to-pink-500/10 border border-border flex items-center justify-center group-hover:border-blue-500/30 transition-colors">
-                    <Icon className="h-5 w-5 text-blue-400" />
+                  className="flex gap-4 rounded-2xl border border-border bg-card/40 backdrop-blur p-6 hover:border-brand-blue/30 transition-colors group">
+                  <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-brand-blue/10 to-brand-pink/10 border border-border flex items-center justify-center group-hover:border-brand-blue/30 transition-colors">
+                    <Icon className="h-5 w-5 text-brand-blue" />
                   </div>
                   <div>
                     <div className="font-semibold mb-1">{d.title}</div>
@@ -311,7 +311,7 @@ function PaidAdvertisingPage() {
           <div className="rounded-3xl border border-border bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl p-10 md:p-14">
             <div className="grid lg:grid-cols-2 gap-10 items-center">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-widest text-sky-400 mb-4">Ideal For</div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-brand-cyan mb-4">Ideal For</div>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-6">Who we manage paid media for.</h2>
                 <div className="space-y-3">
                   {[
@@ -322,25 +322,25 @@ function PaidAdvertisingPage() {
                     { who: "Businesses scaling spend", need: "professional management to ensure returns as budgets grow" },
                   ].map((item) => (
                     <div key={item.who} className="flex items-start gap-3 text-sm">
-                      <CheckCircle2 className="h-5 w-5 text-sky-400 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="h-5 w-5 text-brand-cyan mt-0.5 shrink-0" />
                       <span><span className="font-semibold text-foreground">{item.who}</span><span className="text-muted-foreground"> — {item.need}</span></span>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6">
-                  <div className="text-sm font-semibold text-blue-400 mb-1">Managed Service</div>
+                <div className="rounded-2xl border border-brand-blue/20 bg-brand-blue/5 p-6">
+                  <div className="text-sm font-semibold text-brand-blue mb-1">Managed Service</div>
                   <div className="text-lg font-bold mb-1">Full Paid Media Management</div>
                   <div className="text-sm text-muted-foreground">End-to-end management across Google, Meta, and/or LinkedIn. 90-day build period followed by rolling monthly management.</div>
                 </div>
-                <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-6">
-                  <div className="text-sm font-semibold text-pink-400 mb-1">Project</div>
+                <div className="rounded-2xl border border-brand-pink/20 bg-brand-pink/5 p-6">
+                  <div className="text-sm font-semibold text-brand-pink mb-1">Project</div>
                   <div className="text-lg font-bold mb-1">Account Audit & Rebuild</div>
                   <div className="text-sm text-muted-foreground">A deep-dive audit of your existing accounts with a full restructure and documented quick-win recommendations.</div>
                 </div>
-                <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-6">
-                  <div className="text-sm font-semibold text-sky-400 mb-1">Consultancy</div>
+                <div className="rounded-2xl border border-brand-cyan/20 bg-brand-cyan/5 p-6">
+                  <div className="text-sm font-semibold text-brand-cyan mb-1">Consultancy</div>
                   <div className="text-lg font-bold mb-1">In-House Team Support</div>
                   <div className="text-sm text-muted-foreground">Strategy, auditing, and training for businesses managing ads in-house who want expert oversight and guidance.</div>
                 </div>
@@ -354,16 +354,16 @@ function PaidAdvertisingPage() {
       <CtaSection>
         <div className="max-w-3xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-4">Ready to make every pound count?</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-brand-blue mb-4">Ready to make every pound count?</div>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
               You're spending on ads.<br />
-              <span className="bg-gradient-to-r from-blue-400 to-pink-400 bg-clip-text text-transparent">Are they actually working?</span>
+              <span className="bg-gradient-to-r from-brand-blue to-brand-pink bg-clip-text text-transparent">Are they actually working?</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
               Book a free 30-minute account audit call. We'll review your current campaigns, identify where budget is being wasted, and show you what we'd change first.
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-pink-500 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
+              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-blue to-brand-pink px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base">
                 Book a free account audit <ArrowUpRight className="h-5 w-5" />
               </a>
               <Link to="/services" className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-8 py-4 font-semibold backdrop-blur hover:bg-secondary transition-colors text-base">

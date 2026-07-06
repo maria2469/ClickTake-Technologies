@@ -73,7 +73,7 @@ const caseStudies: CaseStudy[] = [
         metricLabel: "Revenue",
         tags: ["Shopify", "Next.js", "AI Recs", "Headless"],
         glow: "shadow-cyan-500/20",
-        gradient: "from-cyan-500 to-blue-600",
+        gradient: "from-brand-cyan to-brand-blue",
         image: "from-cyan-900 via-blue-900 to-slate-900",
         url: "https://clicktaketechnologies.com",
         featured: true,
@@ -99,7 +99,7 @@ const caseStudies: CaseStudy[] = [
         metricLabel: "MAU",
         tags: ["React", "Node.js", "OpenAI", "Kafka"],
         glow: "shadow-indigo-500/20",
-        gradient: "from-violet-500 to-indigo-600",
+        gradient: "from-brand-magenta to-brand-blue",
         image: "from-violet-900 via-indigo-900 to-slate-900",
         url: "https://clicktaketechnologies.com",
         featured: true,
@@ -125,7 +125,7 @@ const caseStudies: CaseStudy[] = [
         metricLabel: "PageSpeed",
         tags: ["Branding", "Webflow", "Maps API", "SEO"],
         glow: "shadow-violet-500/20",
-        gradient: "from-fuchsia-500 to-violet-600",
+        gradient: "from-brand-magenta to-brand-magenta",
         image: "from-fuchsia-900 via-purple-900 to-slate-900",
         url: "https://clicktaketechnologies.com",
     },
@@ -150,7 +150,7 @@ const caseStudies: CaseStudy[] = [
         metricLabel: "ROAS",
         tags: ["Meta Ads", "Google", "CRO", "Funnels"],
         glow: "shadow-fuchsia-500/20",
-        gradient: "from-pink-500 to-rose-600",
+        gradient: "from-brand-pink to-brand-pink",
         image: "from-rose-900 via-pink-900 to-slate-900",
         url: "https://clicktaketechnologies.com",
     },
@@ -175,7 +175,7 @@ const caseStudies: CaseStudy[] = [
         metricLabel: "Admin saved",
         tags: ["GPT-4", "WhatsApp API", "n8n", "Automation"],
         glow: "shadow-teal-500/20",
-        gradient: "from-teal-500 to-cyan-600",
+        gradient: "from-teal-500 to-brand-cyan",
         image: "from-teal-900 via-cyan-900 to-slate-900",
         url: "https://clicktaketechnologies.com",
     },
@@ -379,9 +379,9 @@ function PortfolioPage() {
                             glow: idx % 4 === 0 ? "shadow-cyan-500/20" :
                                   idx % 4 === 1 ? "shadow-indigo-500/20" :
                                   idx % 4 === 2 ? "shadow-violet-500/20" : "shadow-fuchsia-500/20",
-                            gradient: idx % 4 === 0 ? "from-cyan-500 to-blue-600" :
-                                      idx % 4 === 1 ? "from-violet-500 to-indigo-600" :
-                                      idx % 4 === 2 ? "from-fuchsia-500 to-violet-600" : "from-pink-500 to-rose-600",
+                            gradient: idx % 4 === 0 ? "from-brand-cyan to-brand-blue" :
+                                      idx % 4 === 1 ? "from-brand-magenta to-brand-blue" :
+                                      idx % 4 === 2 ? "from-brand-magenta to-brand-magenta" : "from-brand-pink to-brand-pink",
                             image: (item.images && item.images.length > 0 && (item.images[0].startsWith("from-") || item.images[0].startsWith("http"))) ? item.images[0] : 
                                    (idx % 4 === 0 ? "from-cyan-900 via-blue-900 to-slate-900" :
                                     idx % 4 === 1 ? "from-violet-900 via-indigo-900 to-slate-900" :
@@ -419,8 +419,8 @@ function PortfolioPage() {
                 {/* HERO */}
                 <section className="relative overflow-hidden py-16 lg:py-24">
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                        <div className="absolute left-1/3 top-0 h-[500px] w-[500px] rounded-full bg-violet-500/10 blur-[130px]" />
-                        <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/10 blur-[130px]" />
+                        <div className="absolute left-1/3 top-0 h-[500px] w-[500px] rounded-full bg-brand-magenta/10 blur-[130px]" />
+                        <div className="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[130px]" />
                     </div>
 
                     <div className="relative mx-auto max-w-7xl px-4 text-center">
@@ -489,7 +489,7 @@ function PortfolioPage() {
                                         key={ind}
                                         onClick={() => setIndustry(ind)}
                                         className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${industry === ind
-                                            ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-md"
+                                            ? "bg-gradient-to-r from-brand-cyan to-brand-magenta text-white shadow-md"
                                             : "border border-white/10 bg-white/5 text-muted-foreground hover:border-white/20 hover:text-foreground"
                                             }`}
                                     >
@@ -505,7 +505,7 @@ function PortfolioPage() {
                                         key={svc}
                                         onClick={() => setService(svc)}
                                         className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${service === svc
-                                            ? "bg-gradient-to-r from-fuchsia-500 to-violet-600 text-white shadow-md"
+                                            ? "bg-gradient-to-r from-brand-magenta to-brand-magenta text-white shadow-md"
                                             : "border border-white/10 bg-white/5 text-muted-foreground hover:border-white/20 hover:text-foreground"
                                             }`}
                                     >
@@ -556,7 +556,7 @@ function PortfolioPage() {
                     <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-card/40 p-8 backdrop-blur-xl text-center"
                         style={{ boxShadow: "0 0 60px -20px rgba(99,102,241,0.15)" }}
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-fuchsia-500/5" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/5 via-brand-magenta/5 to-brand-magenta/5" />
                         <div className="relative z-10">
                             <h3 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
                                 Want results like these?
@@ -567,7 +567,7 @@ function PortfolioPage() {
                             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                                 <a
                                     href="/#contact"
-                                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform"
+                                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform"
                                 >
                                     Book a Free Call <ArrowUpRight className="h-4 w-4" />
                                 </a>

@@ -40,12 +40,12 @@ const groups = [
         eyebrow: "AI & Machine Learning",
         title: "Intelligent Systems",
         description: "Custom AI solutions that automate decisions, understand language, and see the world — built for production, not demos.",
-        gradient: "from-violet-500 to-indigo-600",
-        glow: "rgba(139,92,246,0.12)",
-        borderHover: "hover:border-violet-500/40",
-        accentColor: "text-violet-400",
-        accentBg: "bg-violet-500/10",
-        accentBorder: "border-violet-500/30",
+        gradient: "from-brand-magenta to-brand-blue",
+        glow: "color-mix(in oklab, var(--brand-magenta) 12%, transparent)",
+        borderHover: "hover:border-brand-magenta/40",
+        accentColor: "text-brand-magenta",
+        accentBg: "bg-brand-magenta/10",
+        accentBorder: "border-brand-magenta/30",
         items: [
             {
                 icon: Brain,
@@ -78,12 +78,12 @@ const groups = [
         eyebrow: "Web Development",
         title: "Digital Products",
         description: "Production-grade applications built on proven stacks — performant, secure, and designed to scale from day one.",
-        gradient: "from-cyan-500 to-blue-600",
-        glow: "rgba(6,182,212,0.12)",
-        borderHover: "hover:border-cyan-500/40",
-        accentColor: "text-cyan-400",
-        accentBg: "bg-cyan-500/10",
-        accentBorder: "border-cyan-500/30",
+        gradient: "from-brand-cyan to-brand-blue",
+        glow: "color-mix(in oklab, var(--brand-cyan) 12%, transparent)",
+        borderHover: "hover:border-brand-cyan/40",
+        accentColor: "text-brand-cyan",
+        accentBg: "bg-brand-cyan/10",
+        accentBorder: "border-brand-cyan/30",
         items: [
             {
                 icon: Server,
@@ -154,12 +154,12 @@ const groups = [
         eyebrow: "Creative Services",
         title: "Brand & Content",
         description: "Visual identities, digital product design, and video that makes your brand impossible to ignore.",
-        gradient: "from-pink-500 to-orange-500",
-        glow: "rgba(236,72,153,0.12)",
-        borderHover: "hover:border-pink-500/40",
-        accentColor: "text-pink-400",
-        accentBg: "bg-pink-500/10",
-        accentBorder: "border-pink-500/30",
+        gradient: "from-brand-pink to-orange-500",
+        glow: "color-mix(in oklab, var(--brand-pink) 12%, transparent)",
+        borderHover: "hover:border-brand-pink/40",
+        accentColor: "text-brand-pink",
+        accentBg: "bg-brand-pink/10",
+        accentBorder: "border-brand-pink/30",
         items: [
             {
                 icon: Palette,
@@ -204,7 +204,7 @@ function ServicesIndex() {
                         className="relative max-w-4xl"
                     >
                         <motion.div variants={fadeUp}>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-cyan-400 mb-6">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-brand-cyan mb-6">
                                 What We Do
                             </div>
                         </motion.div>
@@ -215,7 +215,7 @@ function ServicesIndex() {
                             className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95]"
                         >
                             Services built for{" "}
-                            <span className="bg-gradient-to-r from-cyan-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-brand-cyan via-brand-magenta to-brand-pink bg-clip-text text-transparent">
                                 modern brands.
                             </span>
                         </motion.h1>
@@ -236,7 +236,7 @@ function ServicesIndex() {
                         >
                             {stats.map((s) => (
                                 <div key={s.label}>
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
+                                    <div className="text-2xl font-bold bg-gradient-to-r from-brand-cyan to-brand-magenta bg-clip-text text-transparent">
                                         {s.value}
                                     </div>
                                     <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
@@ -254,14 +254,14 @@ function ServicesIndex() {
                     >
                         <Link
                             to="/services/starter-kit"
-                            className="group relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/8 via-pink-500/5 to-violet-500/8 backdrop-blur-xl p-8 transition-all duration-300 hover:border-amber-500/60 hover:shadow-[0_0_60px_rgba(245,158,11,0.12)] overflow-hidden"
+                            className="group relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/8 via-pink-500/5 to-brand-magenta/8 backdrop-blur-xl p-8 transition-all duration-300 hover:border-amber-500/60 hover:shadow-[0_0_60px_rgba(245,158,11,0.12)] overflow-hidden"
                         >
                             {/* background decoration */}
                             <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-amber-500/8 blur-3xl" />
-                            <div className="pointer-events-none absolute -left-8 -bottom-8 h-48 w-48 rounded-full bg-pink-500/8 blur-3xl" />
+                            <div className="pointer-events-none absolute -left-8 -bottom-8 h-48 w-48 rounded-full bg-brand-pink/8 blur-3xl" />
 
                             <div className="relative flex items-center gap-5">
-                                <div className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-pink-500 shadow-lg shadow-amber-500/25">
+                                <div className="h-14 w-14 shrink-0 grid place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-brand-pink shadow-lg shadow-amber-500/25">
                                     <Sparkles className="h-7 w-7 text-white" />
                                 </div>
                                 <div>
@@ -374,16 +374,16 @@ function ServicesIndex() {
                         {ctaBg?.overlay_color && <div style={overlayStyle(ctaBg)} />}
                         {!ctaBg?.bg_type && (
                             <div className="pointer-events-none absolute inset-0">
-                                <div className="absolute top-0 left-1/4 h-48 w-48 bg-cyan-500/10 blur-3xl rounded-full" />
-                                <div className="absolute bottom-0 right-1/4 h-48 w-48 bg-violet-500/10 blur-3xl rounded-full" />
+                                <div className="absolute top-0 left-1/4 h-48 w-48 bg-brand-cyan/10 blur-3xl rounded-full" />
+                                <div className="absolute bottom-0 right-1/4 h-48 w-48 bg-brand-magenta/10 blur-3xl rounded-full" />
                             </div>
                         )}
 
                         <div className="relative">
-                            <div className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-4">Not sure where to start?</div>
+                            <div className="text-xs font-bold uppercase tracking-widest text-brand-cyan mb-4">Not sure where to start?</div>
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
                                 Let's figure out what<br />
-                                <span className="bg-gradient-to-r from-cyan-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
+                                <span className="bg-gradient-to-r from-brand-cyan via-brand-magenta to-brand-pink bg-clip-text text-transparent">
                                     your business actually needs.
                                 </span>
                             </h2>
@@ -393,7 +393,7 @@ function ServicesIndex() {
                             <div className="flex flex-wrap gap-3 justify-center">
                                 <a
                                     href="#contact"
-                                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base"
+                                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-cyan to-brand-magenta px-8 py-4 font-semibold text-white shadow-lg hover:scale-105 transition-transform text-base"
                                 >
                                     Book a free discovery call <ArrowUpRight className="h-5 w-5" />
                                 </a>
