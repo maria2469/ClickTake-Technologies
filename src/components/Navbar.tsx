@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowUpRight, ChevronDown, Sparkles } from "lucide-react";
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
@@ -7,48 +7,14 @@ import logo from "@/assets/clicktake-logo.png";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { supabase } from "@/lib/supabaseClient";
 
-/* ───────────────── SERVICES MEGA MENU DATA ───────────────── */
+/* ───────────────── CATEGORY DISPLAY CONFIG ───────────────── */
 
-const servicesMenu = [
-  {
-    group: "AI & Machine Learning",
-    accentColor: "text-brand-magenta",
-    items: [
-      { label: "Custom LLM Development", desc: "Fine-tuned models on your data", to: "/services/ai/llm" },
-      { label: "AI Chatbots & Agents", desc: "Autonomous support & ops agents", to: "/services/ai/chatbots" },
-      { label: "AI Prompt Engineering", desc: "Reliable prompt systems at scale", to: "/services/ai/prompt-engineering" },
-      { label: "Computer Vision & NLP", desc: "Visual recognition & doc pipelines", to: "/services/ai/cv-nlp" },
-    ],
-  },
-  {
-    group: "Web Development",
-    accentColor: "text-brand-cyan",
-    items: [
-      { label: "Python Backend Development", desc: "FastAPI, Django & async Python", to: "/services/web/python-backend" },
-      { label: "Full-Stack Applications", desc: "React + Node/Python, end-to-end", to: "/services/web/full-stack" },
-      { label: "Authentication Systems", desc: "SSO, MFA, role-based access", to: "/services/web/auth" },
-      { label: "SaaS Platform Development", desc: "Multi-tenant, subscription-ready", to: "/services/web/saas" },
-    ],
-  },
-  {
-    group: "Digital Marketing",
-    accentColor: "text-emerald-400",
-    items: [
-      { label: "SEO Services", desc: "Technical, On-Page, Local", to: "/services/seo" },
-      { label: "Content Strategy & Copywriting", desc: "Content that converts", to: "/services/digital-marketing/content-strategy" },
-      { label: "Paid Advertising", desc: "Google, Meta, LinkedIn", to: "/services/digital-marketing/paid-advertising" },
-      { label: "Conversion Rate Optimisation", desc: "Turn traffic into revenue", to: "/services/digital-marketing/cro" },
-    ],
-  },
-  {
-    group: "Creative Services",
-    accentColor: "text-brand-pink",
-    items: [
-      { label: "Graphic Design", desc: "Branding, UI/UX, Marketing", to: "/services/creative/graphic-design" },
-      { label: "Video Production", desc: "Explainer, Social, Corporate", to: "/services/creative/video-production" },
-    ],
-  },
-] as const;
+const CATEGORY_DISPLAY: Record<string, { group: string; accentColor: string }> = {
+  ai:           { group: "AI & Machine Learning", accentColor: "text-brand-magenta" },
+  web:          { group: "Web Development",       accentColor: "text-brand-cyan" },
+  marketing:    { group: "Digital Marketing",     accentColor: "text-emerald-400" },
+  creative:     { group: "Creative Services",     accentColor: "text-brand-pink" },
+};
 
 /* ───────────────── NAV LINKS ───────────────── */
 
@@ -69,6 +35,7 @@ export function Navbar() {
   const [active, setActive] = useState("#");
   const [megaOpen, setMegaOpen] = useState(false);
   const [navLinks, setNavLinks] = useState(links);
+  const [services, setServices] = useState<any[]>([]);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -148,6 +115,29 @@ export function Navbar() {
     };
   }, []);
 
+  /* ── Fetch services for mega menu ── */
+  useEffect(() => {
+    supabase
+      .from("services")
+      .select("slug, title, description, category")
+      .order("display_order")
+      .then(({ data }) => {
+        if (data) setServices(data);
+      });
+  }, []);
+
+  const serviceGroups = useMemo(() => {
+    const map = new Map<string, typeof services>();
+    for (const s of services) {
+      if (s.category === "starter-kit") continue;
+      const g = map.get(s.category);
+      if (g) g.push(s); else map.set(s.category, [s]);
+    }
+    return map;
+  }, [services]);
+
+  const starterKit = services.find((s) => s.slug === "starter-kit");
+
   const handleSectionClick = async (href: string) => {
     setOpen(false);
     setActive(href);
@@ -217,48 +207,54 @@ export function Navbar() {
                         >
                           <div className="w-[880px] rounded-2xl border border-border bg-card/95 backdrop-blur-xl shadow-2xl p-6">
                             <div className="grid grid-cols-4 gap-6">
-                              {servicesMenu.map((group) => (
-                                <div key={group.group}>
-                                  <div className={`mb-3 text-[10px] font-bold uppercase tracking-widest ${group.accentColor}`}>
-                                    {group.group}
+                              {Array.from(serviceGroups.entries()).map(([cat, items]) => {
+                                const cfg = CATEGORY_DISPLAY[cat];
+                                if (!cfg) return null;
+                                return (
+                                  <div key={cat}>
+                                    <div className={`mb-3 text-[10px] font-bold uppercase tracking-widest ${cfg.accentColor}`}>
+                                      {cfg.group}
+                                    </div>
+                                    <div className="space-y-0.5">
+                                      {items.map((item) => (
+                                        <Link
+                                          key={item.slug}
+                                          to={`/services/${item.slug}`}
+                                          className="block rounded-lg px-3 py-2 hover:bg-secondary transition"
+                                          onClick={() => setMegaOpen(false)}
+                                        >
+                                          <div className="text-sm font-semibold leading-snug">{item.title}</div>
+                                          <div className="text-xs text-muted-foreground mt-0.5">{item.description}</div>
+                                        </Link>
+                                      ))}
+                                    </div>
                                   </div>
-                                  <div className="space-y-0.5">
-                                    {group.items.map((item) => (
-                                      <Link
-                                        key={item.to}
-                                        to={item.to}
-                                        className="block rounded-lg px-3 py-2 hover:bg-secondary transition"
-                                        onClick={() => setMegaOpen(false)}
-                                      >
-                                        <div className="text-sm font-semibold leading-snug">{item.label}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{item.desc}</div>
-                                      </Link>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
 
                             {/* Flagship CTA */}
-                            <Link
-                              to="/services/starter-kit"
-                              onClick={() => setMegaOpen(false)}
-                              className="mt-5 flex items-center justify-between rounded-xl bg-gradient-to-r from-amber-500/15 to-brand-pink/15 border border-amber-500/30 p-4 hover:from-amber-500/25 hover:to-brand-pink/25 transition"
-                            >
-                              <div>
-                                <div className="flex items-center gap-2 text-sm font-bold">
-                                  <Sparkles className="h-4 w-4 text-amber-400" />
-                                  Business Development Starter Kit
-                                  <span className="text-[10px] rounded-full bg-gradient-to-r from-amber-500 to-brand-pink px-2 py-0.5 text-white">
-                                    FLAGSHIP
-                                  </span>
+                            {starterKit && (
+                              <Link
+                                to="/services/starter-kit"
+                                onClick={() => setMegaOpen(false)}
+                                className="mt-5 flex items-center justify-between rounded-xl bg-gradient-to-r from-amber-500/15 to-brand-pink/15 border border-amber-500/30 p-4 hover:from-amber-500/25 hover:to-brand-pink/25 transition"
+                              >
+                                <div>
+                                  <div className="flex items-center gap-2 text-sm font-bold">
+                                    <Sparkles className="h-4 w-4 text-amber-400" />
+                                    {starterKit.title}
+                                    <span className="text-[10px] rounded-full bg-gradient-to-r from-amber-500 to-brand-pink px-2 py-0.5 text-white">
+                                      FLAGSHIP
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-0.5">
+                                    {starterKit.description}
+                                  </div>
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-0.5">
-                                  Strategy · Branding · MVP Build · Go-to-Market — live in 90 days
-                                </div>
-                              </div>
-                              <ArrowUpRight className="h-4 w-4 text-amber-400 shrink-0" />
-                            </Link>
+                                <ArrowUpRight className="h-4 w-4 text-amber-400 shrink-0" />
+                              </Link>
+                            )}
                           </div>
                         </motion.div>
                       )}
@@ -313,23 +309,27 @@ export function Navbar() {
                 Home
               </Link>
 
-              {servicesMenu.map((group) => (
-                <div key={group.group} className="mt-2">
-                  <div className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest ${group.accentColor}`}>
-                    {group.group}
+              {Array.from(serviceGroups.entries()).map(([cat, items]) => {
+                const cfg = CATEGORY_DISPLAY[cat];
+                if (!cfg) return null;
+                return (
+                  <div key={cat} className="mt-2">
+                    <div className={`px-4 py-1 text-[10px] font-bold uppercase tracking-widest ${cfg.accentColor}`}>
+                      {cfg.group}
+                    </div>
+                    {items.map((item) => (
+                      <Link
+                        key={item.slug}
+                        to={`/services/${item.slug}`}
+                        onClick={() => setOpen(false)}
+                        className="block px-4 py-2.5 rounded-xl hover:bg-white/5 text-sm"
+                      >
+                        {item.title}
+                      </Link>
+                    ))}
                   </div>
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setOpen(false)}
-                      className="block px-4 py-2.5 rounded-xl hover:bg-white/5 text-sm"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              ))}
+                );
+              })}
 
               <div className="border-t border-border/30 mt-3 pt-3 space-y-1">
                 {navLinks.filter((l) => !l.isPage).map((l) => (

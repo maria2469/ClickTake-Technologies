@@ -19,6 +19,7 @@ import {
   Loader2,
   Type,
   Palette,
+  Package,
 } from "lucide-react";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/admin")({
 const NAV_ITEMS = [
   { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard, permission: "manageRBAC" },
   { to: "/admin/cms", label: "CMS Management", icon: FileText, permission: "readCMS" },
+  { to: "/admin/services", label: "Services & Packages", icon: Package, permission: "readCMS" },
   { to: "/admin/typography", label: "Typography Engine", icon: Type, permission: "readCMS" },
   { to: "/admin/theme", label: "Theme Engine", icon: Palette, permission: "readCMS" },
   { to: "/admin/crm", label: "Lead CRM", icon: Users, permission: "readLeads" },
@@ -46,6 +48,7 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin": "manageRBAC",
   "/admin/": "manageRBAC",
   "/admin/cms": "readCMS",
+  "/admin/services": "readCMS",
   "/admin/typography": "readCMS",
   "/admin/theme": "readCMS",
   "/admin/crm": "readLeads",

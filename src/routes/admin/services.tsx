@@ -2,63 +2,122 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Save, Sparkles, Plus, Trash2, Layers, Clock, TrendingUp, HelpCircle, ArrowRight, CheckCircle2, ShieldAlert
+  Save, Sparkles, Plus, Trash2, HelpCircle, Loader2, Upload, FolderTree,
+  Brain, Bot, Wand2, Eye, Server, Layers, Shield, Cloud,
+  Search, PenTool, Megaphone, TrendingUp, Palette, Video, Rocket,
+  Globe, Code2, Award, BarChart3, Clock, ShieldCheck, Compass, FileSearch, Users,
+  Zap, Cpu, Database, GitBranch, Smartphone,
 } from "lucide-react";
+
+const ICON_OPTIONS = [
+  { value: "Sparkles", label: "Sparkles", Icon: Sparkles },
+  { value: "Brain", label: "Brain", Icon: Brain },
+  { value: "Bot", label: "Bot", Icon: Bot },
+  { value: "Wand2", label: "Wand2", Icon: Wand2 },
+  { value: "Eye", label: "Eye", Icon: Eye },
+  { value: "Server", label: "Server", Icon: Server },
+  { value: "Layers", label: "Layers", Icon: Layers },
+  { value: "Shield", label: "Shield", Icon: Shield },
+  { value: "Cloud", label: "Cloud", Icon: Cloud },
+  { value: "Search", label: "Search", Icon: Search },
+  { value: "PenTool", label: "PenTool", Icon: PenTool },
+  { value: "Megaphone", label: "Megaphone", Icon: Megaphone },
+  { value: "TrendingUp", label: "TrendingUp", Icon: TrendingUp },
+  { value: "Palette", label: "Palette", Icon: Palette },
+  { value: "Video", label: "Video", Icon: Video },
+  { value: "Rocket", label: "Rocket", Icon: Rocket },
+  { value: "Globe", label: "Globe", Icon: Globe },
+  { value: "Code2", label: "Code2", Icon: Code2 },
+  { value: "Award", label: "Award", Icon: Award },
+  { value: "BarChart3", label: "BarChart3", Icon: BarChart3 },
+  { value: "Clock", label: "Clock", Icon: Clock },
+  { value: "ShieldCheck", label: "ShieldCheck", Icon: ShieldCheck },
+  { value: "Compass", label: "Compass", Icon: Compass },
+  { value: "FileSearch", label: "FileSearch", Icon: FileSearch },
+  { value: "Users", label: "Users", Icon: Users },
+  { value: "Zap", label: "Zap", Icon: Zap },
+  { value: "Cpu", label: "Cpu", Icon: Cpu },
+  { value: "Database", label: "Database", Icon: Database },
+  { value: "GitBranch", label: "GitBranch", Icon: GitBranch },
+  { value: "Smartphone", label: "Smartphone", Icon: Smartphone },
+];
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabaseClient";
 import { logAudit } from "@/lib/logAudit";
+import { servicesService, type ServiceItem, type ProcessStep, type PricingPackage } from "@/lib/servicesService";
 
 export const Route = createFileRoute("/admin/services")({
   head: () => ({
     meta: [
       { title: "Services & Packages — ClickTake Admin Portal" },
-      { name: "description", content: "Dynamically manage service listings, capabilities, deliverables, process timelines, and pricing package tiers." },
+      { name: "description", content: "Dynamically manage service categories, offerings, capabilities, process timelines, and pricing tiers." },
     ],
   }),
   component: AdminServices,
 });
 
-/* ───────────────── TYPES ───────────────── */
+function IconSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selected = ICON_OPTIONS.find(o => o.value === value) || ICON_OPTIONS[0];
+  const [search, setSearch] = useState("");
 
-interface ServiceItem {
-  id: string;
-  slug: string;
-  category: string;
-  category_label: string;
-  title: string;
-  gradient: string;
-  glow: string;
-  eyebrow: string;
-  description: string;
-  detailed_description: string;
-  icon_name: string;
-  items: any[];
-  results: any[];
-  differentiators: any[];
-  deliverables: any[];
-  display_order: number;
-}
+  const filtered = search.trim()
+    ? ICON_OPTIONS.filter(o => o.label.toLowerCase().includes(search.toLowerCase()))
+    : ICON_OPTIONS;
 
-interface ProcessStep {
-  id?: string;
-  service_id: string;
-  step_number: number;
-  title: string;
-  description: string;
-}
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm hover:border-primary/40 transition-colors"
+      >
+        <selected.Icon className="h-4 w-4 shrink-0 text-foreground" />
+        <span className="flex-1 text-left">{selected.label}</span>
+        <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
-interface PricingPackage {
-  id?: string;
-  service_id: string;
-  package_level: "Basic" | "Standard" | "Premium";
-  price: string;
-  delivery_days: string;
-  description: string;
-  features: string[];
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => { setOpen(false); setSearch(""); }} />
+          <div className="absolute top-full left-0 mt-1 w-full max-h-64 z-50 bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+            <div className="p-2 border-b border-border">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search icons…"
+                className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-xs outline-none"
+                autoFocus
+              />
+            </div>
+            <div className="overflow-y-auto max-h-48 p-1 space-y-0.5">
+              {filtered.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => { onChange(opt.value); setOpen(false); setSearch(""); }}
+                  className={`flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm transition-colors ${opt.value === value ? "bg-primary/10 text-primary" : "hover:bg-secondary text-foreground"}`}
+                >
+                  <opt.Icon className="h-4 w-4 shrink-0" />
+                  {opt.label}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <div className="text-center py-4 text-xs text-muted-foreground">No icons found</div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 function AdminServices() {
   const [services, setServices] = useState<ServiceItem[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"general" | "capabilities" | "process" | "pricing">("general");
   const [loading, setLoading] = useState(true);
@@ -82,8 +141,20 @@ function AdminServices() {
   const [newServiceCategory, setNewServiceCategory] = useState("web");
   const [newServiceCatLabel, setNewServiceCatLabel] = useState("Web Development");
 
+  // Category Management state
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [catKey, setCatKey] = useState("");
+  const [catLabel, setCatLabel] = useState("");
+  const [catDesc, setCatDesc] = useState("");
+  const [catIcon, setCatIcon] = useState("Sparkles");
+  const [catGradient, setCatGradient] = useState("from-brand-cyan to-brand-blue");
+
+  // Image upload state
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   useEffect(() => {
-    fetchServices();
+    fetchAll();
   }, []);
 
   useEffect(() => {
@@ -101,6 +172,7 @@ function AdminServices() {
           gradient: selected.gradient || 'from-brand-cyan via-brand-blue to-brand-magenta',
           glow: selected.glow || 'rgba(6,182,212,0.15)',
           icon_name: selected.icon_name || 'Sparkles',
+          image_url: selected.image_url || '',
           display_order: selected.display_order ?? 0
         });
         setEditCapabilities(Array.isArray(selected.items) ? selected.items : []);
@@ -114,14 +186,17 @@ function AdminServices() {
   }, [selectedServiceId, services]);
 
 
-  const fetchServices = async () => {
+  const fetchAll = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("services").select("*").order("display_order");
-      if (error) throw error;
-      setServices(data || []);
-      if (data && data.length > 0 && !selectedServiceId) {
-        setSelectedServiceId(data[0].id);
+      const [svcData, catData] = await Promise.all([
+        servicesService.getAll(),
+        servicesService.getCategories()
+      ]);
+      setServices(svcData);
+      setCategories(catData);
+      if (svcData.length > 0 && !selectedServiceId) {
+        setSelectedServiceId(svcData[0].id);
       }
     } catch (e: any) {
       toast.error("Failed to load services: " + e.message);
@@ -132,13 +207,39 @@ function AdminServices() {
 
   const fetchProcessesAndPackages = async (serviceId: string) => {
     try {
-      const { data: procData } = await supabase.from("service_processes").select("*").eq("service_id", serviceId).order("step_number");
-      setProcesses(procData || []);
-
-      const { data: pkgData } = await supabase.from("pricing_packages").select("*").eq("service_id", serviceId);
-      setPackages(pkgData || []);
+      const [procData, pkgData] = await Promise.all([
+        servicesService.getProcesses(serviceId),
+        servicesService.getPackages(serviceId)
+      ]);
+      setProcesses(procData);
+      setPackages(pkgData);
     } catch (e: any) {
       toast.error("Error loading processes/packages: " + e.message);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/auto/upload`,
+        { method: 'POST', body: formData }
+      );
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      setEditGeneral({ ...editGeneral, image_url: data.secure_url });
+      toast.success("Image uploaded successfully");
+    } catch (e: any) {
+      toast.error("Image upload failed: " + e.message);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -147,59 +248,18 @@ function AdminServices() {
     setSaving(true);
 
     try {
-      // 1. Update general details, capabilities, results, differentiators, deliverables in services table
       const updatedPayload = {
         ...editGeneral,
         items: editCapabilities,
         results: editResults,
         differentiators: editDifferentiators,
         deliverables: editDeliverables,
-        updated_at: new Date().toISOString()
       };
 
-      const { error: serviceErr } = await supabase
-        .from("services")
-        .update(updatedPayload)
-        .eq("id", selectedServiceId);
-      if (serviceErr) throw serviceErr;
+      await servicesService.update(selectedServiceId, updatedPayload);
+      await servicesService.replaceProcesses(selectedServiceId, processes);
+      await servicesService.replacePackages(selectedServiceId, packages);
 
-      // 2. Sync processes
-      // Delete old processes
-      const { error: delProcErr } = await supabase.from("service_processes").delete().eq("service_id", selectedServiceId);
-      if (delProcErr) throw delProcErr;
-
-      // Insert updated ones (without ID, so they get regenerated or seeded cleanly)
-      if (processes.length > 0) {
-        const insertProcs = processes.map((p, idx) => ({
-          service_id: selectedServiceId,
-          step_number: idx + 1,
-          title: p.title,
-          description: p.description
-        }));
-        const { error: insProcErr } = await supabase.from("service_processes").insert(insertProcs);
-        if (insProcErr) throw insProcErr;
-      }
-
-      // 3. Sync pricing packages
-      // Delete old packages
-      const { error: delPkgErr } = await supabase.from("pricing_packages").delete().eq("service_id", selectedServiceId);
-      if (delPkgErr) throw delPkgErr;
-
-      // Insert updated ones
-      if (packages.length > 0) {
-        const insertPkgs = packages.map(p => ({
-          service_id: selectedServiceId,
-          package_level: p.package_level,
-          price: p.price,
-          delivery_days: p.delivery_days,
-          description: p.description,
-          features: p.features
-        }));
-        const { error: insPkgErr } = await supabase.from("pricing_packages").insert(insertPkgs);
-        if (insPkgErr) throw insPkgErr;
-      }
-
-      // Update local state list
       setServices(services.map(s => s.id === selectedServiceId ? { ...s, ...updatedPayload } as ServiceItem : s));
       await logAudit(`Updated service details for '${editGeneral.title}'`, 'cms', selectedServiceId);
       toast.success("Service changes saved successfully!");
@@ -227,6 +287,7 @@ function AdminServices() {
         description: "New custom service offering managed from the admin panel.",
         detailed_description: "New custom service offering ready for client engagements.",
         icon_name: "Sparkles",
+        image_url: "",
         items: [],
         results: [],
         differentiators: [],
@@ -234,20 +295,13 @@ function AdminServices() {
         display_order: services.length + 1
       };
 
-      const { data, error } = await supabase.from("services").insert([payload]).select();
-      if (error) throw error;
-
+      const created = await servicesService.create(payload);
       toast.success(`Service '${newServiceTitle}' created successfully!`);
       setIsAddServiceOpen(false);
       setNewServiceSlug("");
       setNewServiceTitle("");
-
-      if (data && data.length > 0) {
-        setServices([...services, data[0]]);
-        setSelectedServiceId(data[0].id);
-      } else {
-        fetchServices();
-      }
+      setServices([...services, created]);
+      setSelectedServiceId(created.id);
     } catch (e: any) {
       toast.error("Failed to create service: " + e.message);
     }
@@ -255,16 +309,61 @@ function AdminServices() {
 
   const handleDeleteService = async (serviceId: string) => {
     if (!window.confirm("Are you sure you want to permanently delete this service and all of its processes/packages?")) return;
-
     try {
-      const { error } = await supabase.from("services").delete().eq("id", serviceId);
-      if (error) throw error;
-
+      await servicesService.delete(serviceId);
       toast.success("Service deleted successfully.");
       setServices(services.filter(s => s.id !== serviceId));
       if (selectedServiceId === serviceId) {
         setSelectedServiceId(services.find(s => s.id !== serviceId)?.id || null);
       }
+    } catch (e: any) {
+      toast.error("Delete failed: " + e.message);
+    }
+  };
+
+  // Category Management
+  const openCategoryModal = (cat?: any) => {
+    if (cat) {
+      setEditingCategory(cat);
+      setCatKey(cat.key);
+      setCatLabel(cat.label);
+      setCatDesc(cat.description || "");
+      setCatIcon(cat.icon_name || "Sparkles");
+      setCatGradient(cat.gradient || "from-brand-cyan to-brand-blue");
+    } else {
+      setEditingCategory(null);
+      setCatKey("");
+      setCatLabel("");
+      setCatDesc("");
+      setCatIcon("Sparkles");
+      setCatGradient("from-brand-cyan to-brand-blue");
+    }
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingCategory) {
+        await servicesService.updateCategory(editingCategory.id, { key: catKey, label: catLabel, display_order: editingCategory.display_order });
+      } else {
+        await servicesService.createCategory({ key: catKey, label: catLabel, display_order: categories.length + 1 });
+      }
+      toast.success(`Category ${editingCategory ? 'updated' : 'created'} successfully`);
+      setIsCategoryModalOpen(false);
+      const freshCats = await servicesService.getCategories();
+      setCategories(freshCats);
+    } catch (e: any) {
+      toast.error("Category save failed: " + e.message);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!window.confirm("Delete this category? Services using it won't be removed.")) return;
+    try {
+      await servicesService.deleteCategory(id);
+      toast.success("Category deleted");
+      setCategories(categories.filter(c => c.id !== id));
     } catch (e: any) {
       toast.error("Delete failed: " + e.message);
     }
@@ -324,12 +423,20 @@ function AdminServices() {
             Manage dynamic service categories, detailed capabilities, processes, and basic/standard/premium pricing packages.
           </p>
         </div>
-        <button
-          onClick={() => setIsAddServiceOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue px-5 py-2.5 font-semibold text-white shadow-lg hover:scale-[1.02] active:scale-95 transition-transform"
-        >
-          <Plus className="h-4 w-4" /> Create Service
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => openCategoryModal()}
+            className="flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 font-semibold text-muted-foreground hover:bg-secondary transition-colors"
+          >
+            <FolderTree className="h-4 w-4" /> Categories
+          </button>
+          <button
+            onClick={() => setIsAddServiceOpen(true)}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue px-5 py-2.5 font-semibold text-white shadow-lg hover:scale-[1.02] active:scale-95 transition-transform"
+          >
+            <Plus className="h-4 w-4" /> Create Service
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -431,11 +538,9 @@ function AdminServices() {
                             onChange={(e) => setEditGeneral({ ...editGeneral, category: e.target.value })}
                             className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
                           >
-                            <option value="web">Web Development</option>
-                            <option value="ai">AI & ML Solutions</option>
-                            <option value="marketing">Digital Marketing</option>
-                            <option value="creative">Creative Services</option>
-                            <option value="starter-kit">Starter Kit</option>
+                            {categories.map(c => (
+                              <option key={c.id} value={c.key}>{c.label}</option>
+                            ))}
                           </select>
                         </div>
                         <div className="space-y-2">
@@ -480,15 +585,12 @@ function AdminServices() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-xs font-semibold text-muted-foreground uppercase">Lucide Icon Name</label>
-                          <input
-                            type="text"
-                            value={editGeneral.icon_name || ""}
-                            onChange={(e) => setEditGeneral({ ...editGeneral, icon_name: e.target.value })}
-                            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
-                            placeholder="e.g. Search, Bot, Rocket"
+                          <label className="text-xs font-semibold text-muted-foreground uppercase">Icon</label>
+                          <IconSelect
+                            value={editGeneral.icon_name || "Sparkles"}
+                            onChange={(v) => setEditGeneral({ ...editGeneral, icon_name: v })}
                           />
                         </div>
                         <div className="space-y-2">
@@ -501,6 +603,9 @@ function AdminServices() {
                             placeholder="from-brand-cyan to-brand-blue"
                           />
                         </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <label className="text-xs font-semibold text-muted-foreground uppercase">Display Order</label>
                           <input
@@ -510,6 +615,43 @@ function AdminServices() {
                             className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
                           />
                         </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-muted-foreground uppercase">Glow CSS Value</label>
+                          <input
+                            type="text"
+                            value={editGeneral.glow || ""}
+                            onChange={(e) => setEditGeneral({ ...editGeneral, glow: e.target.value })}
+                            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
+                            placeholder="rgba(6,182,212,0.15)"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase">Service Image</label>
+                        {editGeneral.image_url ? (
+                          <div className="relative rounded-xl overflow-hidden border border-border max-w-xs">
+                            <img src={editGeneral.image_url} alt="Service" className="w-full h-32 object-cover" />
+                            <button
+                              onClick={() => setEditGeneral({ ...editGeneral, image_url: "" })}
+                              className="absolute top-2 right-2 bg-destructive/90 text-white p-1 rounded-lg text-xs"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-6 cursor-pointer hover:border-primary transition-colors max-w-xs">
+                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                            {uploadingImage ? (
+                              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            ) : (
+                              <>
+                                <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                                <span className="text-xs text-muted-foreground">Click to upload image</span>
+                              </>
+                            )}
+                          </label>
+                        )}
                       </div>
                     </div>
                   )}
@@ -549,11 +691,9 @@ function AdminServices() {
                               </div>
                               <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-muted-foreground uppercase">Icon</label>
-                                <input
-                                  type="text"
-                                  value={cap.icon_name || ""}
-                                  onChange={(e) => updateCapability(idx, "icon_name", e.target.value)}
-                                  className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm"
+                                <IconSelect
+                                  value={cap.icon_name || "Sparkles"}
+                                  onChange={(v) => updateCapability(idx, "icon_name", v)}
                                 />
                               </div>
                             </div>
@@ -831,28 +971,20 @@ function AdminServices() {
                         value={newServiceCategory}
                         onChange={(e) => {
                           setNewServiceCategory(e.target.value);
-                          // Auto set matching label
-                          const labels: Record<string, string> = {
-                            web: "Web Development",
-                            ai: "AI & ML Solutions",
-                            marketing: "Digital Marketing",
-                            creative: "Creative Services"
-                          };
-                          setNewServiceCatLabel(labels[e.target.value] || "Custom Category");
+                          const match = categories.find(c => c.key === e.target.value);
+                          setNewServiceCatLabel(match?.label || "Custom Category");
                         }}
                         className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
                       >
-                        <option value="web">Web Development</option>
-                        <option value="ai">AI & ML Solutions</option>
-                        <option value="marketing">Digital Marketing</option>
-                        <option value="creative">Creative Services</option>
+                        {categories.map(c => (
+                          <option key={c.id} value={c.key}>{c.label}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-muted-foreground uppercase">Category Label</label>
                       <input
                         type="text"
-                        required
                         value={newServiceCatLabel}
                         onChange={(e) => setNewServiceCatLabel(e.target.value)}
                         className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
@@ -881,13 +1013,138 @@ function AdminServices() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* ── CATEGORY MANAGEMENT MODAL ── */}
+      <AnimatePresence>
+        {isCategoryModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-2xl bg-card border border-border rounded-2xl overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-border bg-card/60 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <FolderTree className="h-5 w-5 text-brand-cyan" /> Manage Categories
+                </h3>
+                <button
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Existing categories list */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Existing Categories</h4>
+                  {categories.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4">No categories defined yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {categories.map(cat => (
+                        <div key={cat.id} className="flex items-center justify-between bg-secondary/40 border border-border p-3 rounded-xl">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${cat.gradient || 'from-brand-cyan to-brand-blue'} flex items-center justify-center text-white text-xs font-bold`}>
+                              {cat.key.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold">{cat.label}</div>
+                              <div className="text-[10px] text-muted-foreground">/{cat.key}</div>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => openCategoryModal(cat)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors text-xs"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCategory(cat.id)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Add / Edit form */}
+                <form onSubmit={handleSaveCategory} className="space-y-4 border-t border-border pt-6">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {editingCategory ? 'Edit Category' : 'Add New Category'}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase">Key (slug)</label>
+                      <input
+                        type="text"
+                        required
+                        value={catKey}
+                        onChange={(e) => setCatKey(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
+                        placeholder="e.g. mobile"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase">Label</label>
+                      <input
+                        type="text"
+                        required
+                        value={catLabel}
+                        onChange={(e) => setCatLabel(e.target.value)}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
+                        placeholder="e.g. Mobile Development"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase">Icon</label>
+                      <IconSelect
+                        value={catIcon}
+                        onChange={(v) => setCatIcon(v)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase">Gradient</label>
+                      <input
+                        type="text"
+                        value={catGradient}
+                        onChange={(e) => setCatGradient(e.target.value)}
+                        className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => { setEditingCategory(null); setCatKey(""); setCatLabel(""); setCatDesc(""); setCatIcon("Sparkles"); setCatGradient("from-brand-cyan to-brand-blue"); }}
+                      className="px-4 py-2 text-sm font-semibold rounded-xl border border-border hover:bg-secondary transition-colors"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-brand-cyan to-brand-blue font-semibold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-95"
+                    >
+                      {editingCategory ? 'Update' : 'Create'} Category
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-// Simple loader helper inside routing context
-function Loader2({ className }: { className?: string }) {
-  return (
-    <div className={`animate-spin rounded-full border-2 border-current border-t-transparent ${className}`} />
-  );
-}
