@@ -40,6 +40,7 @@ import { Route as AdminEmailRouteImport } from './routes/admin/email'
 import { Route as AdminCrmRouteImport } from './routes/admin/crm'
 import { Route as AdminCreateAdminRouteImport } from './routes/admin/create-admin'
 import { Route as AdminCmsRouteImport } from './routes/admin/cms'
+import { Route as AdminTeamCareersRouteImport } from './routes/admin/Team-Careers'
 import { Route as ServicesWebSaasRouteImport } from './routes/services/web/saas'
 import { Route as ServicesWebPythonBackendRouteImport } from './routes/services/web/python-backend'
 import { Route as ServicesWebFullStackRouteImport } from './routes/services/web/full-stack'
@@ -209,6 +210,11 @@ const AdminCmsRoute = AdminCmsRouteImport.update({
   path: '/cms',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminTeamCareersRoute = AdminTeamCareersRouteImport.update({
+  id: '/Team-Careers',
+  path: '/Team-Careers',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ServicesWebSaasRoute = ServicesWebSaasRouteImport.update({
   id: '/web/saas',
   path: '/web/saas',
@@ -290,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
+  '/admin/Team-Careers': typeof AdminTeamCareersRoute
   '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
   '/admin/crm': typeof AdminCrmRoute
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
+  '/admin/Team-Careers': typeof AdminTeamCareersRoute
   '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
   '/admin/crm': typeof AdminCrmRoute
@@ -381,6 +389,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/portfolio': typeof PortfolioRoute
   '/resources': typeof ResourcesRoute
+  '/admin/Team-Careers': typeof AdminTeamCareersRoute
   '/admin/cms': typeof AdminCmsRoute
   '/admin/create-admin': typeof AdminCreateAdminRoute
   '/admin/crm': typeof AdminCrmRoute
@@ -429,6 +438,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/portfolio'
     | '/resources'
+    | '/admin/Team-Careers'
     | '/admin/cms'
     | '/admin/create-admin'
     | '/admin/crm'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/portfolio'
     | '/resources'
+    | '/admin/Team-Careers'
     | '/admin/cms'
     | '/admin/create-admin'
     | '/admin/crm'
@@ -519,6 +530,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/portfolio'
     | '/resources'
+    | '/admin/Team-Careers'
     | '/admin/cms'
     | '/admin/create-admin'
     | '/admin/crm'
@@ -793,6 +805,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCmsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/Team-Careers': {
+      id: '/admin/Team-Careers'
+      path: '/Team-Careers'
+      fullPath: '/admin/Team-Careers'
+      preLoaderRoute: typeof AdminTeamCareersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/services/web/saas': {
       id: '/services/web/saas'
       path: '/web/saas'
@@ -888,6 +907,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminTeamCareersRoute: typeof AdminTeamCareersRoute
   AdminCmsRoute: typeof AdminCmsRoute
   AdminCreateAdminRoute: typeof AdminCreateAdminRoute
   AdminCrmRoute: typeof AdminCrmRoute
@@ -905,6 +925,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminTeamCareersRoute: AdminTeamCareersRoute,
   AdminCmsRoute: AdminCmsRoute,
   AdminCreateAdminRoute: AdminCreateAdminRoute,
   AdminCrmRoute: AdminCrmRoute,

@@ -20,6 +20,7 @@ import {
   Type,
   Palette,
   Package,
+  Briefcase,
 } from "lucide-react";
 import { BackgroundScene } from "@/components/BackgroundScene";
 import { CustomCursor } from "@/components/CustomCursor";
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
   { to: "/admin", label: "Dashboard Overview", icon: LayoutDashboard, permission: "manageRBAC" },
   { to: "/admin/cms", label: "CMS Management", icon: FileText, permission: "readCMS" },
   { to: "/admin/services", label: "Services & Packages", icon: Package, permission: "readCMS" },
+  { to: "/admin/team-careers", label: "Team & Careers", icon: Briefcase, permission: "readCMS" },
   { to: "/admin/typography", label: "Typography Engine", icon: Type, permission: "readCMS" },
   { to: "/admin/theme", label: "Theme Engine", icon: Palette, permission: "readCMS" },
   { to: "/admin/crm", label: "Lead CRM", icon: Users, permission: "readLeads" },
@@ -49,6 +51,7 @@ const ROUTE_PERMISSIONS: Record<string, string> = {
   "/admin/": "manageRBAC",
   "/admin/cms": "readCMS",
   "/admin/services": "readCMS",
+  "/admin/team-careers": "readCMS",
   "/admin/typography": "readCMS",
   "/admin/theme": "readCMS",
   "/admin/crm": "readLeads",
@@ -214,11 +217,11 @@ function AdminLayout() {
           {allowedHome ? (
             <Link to={allowedHome} className="text-xs text-brand-magenta hover:underline">Go to your section</Link>
           ) : (
-            <button 
+            <button
               onClick={async () => {
                 await supabase.auth.signOut();
                 router.navigate({ to: '/admin/login' });
-              }} 
+              }}
               className="text-xs text-brand-magenta hover:underline cursor-pointer"
             >
               Sign Out
@@ -250,21 +253,21 @@ function AdminLayout() {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const activeColorTheme =
-      themeAccent === "magenta"
-          ? "from-brand-magenta to-brand-blue"
-          : themeAccent === "pink"
-              ? "from-brand-pink to-brand-magenta"
-              : themeAccent === "cyan"
-                  ? "from-brand-cyan to-brand-blue"
-                  : themeAccent === "emerald"
-                      ? "from-emerald-400 to-teal-500"
-                      : themeAccent === "amber"
-                          ? "from-amber-400 to-orange-500"
-                          : themeAccent === "violet"
-                              ? "from-violet-500 to-purple-600"
-                              : themeAccent === "rose"
-                                  ? "from-rose-400 to-red-500"
-                                  : "from-brand-pink to-brand-cyan";
+    themeAccent === "magenta"
+      ? "from-brand-magenta to-brand-blue"
+      : themeAccent === "pink"
+        ? "from-brand-pink to-brand-magenta"
+        : themeAccent === "cyan"
+          ? "from-brand-cyan to-brand-blue"
+          : themeAccent === "emerald"
+            ? "from-emerald-400 to-teal-500"
+            : themeAccent === "amber"
+              ? "from-amber-400 to-orange-500"
+              : themeAccent === "violet"
+                ? "from-violet-500 to-purple-600"
+                : themeAccent === "rose"
+                  ? "from-rose-400 to-red-500"
+                  : "from-brand-pink to-brand-cyan";
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden transition-colors duration-300">
@@ -332,12 +335,12 @@ function AdminLayout() {
 
               <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-border bg-card p-3 shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200">
                 <div className="text-xs font-bold border-b border-border pb-2 mb-2 flex justify-between items-center">
-                   <span>Recent Notifications</span>
-                   {unreadCount > 0 && (
-                     <button onClick={markAllAsRead} className="text-[9px] font-normal text-brand-magenta hover:underline cursor-pointer">
-                       Mark all read
-                     </button>
-                   )}
+                  <span>Recent Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={markAllAsRead} className="text-[9px] font-normal text-brand-magenta hover:underline cursor-pointer">
+                      Mark all read
+                    </button>
+                  )}
                 </div>
                 <div className="space-y-2.5 max-h-60 overflow-y-auto">
                   {notifications.length === 0 ? (
@@ -397,8 +400,8 @@ function AdminLayout() {
                   key={item.to}
                   to={item.to}
                   className={`group flex items-center gap-3 rounded-xl px-4 py-3.5 text-left text-xs font-bold transition-all ${isActive
-                      ? `bg-linear-to-r ${activeColorTheme} text-white shadow-glow`
-                      : "hover:bg-secondary text-muted-foreground hover:text-foreground"
+                    ? `bg-linear-to-r ${activeColorTheme} text-white shadow-glow`
+                    : "hover:bg-secondary text-muted-foreground hover:text-foreground"
                     }`}
                 >
                   <ItemIcon className={`h-4.5 w-4.5 ${isActive ? "text-white" : "group-hover:scale-105 transition-transform"}`} />
